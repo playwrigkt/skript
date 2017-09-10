@@ -4,9 +4,11 @@ import dev.yn.playground.sql.*
 import io.kotlintest.Spec
 import io.kotlintest.matchers.shouldBe
 import io.kotlintest.specs.StringSpec
+import io.vertx.core.Future
 import io.vertx.core.Vertx
+import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
-import io.vertx.ext.asyncsql.PostgreSQLClient
+import io.vertx.ext.jdbc.JDBCClient
 import java.util.*
 
 class UserRepositorySpec: StringSpec() {
@@ -36,50 +38,33 @@ CREATE TABLE IF NOT EXISTS user_profile (
             .put("driver_class", "org.postgresql.Driver")
             .put("max_pool_size", 30)
 
-    val asyncPSQLConfig = JsonObject()
-            .put("host", "localhost")
-            .put("port", 5432)
-            .put("database", "chitchat")
-            .put("username", "chatty_tammy")
-            .put("password", "gossipy")
-            .put("maxPoolSize", 30)
     val vertx: Vertx by lazy {
         Vertx.vertx()
     }
     val executor: SQLTransactionExecutor by lazy {
-        SQLTransactionExecutor(PostgreSQLClient.createShared(vertx, asyncPSQLConfig))
+        SQLTransactionExecutor(JDBCClient.createNonShared(vertx, jdbcConfig))
     }
     
     override protected fun interceptSpec(context: Spec, spec: () -> Unit) {
 
-        val setUpFuture = executor.execute(Unit,
+        val setUpFuture = executor.execute(
                 SQLTransaction.exec(createUserProfileTable)
                         .exec(createUserPasswordTable)
                         .exec("CREATE EXTENSION IF NOT EXISTS pgcrypto"))
 
-        while(!setUpFuture.isComplete) {
-            println("setting up")
-            Thread.sleep(500)
-        }
+        awaitFuture(setUpFuture)
         setUpFuture.succeeded() shouldBe true
 
         spec()
 
-        val cleanupFuture = executor.execute(Unit,
-                SQLTransaction.deleteAll("user_password")
-                        .deleteAll("user_profile")
-        ).compose {
-            executor.execute(
-                    Unit,
-                    SQLTransaction.dropTable("user_password")
-                            .dropTable("user_profile")
-            )
+        val cleanupFuture = executor.execute(SQLTransaction
+                .deleteAll("user_password")
+                .deleteAll("user_profile")
+        ).compose { executor.execute(SQLTransaction
+                .dropTable("user_password")
+                .dropTable("user_profile"))
         }
-        while(!cleanupFuture.isComplete) {
-            println("cleaning up")
-            Thread.sleep(500)
-        }
-
+        awaitFuture(cleanupFuture)
         cleanupFuture.succeeded() shouldBe true
     }
 
@@ -87,28 +72,26 @@ CREATE TABLE IF NOT EXISTS user_profile (
         "Create the user password repository" {
             val future = executor.update(UserAndPassword(user, password), UserTransactions.createUserTransaction)
 
-            while(!future.isComplete) {
-                println("waiting for future to complete..")
-                Thread.sleep(500)
-            }
+            awaitFuture(future)
             future.succeeded() shouldBe true
 
             val getFuture = executor.query(userAndPassword, UserTransactions.authenticateUserTransaction)
-            while(!getFuture.isComplete) {
-                println("waiting for future to complete..")
-                Thread.sleep(500)
-            }
+            awaitFuture(getFuture)
             getFuture.succeeded() shouldBe true
             getFuture.result() shouldBe userId
 
 
             val authenticateBadPassword = executor.query(userAndPassword.copy(password = "bad"), UserTransactions.authenticateUserTransaction)
-            while(!authenticateBadPassword.isComplete) {
-                println("waiting for future to complete..")
-                Thread.sleep(500)
-            }
+            awaitFuture(authenticateBadPassword)
             authenticateBadPassword.failed() shouldBe true
-            authenticateBadPassword.cause() shouldBe UserError.AuthenticationFailed
+            authenticateBadPassword.cause() shouldBe SQLError.OnStatement(SQLStatement.Parameterized(SelectUserByPassword.selectUserPassword, JsonArray(listOf(userId, "bad"))), UserError.AuthenticationFailed)
+        }
+    }
+
+    fun <T> awaitFuture(future: Future<T>, maxDuration: Long = 1000L) {
+        val start = System.currentTimeMillis()
+        while(!future.isComplete && System.currentTimeMillis() - start < maxDuration) {
+            Thread.sleep(100)
         }
     }
 

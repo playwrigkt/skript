@@ -35,7 +35,7 @@ allprojects {
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
 
     compile "io.vertx:vertx-core:$vertxVersion"
-    compile "io.vertx:vertx-mysql-postgresql-client:$vertxVersion"
+    compile "io.vertx:vertx-jdbc-client:$vertxVersion"
 
     compile "io.vertx:vertx-jdbc-client:$vertxVersion"
 

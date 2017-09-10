@@ -4,12 +4,7 @@ import io.vertx.core.Future
 import io.vertx.ext.sql.ResultSet
 import io.vertx.ext.sql.SQLConnection
 import io.vertx.ext.sql.UpdateResult
-interface SQLMapping<I, O, RS> {
-    fun toSql(i: I): SQLStatement
-    fun mapResult(i: I, rs: RS): O
-}
-interface UpdateSQLMapping<I, O>: SQLMapping<I, O, UpdateResult>
-interface QuerySQLMapping<I, O>: SQLMapping<I, O, ResultSet>
+import org.funktionale.tries.Try
 
 sealed class SQLTransaction<I, J, O> {
     companion object {
@@ -17,13 +12,13 @@ sealed class SQLTransaction<I, J, O> {
             return EndLink(action)
         }
 
-        fun <I, O> query(toSql: (I) -> SQLStatement, mapResult: (I, ResultSet) -> O): SQLTransaction<I, O, O> =
+        fun <I, O> query(toSql: (I) -> SQLStatement, mapResult: (I, ResultSet) -> Try<O>): SQLTransaction<I, O, O> =
                 new(SQLAction.Query(toSql, mapResult))
 
         fun <I, O> query(mapping: QuerySQLMapping<I, O>): SQLTransaction<I, O, O> =
                 query(mapping::toSql, mapping::mapResult)
 
-        fun <I, O> update(toSql: (I) -> SQLStatement, mapResult: (I, UpdateResult) -> O): SQLTransaction<I, O, O> =
+        fun <I, O> update(toSql: (I) -> SQLStatement, mapResult: (I, UpdateResult) -> Try<O>): SQLTransaction<I, O, O> =
                 new(SQLAction.Update(toSql, mapResult))
 
         fun <I, O> update(mapping: UpdateSQLMapping<I, O>): SQLTransaction<I, O, O> =
@@ -40,13 +35,13 @@ sealed class SQLTransaction<I, J, O> {
 
     }
 
-    fun <K> query(toSql: (O) -> SQLStatement, mapResult: (O, ResultSet) -> K): SQLTransaction<I, J, K> =
+    fun <K> query(toSql: (O) -> SQLStatement, mapResult: (O, ResultSet) -> Try<K>): SQLTransaction<I, J, K> =
             addAction(SQLAction.Query(toSql, mapResult))
 
     fun <K> query(mapping: QuerySQLMapping<O, K>): SQLTransaction<I, J, K> =
             query(mapping::toSql, mapping::mapResult)
 
-    fun <K> update(toSql: (O) -> SQLStatement, mapResult: (O, UpdateResult) -> K): SQLTransaction<I, J, K> =
+    fun <K> update(toSql: (O) -> SQLStatement, mapResult: (O, UpdateResult) -> Try<K>): SQLTransaction<I, J, K> =
             addAction(SQLAction.Update(toSql, mapResult))
 
     fun <K> update(mapping: UpdateSQLMapping<O, K>): SQLTransaction<I, J, K> =

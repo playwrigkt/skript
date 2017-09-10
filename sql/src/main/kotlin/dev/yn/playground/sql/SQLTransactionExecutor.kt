@@ -12,8 +12,12 @@ class SQLTransactionExecutor(val client: SQLClient) {
             transaction.run(i, connection)
         }
     }
-    fun execute(i: Unit, transaction: SQLTransaction<Unit, Unit, Unit>): Future<Unit> {
-        return query(i, transaction)
+    fun execute(transaction: SQLTransaction<Unit, Unit, Unit>): Future<Unit> {
+        val future: Future<SQLConnection> = Future.future()
+        client.getConnection(future.completer())
+        return future.compose { connection ->
+            transaction.run(Unit, connection)
+        }
     }
 
     fun <I, J, O> update(i: I, transaction: SQLTransaction<I, J, O>): Future<O> {
@@ -23,17 +27,17 @@ class SQLTransactionExecutor(val client: SQLClient) {
                 .compose { connection ->
                     val confFuture: Future<Void> = Future.future()
                     connection.setAutoCommit(false, confFuture.completer())
-                    confFuture.map { connection }
-                }.compose { connection ->
-            transaction.run(i, connection).compose { result ->
-                val commitFuture: Future<Void> = Future.future()
-                connection.commit(commitFuture.completer())
-                commitFuture.map { result }
-            }.recover { error ->
-                val rollbackFuture: Future<Void> = Future.future()
-                connection.rollback(rollbackFuture.completer())
-                rollbackFuture.compose { Future.failedFuture<O>(error) }
-            }
+                    confFuture.map { connection } }
+                .compose { connection ->
+                    transaction.run(i, connection)
+                            .compose { result ->
+                                val commitFuture: Future<Void> = Future.future()
+                                connection.commit(commitFuture.completer())
+                                commitFuture.map { result } }
+                            .recover { error ->
+                                val rollbackFuture: Future<Void> = Future.future()
+                                connection.rollback(rollbackFuture.completer())
+                                rollbackFuture.compose { Future.failedFuture<O>(error) } }
         }
     }
 }
