@@ -12,4 +12,6 @@ object TryUtil {
                                 .map { Future.failedFuture<R>(it) }
                                 .get()
                     }
+
+    val unitSuccess: Try<Unit> = Try.Success(Unit)
 }
