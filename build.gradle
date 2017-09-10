@@ -47,7 +47,7 @@ allprojects {
 
 
     testCompile 'io.kotlintest:kotlintest:2.0.0'
-
+    testCompile 'org.slf4j:slf4j-simple:1.7.25'
   }
 
   compileKotlin {

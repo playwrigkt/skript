@@ -12,13 +12,13 @@ import io.vertx.ext.jdbc.JDBCClient
 import java.util.*
 import dev.yn.playground.user.extensions.schema.*
 import dev.yn.playground.user.extensions.transaction.*
+import io.kotlintest.TestCaseContext
+import io.kotlintest.matchers.fail
+import org.slf4j.LoggerFactory
 
 class UserRepositorySpec: StringSpec() {
-    val userId = UUID.randomUUID().toString()
-    val password = "pass1"
-    val userName = "sally"
-    val user = User(userId, userName, false)
-    val userAndPassword = UserNameAndPassword(userName, password)
+
+    val LOG = LoggerFactory.getLogger(this.javaClass)
 
     val jdbcConfig = JsonObject()
             .put("url", "jdbc:postgresql://localhost:5432/chitchat")
@@ -30,53 +30,65 @@ class UserRepositorySpec: StringSpec() {
     val vertx: Vertx by lazy {
         Vertx.vertx()
     }
+
     val executor: SQLTransactionExecutor by lazy {
         SQLTransactionExecutor(JDBCClient.createNonShared(vertx, jdbcConfig))
     }
 
+    override protected fun interceptTestCase(context: TestCaseContext, test: () -> Unit) {
+        test()
+    }
+
     override protected fun interceptSpec(context: Spec, spec: () -> Unit) {
         awaitSucceededFuture(executor.initUserSchema())
-
         spec()
-
         awaitSucceededFuture(executor.deleteAllUsers()
                 .dropUserSchema(executor))
     }
 
     init {
-        "Create the user password repository" {
+        "Login a userName" {
+            val userId = UUID.randomUUID().toString()
+            val password = "pass1"
+            val userName = "sally"
+            val user = UserProfile(userId, userName, false)
+            val userAndPassword = UserNameAndPassword(userName, password)
+
             val userService = UserService(executor)
             awaitSucceededFuture(
-                    userService.createUser(UserAndPassword(user, password)),
-                    UserAndPassword(user, password))
+                    userService.createUser(UserProfileAndPassword(user, password)),
+                    UserProfileAndPassword(user, password))
 
-            awaitSucceededFuture(
-                    userService.loginUser(userAndPassword),
-                    userId)
+            awaitSucceededFuture(userService.loginUser(userAndPassword))
+                    .let { it.userId shouldBe userId }
 
-            val expectedError = SQLError.OnStatement(SQLStatement.Parameterized(SelectUserByPassword.selectUserPassword, JsonArray(listOf(userId, "bad"))), UserError.AuthenticationFailed)
+            val expectedError = SQLError.OnStatement(SQLStatement.Parameterized(ValidatePasswordForUserId.selectUserPassword, JsonArray(listOf(userId, "bad"))), UserError.AuthenticationFailed)
             awaitFailedFuture(
                     userService.loginUser(userAndPassword.copy(password = "bad")),
                     expectedError)
         }
     }
 
-    fun <T> awaitSucceededFuture(future: Future<T>, result: T? = null, maxDuration: Long = 1000L) {
+    fun <T> awaitSucceededFuture(future: Future<T>, result: T? = null, maxDuration: Long = 1000L): T {
         val start = System.currentTimeMillis()
         while(!future.isComplete && System.currentTimeMillis() - start < maxDuration) {
             Thread.sleep(100)
         }
+        if(!future.isComplete) fail("Timeout")
+        if(future.failed()) LOG.error("Expected Success", future.cause())
         future.succeeded() shouldBe true
         result?.let { future.result() shouldBe it }
+        return future.result()
     }
 
-    fun <T> awaitFailedFuture(future: Future<T>, cause: Throwable? = null, maxDuration: Long = 1000L) {
+    fun <T> awaitFailedFuture(future: Future<T>, cause: Throwable? = null, maxDuration: Long = 1000L): Throwable {
         val start = System.currentTimeMillis()
         while(!future.isComplete && System.currentTimeMillis() - start < maxDuration) {
             Thread.sleep(100)
         }
         future.failed() shouldBe true
         cause?.let { future.cause() shouldBe it}
+        return future.cause()
     }
 
 

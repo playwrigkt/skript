@@ -5,6 +5,6 @@ import io.vertx.core.Future
 import dev.yn.playground.sql.extensions.execution.*
 
 class UserService(val sqlTransactionExecutor: SQLTransactionExecutor) {
-    fun createUser(user: UserAndPassword): Future<UserAndPassword> = update(sqlTransactionExecutor, UserTransactions.createUserTransaction, user)
-    fun loginUser(userNameAndPassword: UserNameAndPassword): Future<String> = query(sqlTransactionExecutor, UserTransactions.authenticateUserTransaction, userNameAndPassword)
+    fun createUser(userProfile: UserProfileAndPassword): Future<UserProfileAndPassword> = update(sqlTransactionExecutor, UserTransactions.createUserTransaction, userProfile)
+    fun loginUser(userNameAndPassword: UserNameAndPassword): Future<UserSession> = sqlTransactionExecutor.update(userNameAndPassword, UserTransactions.login)
 }

@@ -3,6 +3,15 @@ package dev.yn.playground.sql
 import io.vertx.core.Future
 import io.vertx.ext.sql.SQLConnection
 
+/**
+ * A re-usable SQL transaction.  Use SQLTransactinExecutor to handle transactions autmatically.
+ *
+ * A SQLTranaction is a chain of `SQLAction`
+ *
+ * I input Type
+ * J result of first transformation
+ * O output type
+ */
 sealed class SQLTransaction<I, J, O> {
     companion object {
         fun <I, O> new(action: SQLAction<I, O>): SQLTransaction<I, O, O> {

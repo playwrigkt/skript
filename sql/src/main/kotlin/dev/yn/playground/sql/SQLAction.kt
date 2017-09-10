@@ -7,6 +7,15 @@ import io.vertx.ext.sql.SQLConnection
 import io.vertx.ext.sql.UpdateResult
 import org.funktionale.tries.Try
 
+/**
+ * Encapsulates all of the actions that can be run against the database.  These are chained together to create a Transaction.
+ *
+ * You can use nested transactions and the client will not generate extra begin/commit commands thereby maintaining the
+ * outermost transaction.
+ *
+ * I input Type
+ * O output Type
+ */
 sealed class SQLAction<I, O> {
     class Query<I, O>(val toSql: (I) -> SQLStatement, val mapResult: (I, ResultSet) -> Try<O>): SQLAction<I, O>() {
         override fun run(i: I, connection: SQLConnection): Future<O> {
@@ -64,7 +73,7 @@ sealed class SQLAction<I, O> {
                     .recover { Future.failedFuture<Unit>(SQLError.OnStatement(SQLStatement.Simple(statement), it)) }
         }
     }
-    class Chain<I, O>(val chain: SQLTransaction<I, Any, O>): SQLAction<I, O>() {
+    class Nested<I, O>(val chain: SQLTransaction<I, Any, O>): SQLAction<I, O>() {
         override fun run(i: I, connection: SQLConnection): Future<O> {
             return chain.run(i, connection)
         }
