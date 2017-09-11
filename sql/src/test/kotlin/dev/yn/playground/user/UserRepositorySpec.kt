@@ -61,10 +61,43 @@ class UserRepositorySpec: StringSpec() {
 
             awaitSucceededFuture(userService.loginUser(userAndPassword))
                     .let { it.userId shouldBe userId }
+        }
+
+        "Fail to login a user with a bad password" {
+            val userId = UUID.randomUUID().toString()
+            val password = "pass2"
+            val userName = "sally2"
+            val user = UserProfile(userId, userName, false)
+            val userAndPassword = UserNameAndPassword(userName, password)
+
+            val userService = UserService(executor)
+            awaitSucceededFuture(
+                    userService.createUser(UserProfileAndPassword(user, password)),
+                    UserProfileAndPassword(user, password))
 
             val expectedError = SQLError.OnStatement(SQLStatement.Parameterized(ValidatePasswordForUserId.selectUserPassword, JsonArray(listOf(userId, "bad"))), UserError.AuthenticationFailed)
             awaitFailedFuture(
                     userService.loginUser(userAndPassword.copy(password = "bad")),
+                    expectedError)
+        }
+
+        "Fail to login a user who is already logged in" {
+            val userId = UUID.randomUUID().toString()
+            val password = "pass3"
+            val userName = "sally3"
+            val user = UserProfile(userId, userName, false)
+            val userAndPassword = UserNameAndPassword(userName, password)
+
+            val userService = UserService(executor)
+            awaitSucceededFuture(
+                    userService.createUser(UserProfileAndPassword(user, password)),
+                    UserProfileAndPassword(user, password))
+
+            awaitSucceededFuture(userService.loginUser(userAndPassword))
+                    .let { it.userId shouldBe userId }
+            val expectedError = SQLError.OnStatement(SQLStatement.Parameterized(EnsureNoSessionExists.selectUserSessionExists, JsonArray(listOf(userId))), UserError.SessionAlreadyExists(userId))
+            awaitFailedFuture(
+                    userService.loginUser(userAndPassword.copy(password = password)),
                     expectedError)
         }
     }

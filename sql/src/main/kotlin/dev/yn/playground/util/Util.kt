@@ -2,6 +2,7 @@ package dev.yn.playground.util
 
 import io.vertx.core.Future
 import org.funktionale.tries.Try
+
 object TryUtil {
     fun <R> handleFailure(tri: Try<R>): Future<R> =
             tri

@@ -1,6 +1,7 @@
 package dev.yn.playground.user
 
 import dev.yn.playground.sql.QuerySQLMapping
+import dev.yn.playground.sql.SQLError
 import dev.yn.playground.sql.SQLStatement
 import dev.yn.playground.sql.UpdateSQLMapping
 import io.vertx.core.json.JsonArray
@@ -16,7 +17,8 @@ object InsertUserProfileMapping: UpdateSQLMapping<UserProfileAndPassword, UserPr
     override fun toSql(i: UserProfileAndPassword): SQLStatement =
             SQLStatement.Parameterized(insertUser, JsonArray(listOf(i.userProfile.id, i.userProfile.name, i.userProfile.allowPubliMessage)))
 
-    override fun mapResult(i: UserProfileAndPassword, rs: UpdateResult): Try<UserProfileAndPassword> = Try.Success(i)
+    override fun mapResult(i: UserProfileAndPassword, rs: UpdateResult): Try<UserProfileAndPassword> =
+            if(rs.updated == 1) Try.Success(i) else Try.Failure(SQLError.UpdateFailed(this, i))
 }
 
 object InsertUserPasswordMapping: UpdateSQLMapping<UserProfileAndPassword, UserProfileAndPassword> {
@@ -25,7 +27,9 @@ object InsertUserPasswordMapping: UpdateSQLMapping<UserProfileAndPassword, UserP
     override fun toSql(i: UserProfileAndPassword): SQLStatement =
             SQLStatement.Parameterized(insertUserPassword, JsonArray(listOf(i.userProfile.id, i.password)))
 
-    override fun mapResult(i: UserProfileAndPassword, rs: UpdateResult): Try<UserProfileAndPassword> = Try.Success(i)
+    override fun mapResult(i: UserProfileAndPassword, rs: UpdateResult): Try<UserProfileAndPassword> =
+            if(rs.updated == 1) Try.Success(i) else Try.Failure(SQLError.UpdateFailed(this, i))
+
 }
 
 object ValidatePasswordForUserId : QuerySQLMapping<UserIdAndPassword, String> {
@@ -60,7 +64,8 @@ object InsertSession: UpdateSQLMapping<UserSession, UserSession> {
     override fun toSql(i: UserSession): SQLStatement =
         SQLStatement.Parameterized(insertSession, JsonArray(listOf(i.sessionKey, i.userId, Timestamp.from(i.expiration))))
 
-    override fun mapResult(i: UserSession, rs: UpdateResult): Try<UserSession> = Try.Success(i)
+    override fun mapResult(i: UserSession, rs: UpdateResult): Try<UserSession> =
+            if(rs.updated == 1) Try.Success(i) else Try.Failure(SQLError.UpdateFailed(this, i))
 }
 
 object SelectSessionByKeyAnddUserId: QuerySQLMapping<UserSession, UserSession> {

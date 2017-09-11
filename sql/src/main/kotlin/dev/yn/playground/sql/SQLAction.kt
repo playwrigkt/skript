@@ -30,21 +30,30 @@ sealed class SQLAction<I, O> {
                     .compose { TryUtil.handleFailure(it) }
                     .recover { Future.failedFuture<O>(SQLError.OnStatement(sqlStatement, it)) }
         }
+
+        override fun toString(): String =
+                "SQLAction.Query(toSql=$toSql,mapResult=$mapResult)"
     }
 
     class Map<I, O>(val mapper: (I) -> O): SQLAction<I, O>() {
         override fun run(i: I, connection: SQLConnection): Future<O> {
             return Future.succeededFuture(this.mapper(i))
         }
+
+        override fun toString(): String =
+                "SQLAction.Map(mapper:$mapper)"
     }
 
-    class FlatMap<I, O>(val mapper: (I) -> Future<O>): SQLAction<I, O>() {
+    class MapAsync<I, O>(val mapper: (I) -> Future<O>): SQLAction<I, O>() {
         override fun run(i: I, connection: SQLConnection): Future<O> {
             return mapper(i)
         }
+
+        override fun toString(): String =
+                "SQLAction.MapAsync(mapper:$mapper)"
     }
 
-    class Update<I, O>(val toSql: (I) -> SQLStatement, val mapResult: (I, UpdateResult) -> Try<O>, val expectedUpdates: Int? = 1): SQLAction<I, O>() {
+    class Update<I, O>(val toSql: (I) -> SQLStatement, val mapResult: (I, UpdateResult) -> Try<O>, val expectedUpdates: Int? = null): SQLAction<I, O>() {
         override fun run(i: I, connection: SQLConnection): Future<O> {
             val sqlStatement = this.toSql(i)
             val sqlFuture = Future.future<UpdateResult>()
@@ -53,15 +62,12 @@ sealed class SQLAction<I, O> {
                 is SQLStatement.Simple -> connection.update(sqlStatement.query, sqlFuture.completer())
             }
             return sqlFuture
-                    .compose { updateResult ->
-                        if(expectedUpdates?.let { updateResult.updated == it }?:(updateResult.updated > 0)) {
-                            Future.succeededFuture<Try<O>>(this.mapResult(i, updateResult))
-                        } else {
-                            Future.failedFuture<Try<O>>(SQLError.UpdateFailed(this))
-                        } }
+                    .map { mapResult(i, it) }
                     .compose { TryUtil.handleFailure(it) }
                     .recover { Future.failedFuture<O>(SQLError.OnStatement(sqlStatement, it)) }
         }
+
+        override fun toString(): String = "SQLAction.Update(toSql=$toSql,mapResult=$mapResult)"
     }
 
     class Exec<I>(val statement: String): SQLAction<I, Unit>() {
@@ -72,11 +78,15 @@ sealed class SQLAction<I, O> {
                     .map {}
                     .recover { Future.failedFuture<Unit>(SQLError.OnStatement(SQLStatement.Simple(statement), it)) }
         }
+
+        override fun toString(): String = "SQLAction.Exec(statement=$statement)"
     }
-    class Nested<I, O>(val chain: SQLTransaction<I, Any, O>): SQLAction<I, O>() {
+    class Nested<I, M, O>(val chain: SQLTransaction<I, M, O>): SQLAction<I, O>() {
         override fun run(i: I, connection: SQLConnection): Future<O> {
             return chain.run(i, connection)
         }
+
+        override fun toString(): String = "SQLAction.Nested(chain=$chain)"
     }
 
     abstract fun run(i: I, connection: SQLConnection): Future<O>
