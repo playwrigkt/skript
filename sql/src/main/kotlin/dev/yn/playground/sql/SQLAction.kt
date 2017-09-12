@@ -70,18 +70,18 @@ sealed class SQLAction<I, O> {
         override fun toString(): String = "SQLAction.Update(toSql=$toSql,mapResult=$mapResult)"
     }
 
-    class Exec<I>(val statement: String): SQLAction<I, Unit>() {
-        override fun run(i: I, connection: SQLConnection): Future<Unit> {
+    class Exec<I>(val statement: String): SQLAction<I, I>() {
+        override fun run(i: I, connection: SQLConnection): Future<I> {
             val sqlFuture = Future.future<Void>()
             connection.execute(statement, sqlFuture.completer())
             return sqlFuture
-                    .map {}
-                    .recover { Future.failedFuture<Unit>(SQLError.OnStatement(SQLStatement.Simple(statement), it)) }
+                    .map { i }
+                    .recover { Future.failedFuture<I>(SQLError.OnStatement(SQLStatement.Simple(statement), it)) }
         }
 
         override fun toString(): String = "SQLAction.Exec(statement=$statement)"
     }
-    class Nested<I, M, O>(val chain: SQLTransaction<I, M, O>): SQLAction<I, O>() {
+    class Nested<I, O>(val chain: SQLTransaction<I, O>): SQLAction<I, O>() {
         override fun run(i: I, connection: SQLConnection): Future<O> {
             return chain.run(i, connection)
         }

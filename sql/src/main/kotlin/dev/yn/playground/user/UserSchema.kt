@@ -6,7 +6,7 @@ object UserSchema {
 
     val createUserProfileTable = """CREATE TABLE IF NOT EXISTS user_profile (
     id text PRIMARY KEY,
-    name text UNIQUE,
+    deviceName text UNIQUE,
     allow_public_message boolean
 );"""
 
@@ -23,6 +23,14 @@ object UserSchema {
     expiration timestamp
 );"""
 
+    val userTrustDeviceUserIdUniqueConstraintName = "user_trusted_device_user_id_unique"
+    val createUserSessionAccess = """CREATE TABLE user_trusted_device (
+    device_key text PRIMARY KEY,
+    user_id text REFERENCES user_profile(id) CONSTRAINT $userTrustDeviceUserIdUniqueConstraintName UNIQUE,
+    device_name text,
+    expiration timestamp
+);"""
+
     val createUserRequestTable = """
 CREATE TABLE user_relationship_request (
     user_id_1 text REFERENCES user_profile(id),
@@ -32,14 +40,14 @@ CREATE TABLE user_relationship_request (
     CONSTRAINT user_relationship_request_pk PRIMARY KEY (user_id_1, user_id_2)
 );"""
 
-    val init: SQLTransaction<Unit, Unit, Unit> = SQLTransaction.exec("CREATE EXTENSION IF NOT EXISTS pgcrypto")
+    val init: SQLTransaction<Unit, Unit> = SQLTransaction.exec<Unit>("CREATE EXTENSION IF NOT EXISTS pgcrypto")
             .exec(createUserProfileTable)
             .exec(createUserPasswordTable)
             .exec(createUserSessionTable)
             .exec(createUserRequestTable)
 
-    val drop: SQLTransaction<Unit, Unit, Unit> =
-        SQLTransaction.dropTableIfExists("user_relationship_request")
+    val drop: SQLTransaction<Unit, Unit> =
+        SQLTransaction.dropTableIfExists<Unit>("user_relationship_request")
             .dropTableIfExists("user_password")
             .dropTableIfExists("user_session")
             .dropTableIfExists("user_profile")

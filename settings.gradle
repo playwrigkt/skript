@@ -1,2 +1,2 @@
 include 'sql'
-rootProject.name = "vertx-web-socket-test"
+rootProject.name = "vertx-sql-composer"

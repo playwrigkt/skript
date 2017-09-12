@@ -11,18 +11,18 @@ object UserTransactions {
             SQLTransaction.update(InsertUserProfileMapping)
                     .update(InsertUserPasswordMapping)
 
-    val login: SQLTransaction<UserNameAndPassword, UserIdAndPassword, UserSession> =
+    val login: SQLTransaction<UserNameAndPassword, UserSession> =
             SQLTransaction.query(SelectUserIdForLogin)
                     .query(ValidatePasswordForUserId)
                     .query(EnsureNoSessionExists)
                     .map(createNewSessionKey)
                     .update(InsertSession)
 
-    val validateSession: SQLTransaction<UserSession, UserSession, UserSession> =
+    val validateSession: SQLTransaction<UserSession, UserSession> =
             SQLTransaction.query(SelectSessionByKeyAnddUserId)
 
-    val deleteAllUsersTransaction: SQLTransaction<Unit, Unit, Unit> =
-            SQLTransaction.deleteAll("user_relationship_request")
+    val deleteAllUsersTransaction: SQLTransaction<Unit, Unit> =
+            SQLTransaction.deleteAll<Unit>("user_relationship_request")
                     .deleteAll { "user_password" }
                     .deleteAll { "user_session" }
                     .deleteAll { "user_profile" }

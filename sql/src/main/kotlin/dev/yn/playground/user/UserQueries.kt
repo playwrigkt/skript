@@ -12,7 +12,7 @@ import java.sql.Timestamp
 import java.time.Instant
 
 object InsertUserProfileMapping: UpdateSQLMapping<UserProfileAndPassword, UserProfileAndPassword> {
-    val insertUser = "INSERT INTO user_profile (id, name, allow_public_message) VALUES (?, ?, ?)"
+    val insertUser = "INSERT INTO user_profile (id, deviceName, allow_public_message) VALUES (?, ?, ?)"
 
     override fun toSql(i: UserProfileAndPassword): SQLStatement =
             SQLStatement.Parameterized(insertUser, JsonArray(listOf(i.userProfile.id, i.userProfile.name, i.userProfile.allowPubliMessage)))
@@ -46,7 +46,7 @@ object ValidatePasswordForUserId : QuerySQLMapping<UserIdAndPassword, String> {
 }
 
 object SelectUserIdForLogin : QuerySQLMapping<UserNameAndPassword, UserIdAndPassword> {
-    val selectUserId = "SELECT id from user_profile WHERE name = ?"
+    val selectUserId = "SELECT id from user_profile WHERE deviceName = ?"
 
     override fun toSql(i: UserNameAndPassword): SQLStatement = SQLStatement.Parameterized(selectUserId, JsonArray(listOf(i.userName)))
 
@@ -110,3 +110,29 @@ val EnsureNoSessionExists = SelectUserSessionExists( { userId, exists ->
         Try.Success(userId)
     }
 })
+
+object InsertTrustedDevice: UpdateSQLMapping<UserTrustedDevice, UserTrustedDevice> {
+    val insertTrustedDevice = "INSERT INTO user_trusted_device (device_key, user_id, device_name, expiration) VALUES (?, ?, ?, ?)"
+
+    override fun toSql(i: UserTrustedDevice): SQLStatement =
+        SQLStatement.Parameterized(insertTrustedDevice, JsonArray(listOf(i.deviceKey, i.userId, i.deviceName, Timestamp.from(i.expiration))))
+
+    override fun mapResult(i: UserTrustedDevice, rs: UpdateResult): Try<UserTrustedDevice> =
+            if(rs.updated == 1) Try.Success(i) else Try.Failure(SQLError.UpdateFailed(this, i))
+}
+
+object SelectUserSessionFromTrustedDevice: QuerySQLMapping<UserTrustedDevice, UserSession> {
+    val selectUserSessionFromTrustedDevice =
+            "SELECT user_session.session_key, user_session.user_id, user_session.expiration from user_trusted_device " +
+                    "LEFT JOIN user_session on user_trusted_device.user_id = user_session.user_id " +
+                    "WHERE user_trusted_device.device_key=? AND user_trusted_device.user_id=?"
+
+    override fun toSql(i: UserTrustedDevice): SQLStatement =
+        SQLStatement.Parameterized(selectUserSessionFromTrustedDevice, JsonArray(listOf(i.deviceKey, i.userId)))
+
+    override fun mapResult(i: UserTrustedDevice, rs: ResultSet): Try<UserSession> =
+        rs.rows
+                .firstOrNull()
+                ?.let { Try { UserSession(it.getString("session_key"), it.getString("user_id"), it.getInstant("expiration")) } }
+                ?:Try.Failure(UserError.NoSuchTrustedDevice(i))
+}

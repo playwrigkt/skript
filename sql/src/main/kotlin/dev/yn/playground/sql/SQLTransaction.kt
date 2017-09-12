@@ -16,45 +16,45 @@ import org.funktionale.tries.Try
  * J result of first transformation
  * O output type
  */
-sealed class SQLTransaction<I, J, O> {
+sealed class SQLTransaction<I, O> {
     companion object {
-        fun <I, O> new(action: SQLAction<I, O>): SQLTransaction<I, O, O> {
+        fun <I, O> new(action: SQLAction<I, O>): SQLTransaction<I, O> {
             return EndLink(action)
         }
 
-        fun <I, O> query(toSql: (I) -> SQLStatement, mapResult: (I, ResultSet) -> Try<O>): SQLTransaction<I, O, O> =
+        fun <I, O> query(toSql: (I) -> SQLStatement, mapResult: (I, ResultSet) -> Try<O>): SQLTransaction<I, O> =
                 SQLTransaction.new(SQLAction.Query(toSql, mapResult))
 
-        fun <I, O> query(mapping: QuerySQLMapping<I, O>): SQLTransaction<I, O, O> =
+        fun <I, O> query(mapping: QuerySQLMapping<I, O>): SQLTransaction<I, O> =
                 query(mapping::toSql, mapping::mapResult)
 
-        fun <I, O> update(toSql: (I) -> SQLStatement, mapResult: (I, UpdateResult) -> Try<O>): SQLTransaction<I, O, O> =
+        fun <I, O> update(toSql: (I) -> SQLStatement, mapResult: (I, UpdateResult) -> Try<O>): SQLTransaction<I, O> =
                 SQLTransaction.new(SQLAction.Update(toSql, mapResult))
 
-        fun <I, O> update(mapping: UpdateSQLMapping<I, O>): SQLTransaction<I, O, O> =
+        fun <I, O> update(mapping: UpdateSQLMapping<I, O>): SQLTransaction<I, O> =
                 update(mapping::toSql, mapping::mapResult)
 
-        fun exec(statment: String): SQLTransaction<Unit, Unit, Unit> =
+        fun <I> exec(statment: String): SQLTransaction<I, I> =
                 SQLTransaction.new(SQLAction.Exec(statment))
 
-        fun dropTable(tableName: String): SQLTransaction<Unit, Unit, Unit> =
+        fun <I> dropTable(tableName: String): SQLTransaction<I, I> =
                 exec("DROP TABLE $tableName")
 
-        fun dropTableIfExists(tableName: String): SQLTransaction<Unit, Unit, Unit> =
+        fun <I> dropTableIfExists(tableName: String): SQLTransaction<I, I> =
                 exec("DROP TABLE IF EXISTS $tableName")
 
-        fun <I> deleteAll(tableName: (I) -> String): SQLTransaction<I, Unit, Unit> =
-                update({ i -> SQLStatement.Simple("DELETE FROM ${tableName(i)}") }, { a, b -> TryUtil.unitSuccess })
+        fun <I> deleteAll(tableName: (I) -> String): SQLTransaction<I, I> =
+                update({ i -> SQLStatement.Simple("DELETE FROM ${tableName(i)}") }, { a, b -> Try.Success(a) })
 
-        fun deleteAll(tableName: String): SQLTransaction<Unit, Unit, Unit> =
-                update({ SQLStatement.Simple("DELETE FROM $tableName") }, { a, b -> TryUtil.unitSuccess })
+        fun <I> deleteAll(tableName: String): SQLTransaction<I, I> =
+                update({ SQLStatement.Simple("DELETE FROM $tableName") }, { a, b -> Try.Success(a) })
     }
 
-    abstract fun <U> addAction(action: SQLAction<O, U>): SQLTransaction<I, J, U>
+    abstract fun <U> addAction(action: SQLAction<O, U>): SQLTransaction<I, U>
     abstract fun run(i: I, connection: SQLConnection): Future<O>
 
-    data class EndLink<I, O>(val action: SQLAction<I, O>): SQLTransaction<I, O, O>() {
-        override fun <U> addAction(action: SQLAction<O, U>): SQLTransaction<I, O, U> =
+    data class EndLink<I, O>(val action: SQLAction<I, O>): SQLTransaction<I, O>() {
+        override fun <U> addAction(action: SQLAction<O, U>): SQLTransaction<I, U> =
                 ActionLink(this.action, EndLink(action))
 
         override fun run(i: I, connection: SQLConnection): Future<O> =
@@ -63,9 +63,9 @@ sealed class SQLTransaction<I, J, O> {
         override fun toString(): String = "SQLTransaction.EndLink(action=$action)"
     }
 
-    data class ActionLink<I, J, K, O>(val action: SQLAction<I, J>,
-                                      val next: SQLTransaction<J, K, O>): SQLTransaction<I, J, O>() {
-        override fun <U> addAction(action: SQLAction<O, U>): SQLTransaction<I, J, U> =
+    data class ActionLink<I, J, O>(val action: SQLAction<I, J>,
+                                      val next: SQLTransaction<J, O>): SQLTransaction<I, O>() {
+        override fun <U> addAction(action: SQLAction<O, U>): SQLTransaction<I, U> =
                 ActionLink(this.action, next.addAction(action))
 
         override fun run(i: I, connection: SQLConnection): Future<O> =
@@ -75,36 +75,36 @@ sealed class SQLTransaction<I, J, O> {
         override fun toString(): String = "SQLTransaction.ActionLink(action=$action,next=$next)"
     }
 
-    fun <K> query(toSql: (O) -> SQLStatement, mapResult: (O, ResultSet) -> Try<K>): SQLTransaction<I, J, K> =
+    fun <K> query(toSql: (O) -> SQLStatement, mapResult: (O, ResultSet) -> Try<K>): SQLTransaction<I, K> =
             addAction(SQLAction.Query(toSql, mapResult))
 
-    fun <K> query(mapping: QuerySQLMapping<O, K>): SQLTransaction<I, J, K> =
+    fun <K> query(mapping: QuerySQLMapping<O, K>): SQLTransaction<I, K> =
             query(mapping::toSql, mapping::mapResult)
 
-    fun <K> update(toSql: (O) -> SQLStatement, mapResult: (O, UpdateResult) -> Try<K>): SQLTransaction<I, J, K> =
+    fun <K> update(toSql: (O) -> SQLStatement, mapResult: (O, UpdateResult) -> Try<K>): SQLTransaction<I, K> =
             addAction(SQLAction.Update(toSql, mapResult))
 
-    fun <K> update(mapping: UpdateSQLMapping<O, K>): SQLTransaction<I, J, K> =
+    fun <K> update(mapping: UpdateSQLMapping<O, K>): SQLTransaction<I, K> =
             update(mapping::toSql, mapping::mapResult)
 
-    fun exec(statment: String): SQLTransaction<I, J, Unit> =
+    fun exec(statment: String): SQLTransaction<I, O> =
             addAction(SQLAction.Exec(statment))
 
-    fun dropTable(tableName: String): SQLTransaction<I, J, Unit> =
+    fun dropTable(tableName: String): SQLTransaction<I, O> =
             exec("DROP TABLE $tableName")
 
-    fun dropTableIfExists(tableName: String): SQLTransaction<I, J, Unit> =
+    fun dropTableIfExists(tableName: String): SQLTransaction<I, O> =
             exec("DROP TABLE IF EXISTS $tableName")
 
-    fun deleteAll(tableName: (O) -> String): SQLTransaction<I, J, Unit> =
-            update({ o -> SQLStatement.Simple("DELETE FROM ${tableName(o)}") }, { a, b -> TryUtil.unitSuccess })
+    fun deleteAll(tableName: (O) -> String): SQLTransaction<I, O> =
+            update({ o -> SQLStatement.Simple("DELETE FROM ${tableName(o)}") }, { a, b -> Try.Success(a) })
 
-    fun <K> mapAsync(mapper: (O) -> Future<K>): SQLTransaction<I, J, K> =
+    fun <K> mapAsync(mapper: (O) -> Future<K>): SQLTransaction<I, K> =
             addAction(SQLAction.MapAsync(mapper))
 
-    fun <K> map(mapper: (O) -> K): SQLTransaction<I, J, K> =
+    fun <K> map(mapper: (O) -> K): SQLTransaction<I, K> =
             addAction(SQLAction.Map(mapper))
 
-    fun <L, K> flatMap(next: SQLTransaction<O, L, K>): SQLTransaction<I, J, K> =
+    fun <K> flatMap(next: SQLTransaction<O, K>): SQLTransaction<I, K> =
             addAction(SQLAction.Nested(next))
 }
