@@ -6,13 +6,31 @@ import io.vertx.core.Future
 import io.vertx.core.Vertx
 
 interface Task<I, O> {
+    companion object {
+        fun <I, O> async(f: (I) -> Future<O>) = AsyncTask(f)
+
+        fun <I, O> sync(f: (I) -> O) = SyncTask(f)
+
+        fun <I, O> sqlUpdate(transaction: SQLTransaction<I, O>, executor: SQLTransactionExecutor) =
+                UnpreparedSQLUpdateTask(transaction).prepare(executor)
+
+        fun <I, O> sqlQuery(transaction: SQLTransaction<I, O>, executor: SQLTransactionExecutor) =
+                UnpreparedSQLQueryTask(transaction).prepare(executor)
+
+        fun <I, O> sqlExec(transaction: SQLTransaction<I, O>, executor: SQLTransactionExecutor): Task<I, O> =
+                UnpreparedSQLExecTask(transaction).prepare(executor)
+
+        fun <I, O> vertxAsync(vertxAction: (I, Vertx) -> Future<O>, vertx: Vertx): Task<I, O> =
+                UnpreparedVertxTask(vertxAction).prepare(vertx)
+
+    }
     fun run(i: I): Future<O>
 
     fun <O2> andThen(task: Task<O, O2>): Task<I, O2> = TaskLink(this, task)
 
-    fun <O2> flatMap(f: (O) -> Future<O2>) = this.andThen(AsyncTask(f))
+    fun <O2> async(f: (O) -> Future<O2>) = this.andThen(AsyncTask(f))
 
-    fun <O2> map(f: (O) -> O2) = this.andThen(SyncTask(f))
+    fun <O2> sync(f: (O) -> O2) = this.andThen(SyncTask(f))
 
     fun <O2> sqlUpdate(transaction: SQLTransaction<O, O2>, executor: SQLTransactionExecutor) =
             this.andThen(UnpreparedSQLUpdateTask(transaction).prepare(executor))
@@ -23,7 +41,7 @@ interface Task<I, O> {
     fun <O2> sqlExec(transaction: SQLTransaction<O, O2>, executor: SQLTransactionExecutor): Task<I, O2> =
             this.andThen(UnpreparedSQLExecTask(transaction).prepare(executor))
 
-    fun <O2> vertx(vertxAction: (O, Vertx) -> Future<O2>, vertx: Vertx): Task<I, O2> =
+    fun <O2> vertxAsync(vertxAction: (O, Vertx) -> Future<O2>, vertx: Vertx): Task<I, O2> =
             this.andThen(UnpreparedVertxTask(vertxAction).prepare(vertx))
 }
 
