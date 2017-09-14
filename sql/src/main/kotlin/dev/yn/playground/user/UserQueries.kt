@@ -24,14 +24,14 @@ object InsertUserProfileMapping: UpdateSQLMapping<UserProfileAndPassword, UserPr
             if(rs.updated == 1) Try.Success(i) else Try.Failure(SQLError.UpdateFailed(this, i))
 }
 
-object InsertUserPasswordMapping: UpdateSQLMapping<UserProfileAndPassword, UserProfileAndPassword> {
+object InsertUserPasswordMapping: UpdateSQLMapping<UserProfileAndPassword, UserProfile> {
     val insertUserPassword = "INSERT into user_password (user_id, pswhash) VALUES (?, crypt(?, gen_salt('bf')))"
 
     override fun toSql(i: UserProfileAndPassword): SQLStatement =
             SQLStatement.Parameterized(insertUserPassword, JsonArray(listOf(i.userProfile.id, i.password)))
 
-    override fun mapResult(i: UserProfileAndPassword, rs: UpdateResult): Try<UserProfileAndPassword> =
-            if(rs.updated == 1) Try.Success(i) else Try.Failure(SQLError.UpdateFailed(this, i))
+    override fun mapResult(i: UserProfileAndPassword, rs: UpdateResult): Try<UserProfile> =
+            if(rs.updated == 1) Try.Success(i.userProfile) else Try.Failure(SQLError.UpdateFailed(this, i))
 
 }
 

@@ -11,17 +11,17 @@ interface Task<I, O> {
 
         fun <I, O> sync(f: (I) -> O) = SyncTask(f)
 
-        fun <I, O> sqlUpdate(transaction: SQLTransaction<I, O>, executor: SQLTransactionExecutor) =
-                UnpreparedSQLUpdateTask(transaction).prepare(executor)
+        fun <I, O, P: SQLTransactionExecutorProvider> sqlUpdate(transaction: SQLTransaction<I, O>, provider: P) =
+                UnpreparedSQLUpdateTask<I, O, P>(transaction).prepare(provider)
 
-        fun <I, O> sqlQuery(transaction: SQLTransaction<I, O>, executor: SQLTransactionExecutor) =
-                UnpreparedSQLQueryTask(transaction).prepare(executor)
+        fun <I, O, P: SQLTransactionExecutorProvider> sqlQuery(transaction: SQLTransaction<I, O>, provider: P) =
+                UnpreparedSQLQueryTask<I, O, P>(transaction).prepare(provider)
 
-        fun <I, O> sqlExec(transaction: SQLTransaction<I, O>, executor: SQLTransactionExecutor): Task<I, O> =
-                UnpreparedSQLExecTask(transaction).prepare(executor)
+        fun <I, O, P: SQLTransactionExecutorProvider> sqlExec(transaction: SQLTransaction<I, O>, provider: P): Task<I, O> =
+                UnpreparedSQLExecTask<I, O, P>(transaction).prepare(provider)
 
-        fun <I, O> vertxAsync(vertxAction: (I, Vertx) -> Future<O>, vertx: Vertx): Task<I, O> =
-                UnpreparedVertxTask(vertxAction).prepare(vertx)
+        fun <I, O, P: VertxProvider> vertxAsync(vertxAction: (I, Vertx) -> Future<O>, provider: P): Task<I, O> =
+                UnpreparedVertxTask<I, O, P>(vertxAction).prepare(provider)
 
     }
     fun run(i: I): Future<O>
@@ -32,17 +32,17 @@ interface Task<I, O> {
 
     fun <O2> sync(f: (O) -> O2) = this.andThen(SyncTask(f))
 
-    fun <O2> sqlUpdate(transaction: SQLTransaction<O, O2>, executor: SQLTransactionExecutor) =
-            this.andThen(UnpreparedSQLUpdateTask(transaction).prepare(executor))
+    fun <O2, P: SQLTransactionExecutorProvider> sqlUpdate(transaction: SQLTransaction<O, O2>, provider: P) =
+            this.andThen(UnpreparedSQLUpdateTask<O, O2, P>(transaction).prepare(provider))
 
-    fun <O2> sqlQuery(transaction: SQLTransaction<O, O2>, executor: SQLTransactionExecutor) =
-            this.andThen(UnpreparedSQLQueryTask(transaction).prepare(executor))
+    fun <O2, P: SQLTransactionExecutorProvider> sqlQuery(transaction: SQLTransaction<O, O2>, provider: P) =
+            this.andThen(UnpreparedSQLQueryTask<O, O2, P>(transaction).prepare(provider))
 
-    fun <O2> sqlExec(transaction: SQLTransaction<O, O2>, executor: SQLTransactionExecutor): Task<I, O2> =
-            this.andThen(UnpreparedSQLExecTask(transaction).prepare(executor))
+    fun <O2, P: SQLTransactionExecutorProvider> sqlExec(transaction: SQLTransaction<O, O2>, provider: P): Task<I, O2> =
+            this.andThen(UnpreparedSQLExecTask<O, O2, P>(transaction).prepare(provider))
 
-    fun <O2> vertxAsync(vertxAction: (O, Vertx) -> Future<O2>, vertx: Vertx): Task<I, O2> =
-            this.andThen(UnpreparedVertxTask(vertxAction).prepare(vertx))
+    fun <O2, P: VertxProvider> vertxAsync(vertxAction: (O, Vertx) -> Future<O2>, provider: P): Task<I, O2> =
+            this.andThen(UnpreparedVertxTask<O, O2, P>(vertxAction).prepare(provider))
 }
 
 data class TaskLink<I, J, O>(val task: Task<I, J>, val next: Task<J, O>): Task<I, O> {
@@ -76,31 +76,38 @@ data class VertxTask<I, O>(val vertxAction: (I, Vertx) -> Future<O>, val vertx: 
     }
 }
 
-interface UnpreparedTask<I, O, P> {
+interface VertxProvider {
+    fun provideVertx(): Vertx
+}
+
+interface SQLTransactionExecutorProvider {
+    fun provideSQLTransactionExecutor(): SQLTransactionExecutor
+}
+interface UnpreparedTask<I, O, in P> {
     fun prepare(p: P): Task<I, O>
 }
 
-data class UnpreparedVertxTask<I, O>(val vertxAction: (I, Vertx) -> Future<O>): UnpreparedTask<I, O, Vertx> {
-    override fun prepare(p: Vertx): Task<I, O> {
-        return AsyncTask( { vertxAction(it, p) })
+data class UnpreparedVertxTask<I, O, in P: VertxProvider>(val vertxAction: (I, Vertx) -> Future<O>): UnpreparedTask<I, O, P> {
+    override fun prepare(p: P): Task<I, O> {
+        return AsyncTask( { vertxAction(it, p.provideVertx()) })
     }
 }
 
-data class UnpreparedSQLQueryTask<I, O>(val transaction: SQLTransaction<I, O>): UnpreparedTask<I, O, SQLTransactionExecutor>{
-    override fun prepare(p: SQLTransactionExecutor): Task<I, O> {
-        return AsyncTask( { p.query(it, transaction) })
+data class UnpreparedSQLQueryTask<I, O, in P: SQLTransactionExecutorProvider>(val transaction: SQLTransaction<I, O>): UnpreparedTask<I, O, P>{
+    override fun prepare(p: P): Task<I, O> {
+        return AsyncTask( { p.provideSQLTransactionExecutor().query(it, transaction) })
     }
 }
 
-data class UnpreparedSQLUpdateTask<I, O>(val transaction: SQLTransaction<I, O>): UnpreparedTask<I, O, SQLTransactionExecutor>{
-    override fun prepare(p: SQLTransactionExecutor): Task<I, O> {
-        return AsyncTask( { p.update(it, transaction) })
+data class UnpreparedSQLUpdateTask<I, O, in P: SQLTransactionExecutorProvider>(val transaction: SQLTransaction<I, O>): UnpreparedTask<I, O, P>{
+    override fun prepare(p: P): Task<I, O> {
+        return AsyncTask( { p.provideSQLTransactionExecutor().update(it, transaction) })
     }
 }
 
-data class UnpreparedSQLExecTask<I, O>(val transaction: SQLTransaction<I, O>): UnpreparedTask<I, O, SQLTransactionExecutor> {
-    override fun prepare(p: SQLTransactionExecutor): Task<I, O> {
-        return AsyncTask({ p.execute(it, transaction)})
+data class UnpreparedSQLExecTask<I, O, in P: SQLTransactionExecutorProvider>(val transaction: SQLTransaction<I, O>): UnpreparedTask<I, O, P> {
+    override fun prepare(p: P): Task<I, O> {
+        return AsyncTask({ p.provideSQLTransactionExecutor().execute(it, transaction)})
     }
 }
 

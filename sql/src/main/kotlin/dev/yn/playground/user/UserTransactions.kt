@@ -8,18 +8,25 @@ import java.util.*
 object UserTransactions {
     private val createNewSessionKey: (String) -> UserSession = { UserSession(UUID.randomUUID().toString(), it, Instant.now().plusSeconds(3600)) }
 
-    val createUserTransaction =
+    val createUserTransaction: SQLTransaction<UserProfileAndPassword, UserProfile> =
             SQLTransaction.update(InsertUserProfileMapping)
                     .update(InsertUserPasswordMapping)
 
-    val login: SQLTransaction<UserNameAndPassword, UserSession> =
+    val loginTransaction: SQLTransaction<UserNameAndPassword, UserSession> =
             SQLTransaction.query(SelectUserIdForLogin)
                     .query(ValidatePasswordForUserId)
                     .query(EnsureNoSessionExists)
                     .map(createNewSessionKey)
                     .update(InsertSession)
 
-    fun <T> validateSession(validateSession: (UserSession, T) -> Try<T>): SQLTransaction<TokenAndInput<T>, T> =
+    val getUserTransaction: SQLTransaction<TokenAndInput<String>, UserProfile> =
+            validateSession<String> { session, userId ->
+                if(session.userId == userId) { Try.Success(userId) }
+                else { Try.Failure(UserError.AuthorizationFailed) }
+            }
+                    .query(SelectUserProfileById)
+
+    private fun <T> validateSession(validateSession: (UserSession, T) -> Try<T>): SQLTransaction<TokenAndInput<T>, T> =
             SQLTransaction.query(SelectSessionByKey(validateSession))
 
     val deleteAllUsersTransaction: SQLTransaction<Unit, Unit> =
@@ -27,11 +34,4 @@ object UserTransactions {
                     .deleteAll { "user_password" }
                     .deleteAll { "user_session" }
                     .deleteAll { "user_profile" }
-
-    val getUser: SQLTransaction<TokenAndInput<String>, UserProfile> =
-            validateSession<String> { session, userId ->
-                if(session.userId == userId) { Try.Success(userId) }
-                else { Try.Failure(UserError.AuthorizationFailed) }
-            }
-                    .query(SelectUserProfileById)
 }

@@ -54,26 +54,26 @@ class UserRepositorySpec: StringSpec() {
             val user = UserProfile(userId, userName, false)
             val userAndPassword = UserNameAndPassword(userName, password)
 
-            val userService = UserService(executor)
+            val userService = UserService(executor, vertx)
             awaitSucceededFuture(
                     userService.createUser(UserProfileAndPassword(user, password)),
-                    UserProfileAndPassword(user, password))
+                    user)
 
             awaitSucceededFuture(userService.loginUser(userAndPassword))
                     .let { it.userId shouldBe userId }
         }
 
-        "Fail to login a user with a bad password" {
+        "Fail to loginTransaction a user with a bad password" {
             val userId = UUID.randomUUID().toString()
             val password = "pass2"
             val userName = "sally2"
             val user = UserProfile(userId, userName, false)
             val userAndPassword = UserNameAndPassword(userName, password)
 
-            val userService = UserService(executor)
+            val userService = UserService(executor, vertx)
             awaitSucceededFuture(
                     userService.createUser(UserProfileAndPassword(user, password)),
-                    UserProfileAndPassword(user, password))
+                    user)
 
             val expectedError = SQLError.OnStatement(SQLStatement.Parameterized(ValidatePasswordForUserId.selectUserPassword, JsonArray(listOf(userId, "bad"))), UserError.AuthenticationFailed)
             awaitFailedFuture(
@@ -81,17 +81,17 @@ class UserRepositorySpec: StringSpec() {
                     expectedError)
         }
 
-        "Fail to login a user who is already logged in" {
+        "Fail to loginTransaction a user who is already logged in" {
             val userId = UUID.randomUUID().toString()
             val password = "pass3"
             val userName = "sally3"
             val user = UserProfile(userId, userName, false)
             val userAndPassword = UserNameAndPassword(userName, password)
 
-            val userService = UserService(executor)
+            val userService = UserService(executor, vertx)
             awaitSucceededFuture(
                     userService.createUser(UserProfileAndPassword(user, password)),
-                    UserProfileAndPassword(user, password))
+                    user)
 
             awaitSucceededFuture(userService.loginUser(userAndPassword))
                     .let { it.userId shouldBe userId }
@@ -108,10 +108,10 @@ class UserRepositorySpec: StringSpec() {
             val user = UserProfile(userId, userName, false)
             val userAndPassword = UserNameAndPassword(userName, password)
 
-            val userService = UserService(executor)
+            val userService = UserService(executor, vertx)
             awaitSucceededFuture(
                     userService.createUser(UserProfileAndPassword(user, password)),
-                    UserProfileAndPassword(user, password))
+                    user)
 
             val session = awaitSucceededFuture(userService.loginUser(userAndPassword))
 
@@ -133,13 +133,13 @@ class UserRepositorySpec: StringSpec() {
             val user2 = UserProfile(userId2, userName2, false)
             val userAndPassword2 = UserNameAndPassword(userName2, password2)
 
-            val userService = UserService(executor)
+            val userService = UserService(executor, vertx)
             awaitSucceededFuture(
                     userService.createUser(UserProfileAndPassword(user, password)),
-                    UserProfileAndPassword(user, password))
+                    user)
             awaitSucceededFuture(
                     userService.createUser(UserProfileAndPassword(user2, password2)),
-                    UserProfileAndPassword(user2, password2))
+                    user2)
 
             val session = awaitSucceededFuture(userService.loginUser(userAndPassword))
 
@@ -154,10 +154,10 @@ class UserRepositorySpec: StringSpec() {
             val userName = "sally7"
             val user = UserProfile(userId, userName, false)
 
-            val userService = UserService(executor)
+            val userService = UserService(executor, vertx)
             awaitSucceededFuture(
                     userService.createUser(UserProfileAndPassword(user, password)),
-                    UserProfileAndPassword(user, password))
+                    user)
 
             val sessionKey = UUID.randomUUID().toString()
 
