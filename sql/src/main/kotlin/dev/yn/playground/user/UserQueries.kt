@@ -10,9 +10,12 @@ import io.vertx.ext.sql.UpdateResult
 import org.funktionale.tries.Try
 import java.sql.Timestamp
 import java.time.Instant
+object UserSQL {
+    val selectSessionByKey= "SELECT session_key, user_id, expiration FROM user_session where session_key = ?"
 
+}
 object InsertUserProfileMapping: UpdateSQLMapping<UserProfileAndPassword, UserProfileAndPassword> {
-    val insertUser = "INSERT INTO user_profile (id, deviceName, allow_public_message) VALUES (?, ?, ?)"
+    val insertUser = "INSERT INTO user_profile (id, user_name, allow_public_message) VALUES (?, ?, ?)"
 
     override fun toSql(i: UserProfileAndPassword): SQLStatement =
             SQLStatement.Parameterized(insertUser, JsonArray(listOf(i.userProfile.id, i.userProfile.name, i.userProfile.allowPubliMessage)))
@@ -46,7 +49,7 @@ object ValidatePasswordForUserId : QuerySQLMapping<UserIdAndPassword, String> {
 }
 
 object SelectUserIdForLogin : QuerySQLMapping<UserNameAndPassword, UserIdAndPassword> {
-    val selectUserId = "SELECT id from user_profile WHERE deviceName = ?"
+    val selectUserId = "SELECT id from user_profile WHERE user_name = ?"
 
     override fun toSql(i: UserNameAndPassword): SQLStatement = SQLStatement.Parameterized(selectUserId, JsonArray(listOf(i.userName)))
 
@@ -68,23 +71,32 @@ object InsertSession: UpdateSQLMapping<UserSession, UserSession> {
             if(rs.updated == 1) Try.Success(i) else Try.Failure(SQLError.UpdateFailed(this, i))
 }
 
-object SelectSessionByKeyAnddUserId: QuerySQLMapping<UserSession, UserSession> {
-    override fun mapResult(i: UserSession, rs: ResultSet): Try<UserSession> =
+class SelectSessionByKey<T>(val validateSesssion: (UserSession, T) -> Try<T>): QuerySQLMapping<TokenAndInput<T>, T> {
+    override fun mapResult(i: TokenAndInput<T>, rs: ResultSet): Try<T> =
         rs.rows
                 .firstOrNull()
                 ?.let { Try { UserSession(it.getString("session_key"), it.getString("user_id"), it.getInstant("expiration")) } }
                 ?.flatMap {
-                    if(i.expiration.isBefore(Instant.now())) {
-                        Try.Failure<UserSession>(UserError.SessionExpired(i.sessionKey))
+                    if(it.expiration.isBefore(Instant.now())) {
+                        Try.Failure<T>(UserError.SessionExpired)
                     } else {
-                        Try.Success(i)
+                        validateSesssion(it, i.input)
                     } }
-                ?: Try.Failure<UserSession>(UserError.NoSuchSession(i))
+                ?: Try.Failure<T>(UserError.AuthenticationFailed)
 
-    val selectSessionByKeyAndUserId = "SELECT session_key, user_id, expiration FROM user_session where session_key = ? AND user_id = ?"
 
-    override fun toSql(i: UserSession): SQLStatement =
-        SQLStatement.Parameterized(selectSessionByKeyAndUserId, JsonArray(listOf(i.sessionKey, i.userId)))
+    override fun toSql(i: TokenAndInput<T>): SQLStatement =
+        SQLStatement.Parameterized(UserSQL.selectSessionByKey, JsonArray(listOf(i.token)))
+}
+
+object SelectUserProfileById: QuerySQLMapping<String, UserProfile> {
+    val selectUser = "SELECT id, user_name, allow_public_message FROM user_profile where id = ?"
+    override fun toSql(i: String): SQLStatement =SQLStatement.Parameterized(selectUser, JsonArray(listOf(i)))
+
+    override fun mapResult(i: String, rs: ResultSet): Try<UserProfile> =
+            rs.rows.map { Try { UserProfile(it.getString("id"), it.getString("user_name"), it.getBoolean("allow_public_message")) } }
+                .firstOrNull()
+                ?: Try.Failure<UserProfile>(UserError.NoSuchUser(i))
 }
 
 class SelectUserSessionExists<T>(val onResult:(String, Boolean) -> Try<T>): QuerySQLMapping<String, T> {

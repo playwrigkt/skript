@@ -100,6 +100,71 @@ class UserRepositorySpec: StringSpec() {
                     userService.loginUser(userAndPassword.copy(password = password)),
                     expectedError)
         }
+
+        "Allow a user to get themselves once logged in" {
+            val userId = UUID.randomUUID().toString()
+            val password = "pass4"
+            val userName = "sally4"
+            val user = UserProfile(userId, userName, false)
+            val userAndPassword = UserNameAndPassword(userName, password)
+
+            val userService = UserService(executor)
+            awaitSucceededFuture(
+                    userService.createUser(UserProfileAndPassword(user, password)),
+                    UserProfileAndPassword(user, password))
+
+            val session = awaitSucceededFuture(userService.loginUser(userAndPassword))
+
+            awaitSucceededFuture(
+                    userService.getUser(userId, session.sessionKey),
+                    user)
+        }
+
+        "Not Allow a user to select another user once logged in" {
+            val userId = UUID.randomUUID().toString()
+            val password = "pass5"
+            val userName = "sally5"
+            val user = UserProfile(userId, userName, false)
+            val userAndPassword = UserNameAndPassword(userName, password)
+
+            val userId2 = UUID.randomUUID().toString()
+            val password2 = "pass6"
+            val userName2 = "sally6"
+            val user2 = UserProfile(userId2, userName2, false)
+            val userAndPassword2 = UserNameAndPassword(userName2, password2)
+
+            val userService = UserService(executor)
+            awaitSucceededFuture(
+                    userService.createUser(UserProfileAndPassword(user, password)),
+                    UserProfileAndPassword(user, password))
+            awaitSucceededFuture(
+                    userService.createUser(UserProfileAndPassword(user2, password2)),
+                    UserProfileAndPassword(user2, password2))
+
+            val session = awaitSucceededFuture(userService.loginUser(userAndPassword))
+
+            awaitFailedFuture(
+                    userService.getUser(userId2, session.sessionKey),
+                    SQLError.OnStatement(SQLStatement.Parameterized(UserSQL.selectSessionByKey, JsonArray(listOf(session.sessionKey))), UserError.AuthorizationFailed))
+        }
+
+        "Not Allow a user with a bogus key to select another user" {
+            val userId = UUID.randomUUID().toString()
+            val password = "pass7"
+            val userName = "sally7"
+            val user = UserProfile(userId, userName, false)
+
+            val userService = UserService(executor)
+            awaitSucceededFuture(
+                    userService.createUser(UserProfileAndPassword(user, password)),
+                    UserProfileAndPassword(user, password))
+
+            val sessionKey = UUID.randomUUID().toString()
+
+            awaitFailedFuture(
+                    userService.getUser(userId, sessionKey),
+                    SQLError.OnStatement(SQLStatement.Parameterized(UserSQL.selectSessionByKey, JsonArray(listOf(sessionKey))), UserError.AuthenticationFailed))
+        }
     }
 
     fun <T> awaitSucceededFuture(future: Future<T>, result: T? = null, maxDuration: Long = 1000L): T {

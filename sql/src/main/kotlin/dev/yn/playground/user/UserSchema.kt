@@ -6,7 +6,7 @@ object UserSchema {
 
     val createUserProfileTable = """CREATE TABLE IF NOT EXISTS user_profile (
     id text PRIMARY KEY,
-    deviceName text UNIQUE,
+    user_name text UNIQUE,
     allow_public_message boolean
 );"""
 

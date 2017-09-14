@@ -14,7 +14,7 @@ import org.funktionale.tries.Try
  * outermost transaction.
  *
  * I input Type
- * O output Type
+ * O input Type
  */
 sealed class SQLAction<I, O> {
     class Query<I, O>(val toSql: (I) -> SQLStatement, val mapResult: (I, ResultSet) -> Try<O>): SQLAction<I, O>() {
