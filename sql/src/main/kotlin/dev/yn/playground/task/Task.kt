@@ -3,14 +3,19 @@ package dev.yn.playground.task
 import io.vertx.core.Future
 import io.vertx.core.Vertx
 
+/**
+ * A task represents a one or more sequential asynchronous actions that can be run as many times as desired.
+ *
+ * A task is essentially a set of functions that map into each other
+ */
 interface Task<I, O> {
     companion object {
         fun <I, O> async(f: (I) -> Future<O>) = AsyncTask(f)
 
         fun <I, O> sync(f: (I) -> O) = SyncTask(f)
 
-        fun <I, O, P: VertxProvider> vertxAsync(vertxAction: (I, Vertx) -> Future<O>, provider: P): Task<I, O> =
-                UnpreparedVertxTask<I, O, P>(vertxAction).prepare(provider)
+        fun <I, O, PROVIDER: VertxProvider> vertxAsync(vertxAction: (I, Vertx) -> Future<O>, provider: PROVIDER): Task<I, O> =
+                UnpreparedVertxTask<I, O, PROVIDER>(vertxAction).prepare(provider)
 
     }
     fun run(i: I): Future<O>
@@ -20,9 +25,6 @@ interface Task<I, O> {
     fun <O2> async(f: (O) -> Future<O2>) = this.andThen(AsyncTask(f))
 
     fun <O2> sync(f: (O) -> O2) = this.andThen(SyncTask(f))
-
-    fun <O2, P: VertxProvider> vertxAsync(vertxAction: (O, Vertx) -> Future<O2>, provider: P): Task<I, O2> =
-            this.andThen(UnpreparedVertxTask<O, O2, P>(vertxAction).prepare(provider))
 }
 
 data class TaskLink<I, J, O>(val task: Task<I, J>, val next: Task<J, O>): Task<I, O> {
@@ -50,22 +52,4 @@ data class SyncTask<I, O>(val action: (I) -> O): Task<I, O> {
     }
 }
 
-data class VertxTask<I, O>(val vertxAction: (I, Vertx) -> Future<O>, val vertx: Vertx): Task<I, O> {
-    override fun run(i: I): Future<O> {
-        return vertxAction(i, vertx)
-    }
-}
 
-interface VertxProvider {
-    fun provideVertx(): Vertx
-}
-
-interface UnpreparedTask<I, O, in P> {
-    fun prepare(p: P): Task<I, O>
-}
-
-data class UnpreparedVertxTask<I, O, in P: VertxProvider>(val vertxAction: (I, Vertx) -> Future<O>): UnpreparedTask<I, O, P> {
-    override fun prepare(p: P): Task<I, O> {
-        return AsyncTask( { vertxAction(it, p.provideVertx()) })
-    }
-}

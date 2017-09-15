@@ -9,9 +9,9 @@ fun <I, O> Future<I>.execute(executor: SQLTransactionExecutor, transaction: SQLT
 }
 
 fun <I, O> Future<I>.query(executor: SQLTransactionExecutor, transaction: SQLTransaction<I, O>): Future<O> {
-    return this.compose { executor.query(it, transaction) }
+    return this.compose { executor.execute(it, transaction) }
 }
 
 fun<I, O> Future<I>.update(executor: SQLTransactionExecutor, transaction: SQLTransaction<I, O>): Future<O> {
-    return this.compose { executor.update(it, transaction) }
+    return this.compose { executor.executeTransactionally(it, transaction) }
 }

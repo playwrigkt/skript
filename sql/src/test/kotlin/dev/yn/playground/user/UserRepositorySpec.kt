@@ -40,6 +40,7 @@ class UserRepositorySpec: StringSpec() {
     }
 
     override protected fun interceptSpec(context: Spec, spec: () -> Unit) {
+        awaitSucceededFuture(executor.dropUserSchema())
         awaitSucceededFuture(executor.initUserSchema())
         spec()
         awaitSucceededFuture(executor.deleteAllUsers()
