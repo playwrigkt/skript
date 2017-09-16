@@ -13,8 +13,7 @@ import org.funktionale.tries.Try
  * A SQLTranaction is a chain of `SQLAction`
  *
  * I input Type
- * J result of first transformation
- * O input type
+ * O output type
  */
 
 sealed class SQLTransaction<I, O> {
