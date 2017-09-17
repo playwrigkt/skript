@@ -1,7 +1,6 @@
 package dev.yn.playground.user
 
 import dev.yn.playground.sql.task.SQLClientProvider
-import dev.yn.playground.sql.task.SQLTask
 import dev.yn.playground.task.*
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future
@@ -20,25 +19,14 @@ class SQLAndVertxProvider(val vertx: Vertx, val sqlClient: SQLClient) : SQLClien
 class UserService(val sqlClient: SQLClient, val vertx: Vertx) {
     init {
         vertx.deployVerticle(UserUpdatedProcessingVerticle())
-    }
-    companion object {
-        val unpreparedCreateTask: UnpreparedTask<UserProfileAndPassword, UserProfile, SQLAndVertxProvider> =
-                SQLTask.unpreparedTransactionalSql<UserProfileAndPassword, UserProfile, SQLAndVertxProvider>(UserTransactions.createUserTransaction)
-                        .vertxAsync(VertxTask.sendWithResponse(userCreatedAddress))
-
-        val unpreparedLoginTask: UnpreparedTask<UserNameAndPassword, UserSession, SQLAndVertxProvider> =
-                SQLTask.unpreparedTransactionalSql<UserNameAndPassword, UserSession, SQLAndVertxProvider>(UserTransactions.loginTransaction)
-                        .vertxAsync(VertxTask.sendAndForget(userLoginAddress))
-
-        val unpreparedGetTask: UnpreparedTask<TokenAndInput<String>, UserProfile, SQLAndVertxProvider> =
-                SQLTask.unpreparedSql(UserTransactions.getUserTransaction)
+        vertx.deployVerticle(UserLoginProcessingVerticle())
     }
 
     val provider = SQLAndVertxProvider(vertx, sqlClient)
 
-    val createTask: Task<UserProfileAndPassword, UserProfile> = unpreparedCreateTask.prepare(provider)
-    val loginTask: Task<UserNameAndPassword, UserSession> = unpreparedLoginTask.prepare(provider)
-    val getTask: Task<TokenAndInput<String>, UserProfile> = unpreparedGetTask.prepare(provider)
+    val createTask: Task<UserProfileAndPassword, UserProfile> = UserTasks.unpreparedCreateTask.prepare(provider)
+    val loginTask: Task<UserNameAndPassword, UserSession> = UserTasks.unpreparedLoginTask.prepare(provider)
+    val getTask: Task<TokenAndInput<String>, UserProfile> = UserTasks.unpreparedGetTask.prepare(provider)
 
     fun createUser(userProfile: UserProfileAndPassword): Future<UserProfile> = createTask.run(userProfile)
     fun loginUser(userNameAndPassword: UserNameAndPassword): Future<UserSession> = loginTask.run(userNameAndPassword)
@@ -51,7 +39,7 @@ class UserUpdatedProcessingVerticle: AbstractVerticle() {
     override fun start() {
         vertx.eventBus().consumer<String>(userCreatedAddress) {
             println("it was updated: ${it.body()}")
-            it.reply("thanks")
+            it.reply("me too, thanks")
         }
     }
 }
@@ -60,7 +48,7 @@ class UserLoginProcessingVerticle: AbstractVerticle() {
     override fun start() {
         vertx.eventBus().consumer<String>(userLoginAddress) {
             println("it logged in: ${it.body()}")
-            it.reply("thanks")
+            it.reply("me too, thanks")
         }
     }
 }

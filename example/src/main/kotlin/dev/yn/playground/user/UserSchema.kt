@@ -1,6 +1,6 @@
 package dev.yn.playground.user
 
-import dev.yn.playground.sql.SQLTransaction
+import dev.yn.playground.sql.UnpreparedSQLActionChain
 
 object UserSchema {
 
@@ -40,15 +40,16 @@ CREATE TABLE IF NOT EXISTS user_relationship_request (
     CONSTRAINT user_relationship_request_pk PRIMARY KEY (user_id_1, user_id_2)
 );"""
 
-    val init: SQLTransaction<Unit, Unit> = SQLTransaction.exec<Unit>("CREATE EXTENSION IF NOT EXISTS pgcrypto")
-            .exec(createUserProfileTable)
-            .exec(createUserPasswordTable)
-            .exec(createUserSessionTable)
-            .exec(createUserRequestTable)
+    fun <P> init(): UnpreparedSQLActionChain<Unit, Unit, P> =
+            UnpreparedSQLActionChain.exec<Unit, P>("CREATE EXTENSION IF NOT EXISTS pgcrypto")
+                    .exec(createUserProfileTable)
+                    .exec(createUserPasswordTable)
+                    .exec(createUserSessionTable)
+                    .exec(createUserRequestTable)
 
-    val drop: SQLTransaction<Unit, Unit> =
-        SQLTransaction.dropTableIfExists<Unit>("user_relationship_request")
-            .dropTableIfExists("user_password")
-            .dropTableIfExists("user_session")
-            .dropTableIfExists("user_profile")
+    fun <P> drop(): UnpreparedSQLActionChain<Unit, Unit, P> =
+            UnpreparedSQLActionChain.dropTableIfExists<Unit, P>("user_relationship_request")
+                    .dropTableIfExists("user_password")
+                    .dropTableIfExists("user_session")
+                    .dropTableIfExists("user_profile")
 }

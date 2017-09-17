@@ -1,12 +1,12 @@
 package dev.yn.playground.user.extensions.schema
 
-import dev.yn.playground.sql.task.SQLTask
+import dev.yn.playground.sql.task.SQLClientProvider
+import dev.yn.playground.sql.task.UnpreparedSQLTask
 import dev.yn.playground.user.UserSchema
 import io.vertx.core.Future
-import io.vertx.ext.sql.SQLClient
 
-fun SQLClient.initUserSchema() = SQLTask(UserSchema.init, this).run(Unit)
-fun SQLClient.dropUserSchema() = SQLTask(UserSchema.drop, this).run(Unit)
+fun <P: SQLClientProvider> P.initUserSchema() = UnpreparedSQLTask(UserSchema.init()).prepare(this).run(Unit)
+fun <P: SQLClientProvider> P.dropUserSchema() = UnpreparedSQLTask(UserSchema.drop()).prepare(this).run(Unit)
 
-fun <T> Future<T>.dropUserSchema(client: SQLClient) = this.compose { client.dropUserSchema() }
-fun <T> Future<T>.initUserSchema(client: SQLClient) = this.compose { client.initUserSchema() }
+fun <T, P: SQLClientProvider> Future<T>.dropUserSchema(provider: P) = this.compose { provider.dropUserSchema() }
+fun <T, P: SQLClientProvider> Future<T>.initUserSchema(provider: P) = this.compose { provider.initUserSchema() }

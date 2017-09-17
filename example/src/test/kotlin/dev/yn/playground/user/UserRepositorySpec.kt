@@ -37,16 +37,19 @@ class UserRepositorySpec: StringSpec() {
         JDBCClient.createShared(vertx, jdbcConfig)
     }
 
-    override protected fun interceptTestCase(context: TestCaseContext, test: () -> Unit) {
+    val provider: SQLAndVertxProvider by lazy {
+        SQLAndVertxProvider(vertx, sqlClient)
+    }
+    override fun interceptTestCase(context: TestCaseContext, test: () -> Unit) {
         test()
     }
 
-    override protected fun interceptSpec(context: Spec, spec: () -> Unit) {
-        awaitSucceededFuture(sqlClient.dropUserSchema())
-        awaitSucceededFuture(sqlClient.initUserSchema())
+    override fun interceptSpec(context: Spec, spec: () -> Unit) {
+        awaitSucceededFuture(provider.dropUserSchema())
+        awaitSucceededFuture(provider.initUserSchema())
         spec()
-        awaitSucceededFuture(sqlClient.deleteAllUsers()
-                .dropUserSchema(sqlClient))
+        awaitSucceededFuture(provider.deleteAllUsers()
+                .dropUserSchema(provider))
     }
 
     init {
@@ -57,16 +60,22 @@ class UserRepositorySpec: StringSpec() {
             val user = dev.yn.playground.user.UserProfile(userId, userName, false)
             val userAndPassword = dev.yn.playground.user.UserNameAndPassword(userName, password)
 
-            val userService = dev.yn.playground.user.UserService(sqlClient, vertx)
+            val userService = try {
+                dev.yn.playground.user.UserService(sqlClient, vertx)
+            } catch(e: NoClassDefFoundError) {
+                LOG.error("error: ", e)
+                LOG.error("cause: ", e.cause)
+                LOG.error(e.stackTrace.joinToString { "\n\t" })
+                throw RuntimeException("wtf??")
+            }
             awaitSucceededFuture(
                     userService.createUser(dev.yn.playground.user.UserProfileAndPassword(user, password)),
                     user)
 
-            awaitSucceededFuture(userService.loginUser(userAndPassword))
-                    .let { it.userId shouldBe userId }
+            awaitSucceededFuture(userService.loginUser(userAndPassword)).userId shouldBe userId
         }
 
-        "Fail to loginTransaction a user with a bad password" {
+        "Fail to loginActionChain a user with a bad password" {
             val userId = UUID.randomUUID().toString()
             val password = "pass2"
             val userName = "sally2"
@@ -84,7 +93,7 @@ class UserRepositorySpec: StringSpec() {
                     expectedError)
         }
 
-        "Fail to loginTransaction a user who is already logged in" {
+        "Fail to loginActionChain a user who is already logged in" {
             val userId = UUID.randomUUID().toString()
             val password = "pass3"
             val userName = "sally3"
@@ -96,8 +105,7 @@ class UserRepositorySpec: StringSpec() {
                     userService.createUser(dev.yn.playground.user.UserProfileAndPassword(user, password)),
                     user)
 
-            awaitSucceededFuture(userService.loginUser(userAndPassword))
-                    .let { it.userId shouldBe userId }
+            awaitSucceededFuture(userService.loginUser(userAndPassword)).userId shouldBe userId
             val expectedError = SQLError.OnStatement(SQLStatement.Parameterized(dev.yn.playground.user.EnsureNoSessionExists.selectUserSessionExists, JsonArray(listOf(userId))), dev.yn.playground.user.UserError.SessionAlreadyExists(userId))
             awaitFailedFuture(
                     userService.loginUser(userAndPassword.copy(password = password)),
@@ -134,7 +142,6 @@ class UserRepositorySpec: StringSpec() {
             val password2 = "pass6"
             val userName2 = "sally6"
             val user2 = dev.yn.playground.user.UserProfile(userId2, userName2, false)
-            val userAndPassword2 = dev.yn.playground.user.UserNameAndPassword(userName2, password2)
 
             val userService = dev.yn.playground.user.UserService(sqlClient, vertx)
             awaitSucceededFuture(

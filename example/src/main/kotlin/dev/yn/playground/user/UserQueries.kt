@@ -10,6 +10,7 @@ import io.vertx.ext.sql.UpdateResult
 import org.funktionale.tries.Try
 import java.sql.Timestamp
 import java.time.Instant
+
 object UserSQL {
     val selectSessionByKey= "SELECT session_key, user_id, expiration FROM user_session where session_key = ?"
 
