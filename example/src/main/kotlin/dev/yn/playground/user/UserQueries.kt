@@ -13,8 +13,8 @@ import java.time.Instant
 
 object UserSQL {
     val selectSessionByKey= "SELECT session_key, user_id, expiration FROM user_session where session_key = ?"
-
 }
+
 object InsertUserProfileMapping: UpdateSQLMapping<UserProfileAndPassword, UserProfileAndPassword> {
     val insertUser = "INSERT INTO user_profile (id, user_name, allow_public_message) VALUES (?, ?, ?)"
 
