@@ -2,7 +2,7 @@
 
 This is an experimental project that provides an interface for composing SQL queries and other asynchronous I/O or synchronous computation into futures and automatically handling transactions.
 
-###Project Goals
+### Project Goals
 
 This project has one central goal: Reduce the amount of code you have to write to create a vertx application. To do this, I am pursuing the following concrete goals:
 
@@ -11,14 +11,14 @@ This project has one central goal: Reduce the amount of code you have to write t
 * Allow users to create static tasks that describe application behavior and can be executed as many times as desired at any time after application startup
 * Do so without consuming a noticeable amount of system resources
 
-###Core Concepts
+### Core Concepts
 
 1. Unprepared Tasks - static objects do not have the runtime resources required to be executed (for example a SQL connection or Vertx instance).  Thus, the static tasks must be "prepared"
 2. Providers - objects that provide runtime objects to unprepared tasks (i.e. database connection or Vertx instance)
 3. Tasks - an unprepared task that has been prepared and is ready to run.
 4. SQLActionChain - A chain of SQL Queries and Commands which may also include other asynchronous or synchronous actions.  A SQLActionChain may be executed transactionally and the library will handle rolling back on failure.  A SQLActionChain may also allow one to execute other types of I/O as part of the transaction and rollback in case of failure.
 
-###Examples
+### Examples
 
 
 ```
@@ -109,7 +109,8 @@ class UserService(val vertx: Vertx, val client: SQLClient) {
 }
 ```
 
-This code is found in dev.yn.playground.user.UserTransactions and dev.yn.playground.user.UserService.
+
+This code is found in the example submodule, in the package `dev.yn.playground.user`.
 
 TODO:
 *  Streaming
