@@ -8,8 +8,9 @@ This project has one central goal: Reduce the amount of code you have to write t
 
 * Eliminate Boiler plate code for creating vertx applications
 * Provide a clear, DSL-like API for executing Asynchronous I/O
+* Make application business logic clear and separate business logic from everything else
 * Allow users to create static tasks that describe application behavior and can be executed as many times as desired at any time after application startup
-* Do so without consuming a noticeable amount of system resources
+* Do not consuming a noticeable amount of system resources
 * Allow flexible interface for database interractions (don't provide opinionated ORM like functionality, i.e. JPA because that isn't hard to do and execution is slow)
 
 ## Core Concepts
@@ -115,7 +116,7 @@ This code is found in the example submodule, in the package `dev.yn.playground.u
 
 ## Running Tests
 
-1. Start the docker environment (postgres): `$ docket-compose up`
+1. Start the docker environment (postgres): `$ docker-compose up`
 2. run the tests: `gradle clean test`
 
 ## TODO:
