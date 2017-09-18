@@ -1,6 +1,9 @@
 package dev.yn.playground.user
 
-import dev.yn.playground.sql.SQLTransaction
+import dev.yn.playground.sql.UnpreparedSQLActionChain
+import dev.yn.playground.task.UnpreparedVertxTask
+import dev.yn.playground.task.VertxProvider
+import dev.yn.playground.task.VertxTask
 import org.funktionale.tries.Try
 import java.time.Instant
 import java.util.*
@@ -8,19 +11,21 @@ import java.util.*
 object UserTransactions {
     private val createNewSessionKey: (String) -> UserSession = { UserSession(UUID.randomUUID().toString(), it, Instant.now().plusSeconds(3600)) }
 
-    val createUserTransaction: SQLTransaction<UserProfileAndPassword, UserProfile> =
-            SQLTransaction.update(InsertUserProfileMapping)
+    fun <P: VertxProvider> createUserActionChain(): UnpreparedSQLActionChain<UserProfileAndPassword, UserProfile, P> =
+            UnpreparedSQLActionChain.update<UserProfileAndPassword, UserProfileAndPassword, P>(InsertUserProfileMapping)
                     .update(InsertUserPasswordMapping)
+                    .mapTask<UserProfile>(UnpreparedVertxTask(VertxTask.sendWithResponse(userCreatedAddress)))
 
-    val loginTransaction: SQLTransaction<UserNameAndPassword, UserSession> =
-            SQLTransaction.query(SelectUserIdForLogin)
+    fun <P: VertxProvider> loginActionChain(): UnpreparedSQLActionChain<UserNameAndPassword, UserSession, P> =
+            UnpreparedSQLActionChain.query<UserNameAndPassword, UserIdAndPassword, P>(SelectUserIdForLogin)
                     .query(ValidatePasswordForUserId)
                     .query(EnsureNoSessionExists)
                     .map(createNewSessionKey)
                     .update(InsertSession)
+                    .mapTask<UserSession>(UnpreparedVertxTask(VertxTask.sendWithResponse(userLoginAddress)))
 
-    val getUserTransaction: SQLTransaction<TokenAndInput<String>, UserProfile> =
-            validateSession<String> { session, userId ->
+    fun <P> getUserActionChain(): UnpreparedSQLActionChain<TokenAndInput<String>, UserProfile, P> =
+            validateSession<String, P> { session, userId ->
                 if (session.userId == userId) {
                     Try.Success(userId)
                 } else {
@@ -29,11 +34,11 @@ object UserTransactions {
             }
                     .query(SelectUserProfileById)
 
-    private fun <T> validateSession(validateSession: (UserSession, T) -> Try<T>): SQLTransaction<TokenAndInput<T>, T> =
-            SQLTransaction.query(SelectSessionByKey(validateSession))
+    private fun <T, P> validateSession(validateSession: (UserSession, T) -> Try<T>): UnpreparedSQLActionChain<TokenAndInput<T>, T, P> =
+            UnpreparedSQLActionChain.query(SelectSessionByKey(validateSession))
 
-    val deleteAllUsersTransaction: SQLTransaction<Unit, Unit> =
-            SQLTransaction.deleteAll<Unit>("user_relationship_request")
+    fun <P> deleteAllUserActionChain(): UnpreparedSQLActionChain<Unit, Unit, P> =
+            UnpreparedSQLActionChain.deleteAll<Unit, P>("user_relationship_request")
                     .deleteAll { "user_password" }
                     .deleteAll { "user_session" }
                     .deleteAll { "user_profile" }
