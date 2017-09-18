@@ -10,6 +10,7 @@ This project has one central goal: Reduce the amount of code you have to write t
 * Provide a clear, DSL-like API for executing Asynchronous I/O
 * Allow users to create static tasks that describe application behavior and can be executed as many times as desired at any time after application startup
 * Do so without consuming a noticeable amount of system resources
+* Allow flexible interface for database interractions (don't provide opinionated ORM like functionality, i.e. JPA because that isn't hard to do and execution is slow)
 
 ## Core Concepts
 

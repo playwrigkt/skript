@@ -4,14 +4,13 @@ import io.vertx.core.Future
 import io.vertx.ext.sql.SQLConnection
 
 /**
- * A re-usable SQL actionChain.  Use SQLTransactinExecutor to handle transactions autmatically.
+ * A re-usable SQL actionChain.  Executed via SQLTask
  *
  * A SQLTranaction is a chain of `SQLAction`
  *
  * I input Type
  * O output type
  */
-
 sealed class SQLActionChain<I, O> {
     abstract fun <U> addAction(action: SQLAction<O, U>): SQLActionChain<I, U>
     abstract fun run(i: I, connection: SQLConnection): Future<O>

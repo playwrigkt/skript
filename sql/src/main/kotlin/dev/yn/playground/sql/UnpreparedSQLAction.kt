@@ -1,11 +1,21 @@
 package dev.yn.playground.sql
 
 import dev.yn.playground.task.UnpreparedTask
-import io.vertx.core.Future
-import io.vertx.ext.sql.ResultSet
-import io.vertx.ext.sql.UpdateResult
-import org.funktionale.tries.Try
 
+/**
+ * Encapsulates all of the actions that can be run against the database.  These are chained together to create a Transaction.
+ *
+ * You can use nested transactions and the client will not generate extra begin/commit commands thereby maintaining the
+ * outermost actionChain.
+ *
+ * You can also include Non SQL tasks in the transaction and they will affect whether the transction is committed or
+ * rolledback, pending success
+ *
+ *
+ * I input Type
+ * O input Type
+ * P the provider type to be used to prepare non SQL tasks
+ */
 sealed class UnpreparedSQLAction<I, O, P> {
     abstract fun prepare(provider: P): SQLAction<I, O>
 
@@ -16,29 +26,6 @@ sealed class UnpreparedSQLAction<I, O, P> {
 
         override fun toString(): String =
                 "UnpreparedSQLAction.Query(mapping=$mapping)"
-    }
-
-    class Map<I, O, P>(val mapper: (I) -> O): UnpreparedSQLAction<I, O, P>() {
-        override fun prepare(provider: P): SQLAction<I, O> {
-            return SQLAction.Map(mapper)
-        }
-
-        override fun toString(): String =
-                "UnpreparedSQLAction.Map(mapper:$mapper)"
-    }
-
-    class MapTask<I, O, P>(val task: UnpreparedTask<I, O, P>): UnpreparedSQLAction<I, O, P>() {
-        override fun prepare(provider: P): SQLAction<I, O> {
-            return SQLAction.MapTask(task.prepare(provider))
-        }
-    }
-    class MapAsync<I, O, P>(val mapper: (I) -> Future<O>): UnpreparedSQLAction<I, O, P>() {
-        override fun prepare(provider: P): SQLAction<I, O> {
-            return SQLAction.MapAsync(mapper)
-        }
-
-        override fun toString(): String =
-                "SQLAction.MapAsync(mapper:$mapper)"
     }
 
     class Update<I, O, P>(val mapping: UpdateSQLMapping<I, O>): UnpreparedSQLAction<I, O, P>() {
@@ -56,11 +43,28 @@ sealed class UnpreparedSQLAction<I, O, P> {
 
         override fun toString(): String = "SQLAction.Exec(statement=$statement)"
     }
+
     class Nested<I, O, P>(val chain: UnpreparedSQLActionChain<I, O, P>): UnpreparedSQLAction<I, O, P>() {
         override fun prepare(provider: P): SQLAction<I, O> {
             return SQLAction.Nested(chain.prepare(provider))
         }
 
         override fun toString(): String = "SQLAction.Nested(chain=$chain)"
+    }
+
+
+    class Map<I, O, P>(val mapper: (I) -> O): UnpreparedSQLAction<I, O, P>() {
+        override fun prepare(provider: P): SQLAction<I, O> {
+            return SQLAction.Map(mapper)
+        }
+
+        override fun toString(): String =
+                "UnpreparedSQLAction.Map(mapper:$mapper)"
+    }
+
+    class MapTask<I, O, P>(val task: UnpreparedTask<I, O, P>): UnpreparedSQLAction<I, O, P>() {
+        override fun prepare(provider: P): SQLAction<I, O> {
+            return SQLAction.MapTask(task.prepare(provider))
+        }
     }
 }

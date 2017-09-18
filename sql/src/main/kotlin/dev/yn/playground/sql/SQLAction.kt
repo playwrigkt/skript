@@ -13,10 +13,16 @@ import io.vertx.ext.sql.UpdateResult
  * You can use nested transactions and the client will not generate extra begin/commit commands thereby maintaining the
  * outermost actionChain.
  *
+ * You can also include Non SQL tasks in the transaction and they will affect whether the transction is committed or
+ * rolledback, pending success
+ *
+ *
  * I input Type
  * O input Type
  */
 sealed class SQLAction<I, O> {
+    abstract fun run(i: I, connection: SQLConnection): Future<O>
+
     internal class Query<I, O>(val mapping: QuerySQLMapping<I, O>): SQLAction<I, O>() {
         override fun run(i: I, connection: SQLConnection): Future<O> {
             val sqlStatement = mapping.toSql(i)
@@ -34,35 +40,6 @@ sealed class SQLAction<I, O> {
         override fun toString(): String =
                 "SQLAction.Query(mapping=$mapping)"
     }
-
-    internal class Map<I, O>(val mapper: (I) -> O): SQLAction<I, O>() {
-        override fun run(i: I, connection: SQLConnection): Future<O> {
-            return Future.succeededFuture(this.mapper(i))
-        }
-
-        override fun toString(): String =
-                "SQLAction.Map(mapper:$mapper)"
-    }
-
-    internal class MapAsync<I, O>(val mapper: (I) -> Future<O>): SQLAction<I, O>() {
-        override fun run(i: I, connection: SQLConnection): Future<O> {
-            return mapper(i)
-        }
-
-        override fun toString(): String =
-                "SQLAction.MapAsync(mapper:$mapper)"
-    }
-
-    internal class MapTask<I, O>(val task: Task<I, O>): SQLAction<I, O>() {
-        override fun run(i: I, connection: SQLConnection): Future<O> {
-            return task.run(i)
-        }
-
-        override fun toString(): String =
-                "SQLAction.MapTask(task=$task)"
-
-    }
-
 
     internal class Update<I, O>(val mapping: UpdateSQLMapping<I, O>): SQLAction<I, O>() {
         override fun run(i: I, connection: SQLConnection): Future<O> {
@@ -100,5 +77,22 @@ sealed class SQLAction<I, O> {
         override fun toString(): String = "SQLAction.Nested(chain=$chain)"
     }
 
-    abstract fun run(i: I, connection: SQLConnection): Future<O>
+    internal class Map<I, O>(val mapper: (I) -> O): SQLAction<I, O>() {
+        override fun run(i: I, connection: SQLConnection): Future<O> {
+            return Future.succeededFuture(this.mapper(i))
+        }
+
+        override fun toString(): String =
+                "SQLAction.Map(mapper:$mapper)"
+    }
+
+    internal class MapTask<I, O>(val task: Task<I, O>): SQLAction<I, O>() {
+        override fun run(i: I, connection: SQLConnection): Future<O> {
+            return task.run(i)
+        }
+
+        override fun toString(): String =
+                "SQLAction.MapTask(task=$task)"
+
+    }
 }

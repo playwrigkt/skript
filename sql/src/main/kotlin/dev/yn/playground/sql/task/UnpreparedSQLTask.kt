@@ -20,6 +20,7 @@ interface SQLClientProvider {
 
 /**
  * A SQL Task that neeeds to be prepared
+ * Will not wrap the actionChain in a transaction
  */
 data class UnpreparedSQLTask<I, O, P: SQLClientProvider>(val actionChain: UnpreparedSQLActionChain<I, O, P>): UnpreparedTask<I, O, P> {
     companion object {

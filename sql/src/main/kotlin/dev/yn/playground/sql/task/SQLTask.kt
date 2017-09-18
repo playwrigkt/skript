@@ -7,6 +7,9 @@ import io.vertx.core.Future
 import io.vertx.ext.sql.SQLClient
 import io.vertx.ext.sql.SQLConnection
 
+/**
+ * Handles the execution of a SQLActionChain without a transaction
+ */
 internal data class SQLTask<I, O>(val actionChain: SQLActionChain<I, O>, val sqlClient: SQLClient): Task<I, O> {
     companion object {
         fun <I, O, P: SQLClientProvider> sqlTransaction(actionChain: UnpreparedSQLActionChain<I, O, P>, provider: P) =
@@ -15,6 +18,10 @@ internal data class SQLTask<I, O>(val actionChain: SQLActionChain<I, O>, val sql
         fun <I, O, P: SQLClientProvider> sql(actionChain: UnpreparedSQLActionChain<I, O, P>, provider: P) =
                 UnpreparedSQLTask<I, O, P>(actionChain).prepare(provider)
     }
+
+    /**
+     * Executes a sql action chain on a single connection with autocommit set to true
+     */
     override fun run(i: I): Future<O> {
         val future: Future<SQLConnection> = Future.future()
         sqlClient.getConnection(future.completer())
@@ -29,7 +36,17 @@ internal data class SQLTask<I, O>(val actionChain: SQLActionChain<I, O>, val sql
     }
 }
 
+/**
+ * Handle the transactional execution of a SQLActionChain
+ */
 internal data class TransactionalSQLTask<I, O>(val actionChain: SQLActionChain<I, O>, val sqlClient: SQLClient): Task<I, O> {
+
+    /**
+     * Executes a sql action chain on a single connection with autocommit set to false
+     *
+     * Commits if the future is successful
+     * Rolls back if the future fails
+     */
     override fun run(i: I): Future<O> {
         val future: Future<SQLConnection> = Future.future()
         sqlClient.getConnection(future.completer())

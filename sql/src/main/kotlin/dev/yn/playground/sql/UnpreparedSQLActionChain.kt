@@ -5,6 +5,9 @@ import io.vertx.ext.sql.ResultSet
 import io.vertx.ext.sql.UpdateResult
 import org.funktionale.tries.Try
 
+/**
+ * Providese interface for constructing SQL Transactions
+ */
 sealed class UnpreparedSQLActionChain<I, O, P> {
     companion object {
         fun <I, O, P> new(action: UnpreparedSQLAction<I, O, P>): UnpreparedSQLActionChain<I, O, P> {
@@ -42,7 +45,7 @@ sealed class UnpreparedSQLActionChain<I, O, P> {
     abstract fun <U> addAction(action: UnpreparedSQLAction<O, U, P>): UnpreparedSQLActionChain<I, U, P>
     abstract fun prepare(provider: P): SQLActionChain<I, O>
 
-    data class EndLink<I, O, P>(val action: UnpreparedSQLAction<I, O, P>): UnpreparedSQLActionChain<I, O, P>() {
+    internal data class EndLink<I, O, P>(val action: UnpreparedSQLAction<I, O, P>): UnpreparedSQLActionChain<I, O, P>() {
         override fun prepare(provider: P): SQLActionChain<I, O> {
             return SQLActionChain.EndLink(action.prepare(provider))
         }
@@ -52,7 +55,7 @@ sealed class UnpreparedSQLActionChain<I, O, P> {
         }
     }
 
-    data class ActionLink<I, J, O, P>(val action: UnpreparedSQLAction<I, J, P>, val next: UnpreparedSQLActionChain<J, O, P>): UnpreparedSQLActionChain<I, O, P>() {
+    internal data class ActionLink<I, J, O, P>(val action: UnpreparedSQLAction<I, J, P>, val next: UnpreparedSQLActionChain<J, O, P>): UnpreparedSQLActionChain<I, O, P>() {
         override fun <U> addAction(action: UnpreparedSQLAction<O, U, P>): UnpreparedSQLActionChain<I, U, P> {
             return ActionLink<I, J, U, P>(this.action, next.addAction(action))
         }
