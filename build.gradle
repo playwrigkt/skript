@@ -48,6 +48,7 @@ allprojects {
     compile "io.vertx:vertx-jdbc-client:$vertxVersion"
 
     compile "io.vertx:vertx-jdbc-client:$vertxVersion"
+    compile "com.zaxxer:HikariCP:2.7.1"
 
     compile "org.funktionale:funktionale-all:1.0.0-final"
     compile group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.9.0'

@@ -22,7 +22,7 @@ sealed class SQLActionChain<I, O> {
         override fun run(i: I, connection: SQLConnection): Future<O> =
                 action.run(i, connection)
 
-        override fun toString(): String = "SQLActionChain.EndLink(action=$action)"
+        override fun toString(): String = "SQLActionChain.EndLink(head=$action)"
     }
 
     internal data class ActionLink<I, J, O>(val action: SQLAction<I, J>,
@@ -34,6 +34,6 @@ sealed class SQLActionChain<I, O> {
                 action.run(i, connection)
                         .compose { u -> next.run(u, connection) }
 
-        override fun toString(): String = "SQLActionChain.ActionLink(action=$action,next=$next)"
+        override fun toString(): String = "SQLActionChain.ActionLink(head=$action,tail=$next)"
     }
 }

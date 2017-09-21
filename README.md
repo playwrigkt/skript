@@ -41,38 +41,6 @@ import java.util.*
 //Mapping code ommitted from example
 //Model definitions excluded from example
 
-//Transaction Definitions
-object Transactions {
-    fun <P: VertxProvider> createUserActionChain(): UnpreparedSQLActionChain<UserProfileAndPassword, UserProfile, P> =
-            UnpreparedSQLActionChain.update<UserProfileAndPassword, UserProfileAndPassword, P>(InsertUserProfileMapping)
-                    .update(InsertUserPasswordMapping)
-                    .mapTask<UserProfile>(UnpreparedVertxTask(VertxTask.sendWithResponse(userCreatedAddress))) //Transactions will be rolled back if vertx publish fails
-    
-    fun <P: VertxProvider> loginActionChain(): UnpreparedSQLActionChain<UserNameAndPassword, UserSession, P> =
-            UnpreparedSQLActionChain.query<UserNameAndPassword, UserIdAndPassword, P>(SelectUserIdForLogin)
-                    .query(ValidatePasswordForUserId)
-                    .query(EnsureNoSessionExists)
-                    .map(createNewSession)
-                    .update(InsertSession)
-    
-    fun <P> getUserActionChain(): UnpreparedSQLActionChain<TokenAndInput<String>, UserProfile, P> =
-            validateSession<String, P>(canAccessUser<P>())
-                    .query(SelectUserProfileById)
-    
-    private val createNewSession: (String) -> UserSession = { UserSession(UUID.randomUUID().toString(), it, Instant.now().plusSeconds(3600)) }
-    
-    private fun <T, P> validateSession(validateSession: (UserSession, T) -> Try<T>): UnpreparedSQLActionChain<TokenAndInput<T>, T, P> =
-            UnpreparedSQLActionChain.query(SelectSessionByKey(validateSession))
-    
-    private fun <P> canAccessUser(): (UserSession, String) -> Try<String> = { session, userId ->
-            if (session.userId == userId) {
-                Try.Success(userId)
-            } else {
-                Try.Failure(UserError.AuthorizationFailed)
-            }
-        }
-}
-
 //Provider Implementation
 class SQLAndVertxProvider(val vertx: Vertx, val sqlClient: SQLClient) : SQLClientProvider, VertxProvider {
     override fun provideVertx(): Vertx = vertx
@@ -82,28 +50,54 @@ class SQLAndVertxProvider(val vertx: Vertx, val sqlClient: SQLClient) : SQLClien
     }
 }
 
-//Static unprepared tasks
-object UnpreparedTasks {
+//Transaction Definitions
+object Transactions {
+    private val createNewSession: (String) -> UserSession = { UserSession(UUID.randomUUID().toString(), it, Instant.now().plusSeconds(3600)) }
+
+    private val canAccessUser: (UserSession, String) -> Try<String> = { session, userId ->
+        if (session.userId == userId) {
+            Try.Success(userId)
+        } else {
+            Try.Failure(UserError.AuthorizationFailed)
+        }
+    }
+
+    private fun <T> validateSession(validateSession: (UserSession, T) -> Try<T>): UnpreparedSQLActionChain<TokenAndInput<T>, T, SQLAndVertxProvider> =
+            UnpreparedSQLActionChain.query(SelectSessionByKey(validateSession))
+    
     //transactional updates
     val unpreparedCreateUserTask: UnpreparedTask<UserProfileAndPassword, UserProfile, SQLAndVertxProvider> =
-            UnpreparedTransactionalSQLTask.chain(Transactions.createUserActionChain<SQLAndVertxProvider>())
-    
+            UnpreparedTransactionalSQLTask
+                    .chain(UnpreparedSQLActionChain
+                            .update<UserProfileAndPassword, UserProfileAndPassword, SQLAndVertxProvider>(InsertUserProfileMapping)
+                            .update(InsertUserPasswordMapping)
+                            .mapTask(UnpreparedVertxTask(VertxTask.sendWithResponse(userCreatedAddress)))) //Transactions will be rolled back if vertx publish fails
+
     val unpreparedLoginTask: UnpreparedTask<UserNameAndPassword, UserSession, SQLAndVertxProvider> =
-            UnpreparedTransactionalSQLTask.chain(Transactions.loginActionChain<SQLAndVertxProvider>())
-                .andThen(UnpreparedVertxTask(VertxTask.sendWithResponse(userLoginAddress))) //Vertx Task is executed outside of transaction and will not impact commit
-                
+            UnpreparedTransactionalSQLTask
+                    .chain(UnpreparedSQLActionChain.query<UserNameAndPassword, UserIdAndPassword, SQLAndVertxProvider>(SelectUserIdForLogin)
+                            .query(ValidatePasswordForUserId)
+                            .query(EnsureNoSessionExists)
+                            .map(createNewSession)
+                            .update(InsertSession))
+                    .andThen(UnpreparedVertxTask(VertxTask.sendWithResponse(userLoginAddress))) //Vertx Task is executed outside of transaction and will not impact commit
+
     //Non-transactional query
     val unpreparedGetUserTask: UnpreparedTask<TokenAndInput<String>, UserProfile, SQLAndVertxProvider> =
-            UnpreparedSQLTask.chain(Transactions.getUserActionChain<SQLAndVertxProvider>())
+            UnpreparedSQLTask
+                    .chain(validateSession<String>(canAccessUser)
+                            .query(SelectUserProfileById))
+
+    
 }
 
 //Service Implementation
 class UserService(val vertx: Vertx, val client: SQLClient) {
     val provider = SQLAndVertxProvider(vertx, client)
 
-    val createUserTask: Task<UserProfileAndPassword, UserProfile> = UnpreparedTasks.unpreparedCreateUserTask.prepare(provider)
-    val loginUserTask = UnpreparedTasks.unpreparedLoginTask.prepare(provider)
-    val getUserTask: Task<TokenAndInput<String>, UserProfile> = UnpreparedTasks.unpreparedGetUserTask.prepare(provider)
+    val createUserTask: Task<UserProfileAndPassword, UserProfile> = Transactions.unpreparedCreateUserTask.prepare(provider)
+    val loginUserTask = Transactions.unpreparedLoginTask.prepare(provider)
+    val getUserTask: Task<TokenAndInput<String>, UserProfile> = Transactions.unpreparedGetUserTask.prepare(provider)
 
     fun createUser(userProfile: UserProfileAndPassword): Future<UserProfile> = createUserTask.run(userProfile)
     fun login(userNameAndPassword: UserNameAndPassword): Future<UserSession> = loginUserTask.run(userNameAndPassword)

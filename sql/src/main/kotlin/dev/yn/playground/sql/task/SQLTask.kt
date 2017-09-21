@@ -17,10 +17,17 @@ internal data class SQLTask<I, O>(val actionChain: SQLActionChain<I, O>, val sql
 
         fun <I, O, P: SQLClientProvider> sql(actionChain: UnpreparedSQLActionChain<I, O, P>, provider: P) =
                 UnpreparedSQLTask<I, O, P>(actionChain).prepare(provider)
+
+        fun <T> close(connection: SQLConnection): (T) -> Future<T> = { thing ->
+            println("closing connection")
+            val future = Future.future<Void>()
+            connection.close(future.completer())
+            future.map { thing }
+        }
     }
 
     /**
-     * Executes a sql action chain on a single connection with autocommit set to true
+     * Executes a sql head chain on a single connection with autocommit set to true
      */
     override fun run(i: I): Future<O> {
         val future: Future<SQLConnection> = Future.future()
@@ -32,6 +39,7 @@ internal data class SQLTask<I, O>(val actionChain: SQLActionChain<I, O>, val sql
                     confFuture.map { connection } }
                 .compose { connection ->
                     actionChain.run(i, connection)
+                            .recover { error -> Future.failedFuture<O>(error) }
                 }
     }
 }
@@ -42,7 +50,7 @@ internal data class SQLTask<I, O>(val actionChain: SQLActionChain<I, O>, val sql
 internal data class TransactionalSQLTask<I, O>(val actionChain: SQLActionChain<I, O>, val sqlClient: SQLClient): Task<I, O> {
 
     /**
-     * Executes a sql action chain on a single connection with autocommit set to false
+     * Executes a sql head chain on a single connection with autocommit set to false
      *
      * Commits if the future is successful
      * Rolls back if the future fails
@@ -60,11 +68,13 @@ internal data class TransactionalSQLTask<I, O>(val actionChain: SQLActionChain<I
                             .compose { result ->
                                 val commitFuture: Future<Void> = Future.future()
                                 connection.commit(commitFuture.completer())
-                                commitFuture.map { result } }
+                                commitFuture.map { result }
+                            }
                             .recover { error ->
                                 val rollbackFuture: Future<Void> = Future.future()
                                 connection.rollback(rollbackFuture.completer())
-                                rollbackFuture.compose { Future.failedFuture<O>(error) } }
+                                rollbackFuture
+                                        .compose { Future.failedFuture<O>(error) } }
                 }
     }
 }

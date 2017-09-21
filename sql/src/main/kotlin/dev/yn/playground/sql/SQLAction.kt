@@ -1,11 +1,11 @@
 package dev.yn.playground.sql
 
 import dev.yn.playground.task.Task
-import dev.yn.playground.util.TryUtil
 import io.vertx.core.Future
 import io.vertx.ext.sql.ResultSet
 import io.vertx.ext.sql.SQLConnection
 import io.vertx.ext.sql.UpdateResult
+import org.funktionale.tries.Try
 
 /**
  * Encapsulates all of the actions that can be run against the database.  These are chained together to create a Transaction.
@@ -33,7 +33,7 @@ sealed class SQLAction<I, O> {
             }
             return sqlFuture
                     .map { mapping.mapResult(i, it) }
-                    .compose { TryUtil.handleFailure(it) }
+                    .compose { handleFailure(it) }
                     .recover { Future.failedFuture<O>(SQLError.OnStatement(sqlStatement, it)) }
         }
 
@@ -51,7 +51,7 @@ sealed class SQLAction<I, O> {
             }
             return sqlFuture
                     .map { mapping.mapResult(i, it) }
-                    .compose { TryUtil.handleFailure(it) }
+                    .compose { handleFailure(it) }
                     .recover { Future.failedFuture<O>(SQLError.OnStatement(sqlStatement, it)) }
         }
 
@@ -95,4 +95,10 @@ sealed class SQLAction<I, O> {
                 "SQLAction.MapTask(task=$task)"
 
     }
+
+    protected fun <R> handleFailure(tri: Try<R>): Future<R> =
+            when(tri) {
+                is Try.Failure -> Future.failedFuture(tri.throwable)
+                is Try.Success -> Future.succeededFuture(tri.get())
+            }
 }

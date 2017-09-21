@@ -45,23 +45,23 @@ sealed class UnpreparedSQLActionChain<I, O, P> {
     abstract fun <U> addAction(action: UnpreparedSQLAction<O, U, P>): UnpreparedSQLActionChain<I, U, P>
     abstract fun prepare(provider: P): SQLActionChain<I, O>
 
-    internal data class EndLink<I, O, P>(val action: UnpreparedSQLAction<I, O, P>): UnpreparedSQLActionChain<I, O, P>() {
+    internal data class EndLink<I, O, P>(val head: UnpreparedSQLAction<I, O, P>): UnpreparedSQLActionChain<I, O, P>() {
         override fun prepare(provider: P): SQLActionChain<I, O> {
-            return SQLActionChain.EndLink(action.prepare(provider))
+            return SQLActionChain.EndLink(head.prepare(provider))
         }
 
         override fun <U> addAction(action: UnpreparedSQLAction<O, U, P>): UnpreparedSQLActionChain<I, U, P> {
-            return ActionLink(this.action, EndLink(action))
+            return ActionLink(this.head, EndLink(action))
         }
     }
 
-    internal data class ActionLink<I, J, O, P>(val action: UnpreparedSQLAction<I, J, P>, val next: UnpreparedSQLActionChain<J, O, P>): UnpreparedSQLActionChain<I, O, P>() {
+    internal data class ActionLink<I, J, O, P>(val head: UnpreparedSQLAction<I, J, P>, val tail: UnpreparedSQLActionChain<J, O, P>): UnpreparedSQLActionChain<I, O, P>() {
         override fun <U> addAction(action: UnpreparedSQLAction<O, U, P>): UnpreparedSQLActionChain<I, U, P> {
-            return ActionLink<I, J, U, P>(this.action, next.addAction(action))
+            return ActionLink<I, J, U, P>(this.head, tail.addAction(action))
         }
 
         override fun prepare(provider: P): SQLActionChain<I, O> {
-            return SQLActionChain.ActionLink(action.prepare(provider), next.prepare(provider))
+            return SQLActionChain.ActionLink(head.prepare(provider), tail.prepare(provider))
         }
     }
 

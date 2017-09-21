@@ -18,38 +18,55 @@ import io.kotlintest.matchers.fail
 import io.vertx.ext.sql.SQLClient
 import org.slf4j.LoggerFactory
 
-class UserRepositorySpec: StringSpec() {
+class UserServiceSpec : StringSpec() {
 
     val LOG = LoggerFactory.getLogger(this.javaClass)
 
-    val jdbcConfig = JsonObject()
-            .put("url", "jdbc:postgresql://localhost:5432/chitchat")
-            .put("user", "chatty_tammy")
-            .put("password", "gossipy")
-            .put("driver_class", "org.postgresql.Driver")
-            .put("max_pool_size", 30)
 
-    val vertx: Vertx by lazy {
-        Vertx.vertx()
+
+    companion object {
+        val hikariConfig = JsonObject()
+                .put("provider_class", "io.vertx.ext.jdbc.spi.impl.HikariCPDataSourceProvider")
+                .put("jdbcUrl", "jdbc:postgresql://localhost:5432/chitchat")
+                .put("username", "chatty_tammy")
+                .put("password", "gossipy")
+                .put("driver_class", "org.postgresql.Driver")
+                .put("maximumPoolSize", 30)
+                .put("poolName", "test_pool")
+
+        val vertx by lazy { Vertx.vertx() }
+
+        val sqlClient: SQLClient by lazy {
+            JDBCClient.createShared(vertx, hikariConfig, "test_ds")
+        }
+
+        val provider: SQLAndVertxProvider by lazy {
+            SQLAndVertxProvider(vertx, sqlClient)
+        }
+
+        val userService by lazy {
+            dev.yn.playground.user.UserService(sqlClient, vertx)
+        }
     }
 
-    val sqlClient: SQLClient by lazy {
-        JDBCClient.createShared(vertx, jdbcConfig)
-    }
 
-    val provider: SQLAndVertxProvider by lazy {
-        SQLAndVertxProvider(vertx, sqlClient)
-    }
     override fun interceptTestCase(context: TestCaseContext, test: () -> Unit) {
         test()
     }
 
     override fun interceptSpec(context: Spec, spec: () -> Unit) {
+
         awaitSucceededFuture(provider.dropUserSchema())
         awaitSucceededFuture(provider.initUserSchema())
         spec()
         awaitSucceededFuture(provider.deleteAllUsers()
                 .dropUserSchema(provider))
+        val clientF = Future.future<Void>()
+        sqlClient.close(clientF.completer())
+        awaitSucceededFuture(clientF)
+        val future = Future.future<Void>()
+        vertx.close(future.completer())
+        awaitSucceededFuture(future)
     }
 
     init {
@@ -60,14 +77,6 @@ class UserRepositorySpec: StringSpec() {
             val user = dev.yn.playground.user.UserProfile(userId, userName, false)
             val userAndPassword = dev.yn.playground.user.UserNameAndPassword(userName, password)
 
-            val userService = try {
-                dev.yn.playground.user.UserService(sqlClient, vertx)
-            } catch(e: NoClassDefFoundError) {
-                LOG.error("error: ", e)
-                LOG.error("cause: ", e.cause)
-                LOG.error(e.stackTrace.joinToString { "\n\t" })
-                throw RuntimeException("wtf??")
-            }
             awaitSucceededFuture(
                     userService.createUser(dev.yn.playground.user.UserProfileAndPassword(user, password)),
                     user)
@@ -82,7 +91,6 @@ class UserRepositorySpec: StringSpec() {
             val user = dev.yn.playground.user.UserProfile(userId, userName, false)
             val userAndPassword = dev.yn.playground.user.UserNameAndPassword(userName, password)
 
-            val userService = dev.yn.playground.user.UserService(sqlClient, vertx)
             awaitSucceededFuture(
                     userService.createUser(dev.yn.playground.user.UserProfileAndPassword(user, password)),
                     user)
@@ -100,7 +108,6 @@ class UserRepositorySpec: StringSpec() {
             val user = dev.yn.playground.user.UserProfile(userId, userName, false)
             val userAndPassword = dev.yn.playground.user.UserNameAndPassword(userName, password)
 
-            val userService = dev.yn.playground.user.UserService(sqlClient, vertx)
             awaitSucceededFuture(
                     userService.createUser(dev.yn.playground.user.UserProfileAndPassword(user, password)),
                     user)
@@ -119,7 +126,6 @@ class UserRepositorySpec: StringSpec() {
             val user = dev.yn.playground.user.UserProfile(userId, userName, false)
             val userAndPassword = dev.yn.playground.user.UserNameAndPassword(userName, password)
 
-            val userService = dev.yn.playground.user.UserService(sqlClient, vertx)
             awaitSucceededFuture(
                     userService.createUser(dev.yn.playground.user.UserProfileAndPassword(user, password)),
                     user)
@@ -143,7 +149,6 @@ class UserRepositorySpec: StringSpec() {
             val userName2 = "sally6"
             val user2 = dev.yn.playground.user.UserProfile(userId2, userName2, false)
 
-            val userService = dev.yn.playground.user.UserService(sqlClient, vertx)
             awaitSucceededFuture(
                     userService.createUser(dev.yn.playground.user.UserProfileAndPassword(user, password)),
                     user)
@@ -164,7 +169,6 @@ class UserRepositorySpec: StringSpec() {
             val userName = "sally7"
             val user = dev.yn.playground.user.UserProfile(userId, userName, false)
 
-            val userService = dev.yn.playground.user.UserService(sqlClient, vertx)
             awaitSucceededFuture(
                     userService.createUser(dev.yn.playground.user.UserProfileAndPassword(user, password)),
                     user)
