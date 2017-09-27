@@ -29,6 +29,24 @@ internal data class SQLTask<I, O>(val actionChain: SQLActionChain<I, O>, val sql
             connection.close(future.completer())
             future.compose<T> { Future.failedFuture(error) }
         }
+
+        fun <T> commit(connection: SQLConnection): (T) -> Future<T> = { thing ->
+            val future = Future.future<Void>()
+            connection.commit(future.completer())
+            future.map { thing }
+        }
+
+        fun <T> rollback(connection: SQLConnection): (Throwable) -> Future<T> = { error ->
+            val future = Future.future<Void>()
+            connection.rollback(future.completer())
+            future.compose<T> { Future.failedFuture(error) }
+        }
+
+        fun setAutoCommit(autoCommit: Boolean, connection: SQLConnection): Future<Void> {
+            val confFuture: Future<Void> = Future.future()
+            connection.setAutoCommit(autoCommit, confFuture.completer())
+            return confFuture
+        }
     }
 
     /**
@@ -39,13 +57,8 @@ internal data class SQLTask<I, O>(val actionChain: SQLActionChain<I, O>, val sql
         sqlClient.getConnection(future.completer())
         return future
                 .compose { connection ->
-                    val confFuture: Future<Void> = Future.future()
-                    connection.setAutoCommit(true, confFuture.completer())
-                    confFuture
-                            .map { connection }
-                            .recover(SQLTask.closeOnFailure(connection)) }
-                .compose { connection ->
-                    actionChain.run(i, connection)
+                    SQLTask.setAutoCommit(true, connection)
+                            .compose { actionChain.run(i, connection) }
                             .compose(SQLTask.close(connection))
                             .recover(SQLTask.closeOnFailure(connection))
                 }
@@ -68,23 +81,12 @@ internal data class TransactionalSQLTask<I, O>(val actionChain: SQLActionChain<I
         sqlClient.getConnection(future.completer())
         return future
                 .compose { connection ->
-                    val confFuture: Future<Void> = Future.future()
-                    connection.setAutoCommit(false, confFuture.completer())
-                    confFuture
-                            .map { connection }
-                            .recover(SQLTask.closeOnFailure(connection)) }
-                .compose { connection ->
-                    actionChain.run(i, connection)
-                            .compose { result ->
-                                val commitFuture: Future<Void> = Future.future()
-                                connection.commit(commitFuture.completer())
-                                commitFuture.map { result }
+                    SQLTask.setAutoCommit(false, connection)
+                            .compose {
+                                actionChain.run(i, connection)
+                                    .compose(SQLTask.commit(connection))
+                                    .recover(SQLTask.rollback(connection))
                             }
-                            .recover { error ->
-                                val rollbackFuture: Future<Void> = Future.future()
-                                connection.rollback(rollbackFuture.completer())
-                                rollbackFuture
-                                        .compose { Future.failedFuture<O>(error) } }
                             .compose(SQLTask.close(connection))
                             .recover(SQLTask.closeOnFailure(connection))
                 }
