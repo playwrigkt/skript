@@ -5,6 +5,7 @@ import io.vertx.core.Future
 import io.vertx.ext.sql.ResultSet
 import io.vertx.ext.sql.SQLConnection
 import io.vertx.ext.sql.UpdateResult
+import org.funktionale.either.Either
 import org.funktionale.tries.Try
 
 /**
@@ -23,7 +24,7 @@ import org.funktionale.tries.Try
 sealed class SQLAction<I, O> {
     abstract fun run(i: I, connection: SQLConnection): Future<O>
 
-    internal class Query<I, O>(val mapping: QuerySQLMapping<I, O>): SQLAction<I, O>() {
+    internal data class Query<I, O>(val mapping: QuerySQLMapping<I, O>): SQLAction<I, O>() {
         override fun run(i: I, connection: SQLConnection): Future<O> {
             val sqlStatement = mapping.toSql(i)
             val sqlFuture = Future.future<ResultSet>()
@@ -36,12 +37,9 @@ sealed class SQLAction<I, O> {
                     .compose { handleFailure(it) }
                     .recover { Future.failedFuture<O>(SQLError.OnStatement(sqlStatement, it)) }
         }
-
-        override fun toString(): String =
-                "SQLAction.Query(mapping=$mapping)"
     }
 
-    internal class Update<I, O>(val mapping: UpdateSQLMapping<I, O>): SQLAction<I, O>() {
+    internal data class Update<I, O>(val mapping: UpdateSQLMapping<I, O>): SQLAction<I, O>() {
         override fun run(i: I, connection: SQLConnection): Future<O> {
             val sqlStatement = mapping.toSql(i)
             val sqlFuture = Future.future<UpdateResult>()
@@ -54,11 +52,9 @@ sealed class SQLAction<I, O> {
                     .compose { handleFailure(it) }
                     .recover { Future.failedFuture<O>(SQLError.OnStatement(sqlStatement, it)) }
         }
-
-        override fun toString(): String = "SQLAction.Update(mapping=$mapping)"
     }
 
-    internal class Exec<I>(val statement: String): SQLAction<I, I>() {
+    internal data class Exec<I>(val statement: String): SQLAction<I, I>() {
         override fun run(i: I, connection: SQLConnection): Future<I> {
             val sqlFuture = Future.future<Void>()
             connection.execute(statement, sqlFuture.completer())
@@ -66,34 +62,46 @@ sealed class SQLAction<I, O> {
                     .map { i }
                     .recover { Future.failedFuture<I>(SQLError.OnStatement(SQLStatement.Simple(statement), it)) }
         }
-
-        override fun toString(): String = "SQLAction.Exec(statement=$statement)"
     }
-    internal class Nested<I, O>(val chain: SQLActionChain<I, O>): SQLAction<I, O>() {
+
+    internal data class Nested<I, O>(val chain: SQLActionChain<I, O>): SQLAction<I, O>() {
         override fun run(i: I, connection: SQLConnection): Future<O> {
             return chain.run(i, connection)
         }
-
-        override fun toString(): String = "SQLAction.Nested(chain=$chain)"
     }
 
-    internal class Map<I, O>(val mapper: (I) -> O): SQLAction<I, O>() {
+    internal data class Map<I, O>(val mapper: (I) -> O): SQLAction<I, O>() {
         override fun run(i: I, connection: SQLConnection): Future<O> {
-            return Future.succeededFuture(this.mapper(i))
+            return handleFailure(Try { mapper(i) })
         }
-
-        override fun toString(): String =
-                "SQLAction.Map(mapper:$mapper)"
     }
 
-    internal class MapTask<I, O>(val task: Task<I, O>): SQLAction<I, O>() {
+    internal data class MapTry<I, O>(val mapper: (I) -> Try<O>): SQLAction<I, O>() {
+        override fun run(i: I, connection: SQLConnection): Future<O> {
+            try {
+                return handleFailure(this.mapper(i))
+            } catch(t: Throwable) {
+                return Future.failedFuture(t)
+            }
+        }
+    }
+
+    internal data class MapTask<I, O>(val task: Task<I, O>): SQLAction<I, O>() {
         override fun run(i: I, connection: SQLConnection): Future<O> {
             return task.run(i)
         }
+    }
 
-        override fun toString(): String =
-                "SQLAction.MapTask(task=$task)"
-
+    internal data class Optional<I, J, O>(val doAction: SQLActionChain<J, O>, val whenRight: SQLActionChain<I, Either<O, J>>): SQLAction<I, O>() {
+        override fun run(i: I, connection: SQLConnection): Future<O> {
+            return whenRight.run(i, connection)
+                    .compose {
+                        when(it) {
+                            is Either.Left -> it.left().get().let { Future.succeededFuture(it) }
+                            is Either.Right -> it.right().get().let { doAction.run(it, connection) }
+                        }
+                    }
+        }
     }
 
     protected fun <R> handleFailure(tri: Try<R>): Future<R> =

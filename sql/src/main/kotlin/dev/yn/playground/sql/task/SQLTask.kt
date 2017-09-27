@@ -19,10 +19,15 @@ internal data class SQLTask<I, O>(val actionChain: SQLActionChain<I, O>, val sql
                 UnpreparedSQLTask<I, O, P>(actionChain).prepare(provider)
 
         fun <T> close(connection: SQLConnection): (T) -> Future<T> = { thing ->
-            println("closing connection")
             val future = Future.future<Void>()
             connection.close(future.completer())
             future.map { thing }
+        }
+
+        fun <T> closeOnFailure(connection: SQLConnection): (Throwable) -> Future<T> = { error ->
+            val future = Future.future<Void>()
+            connection.close(future.completer())
+            future.compose<T> { Future.failedFuture(error) }
         }
     }
 
@@ -36,10 +41,13 @@ internal data class SQLTask<I, O>(val actionChain: SQLActionChain<I, O>, val sql
                 .compose { connection ->
                     val confFuture: Future<Void> = Future.future()
                     connection.setAutoCommit(true, confFuture.completer())
-                    confFuture.map { connection } }
+                    confFuture
+                            .map { connection }
+                            .recover(SQLTask.closeOnFailure(connection)) }
                 .compose { connection ->
                     actionChain.run(i, connection)
-                            .recover { error -> Future.failedFuture<O>(error) }
+                            .compose(SQLTask.close(connection))
+                            .recover(SQLTask.closeOnFailure(connection))
                 }
     }
 }
@@ -62,7 +70,9 @@ internal data class TransactionalSQLTask<I, O>(val actionChain: SQLActionChain<I
                 .compose { connection ->
                     val confFuture: Future<Void> = Future.future()
                     connection.setAutoCommit(false, confFuture.completer())
-                    confFuture.map { connection } }
+                    confFuture
+                            .map { connection }
+                            .recover(SQLTask.closeOnFailure(connection)) }
                 .compose { connection ->
                     actionChain.run(i, connection)
                             .compose { result ->
@@ -75,6 +85,8 @@ internal data class TransactionalSQLTask<I, O>(val actionChain: SQLActionChain<I
                                 connection.rollback(rollbackFuture.completer())
                                 rollbackFuture
                                         .compose { Future.failedFuture<O>(error) } }
+                            .compose(SQLTask.close(connection))
+                            .recover(SQLTask.closeOnFailure(connection))
                 }
     }
 }

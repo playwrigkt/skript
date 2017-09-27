@@ -3,6 +3,7 @@ package dev.yn.playground.sql
 import dev.yn.playground.task.UnpreparedTask
 import io.vertx.ext.sql.ResultSet
 import io.vertx.ext.sql.UpdateResult
+import org.funktionale.either.Either
 import org.funktionale.tries.Try
 
 /**
@@ -13,6 +14,24 @@ sealed class UnpreparedSQLActionChain<I, O, P> {
         fun <I, O, P> new(action: UnpreparedSQLAction<I, O, P>): UnpreparedSQLActionChain<I, O, P> {
             return EndLink(action)
         }
+
+        fun <I, J, O, P> optionally(doAction: UnpreparedSQLActionChain<J, O, P>, whenRight: (I) -> Either<O, J>): UnpreparedSQLActionChain<I, O, P> =
+                new(UnpreparedSQLAction.Optional(doAction, map<I, Either<O, J>, P>(whenRight)))
+
+        fun <I, J, P> optionallySimple(doAction: UnpreparedSQLActionChain<J, I, P>, whenNonNull: (I) -> J?): UnpreparedSQLActionChain<I, I, P> =
+                new(UnpreparedSQLAction.Optional(doAction, map<I, Either<I, J>, P>({ whenNonNull(it)?.let{Either.Right<I, J>(it)}?:Either.Left(it) })))
+
+        fun <I, J, O, P> optionally(doAction: UnpreparedSQLActionChain<J, O, P>, whenRight: UnpreparedSQLActionChain<I, Either<O, J>, P>): UnpreparedSQLActionChain<I, O, P> =
+                new(UnpreparedSQLAction.Optional(doAction, whenRight))
+
+        fun <I, O, P> task(task: UnpreparedTask<I, O, P>): UnpreparedSQLActionChain<I, O, P> =
+                new(UnpreparedSQLAction.MapTask(task))
+
+        fun <I, O, P> map(mapper: (I) -> O): UnpreparedSQLActionChain<I, O, P> =
+                new(UnpreparedSQLAction.Map(mapper))
+
+        fun <I, O, P> mapTry(mapper: (I) -> Try<O>): UnpreparedSQLActionChain<I, O, P> =
+                new(UnpreparedSQLAction.MapTry(mapper))
 
         fun <I, O, P> query(toSql: (I) -> SQLStatement, mapResult: (I, ResultSet) -> Try<O>): UnpreparedSQLActionChain<I, O, P> =
                 query(QuerySQLMapping.create(toSql, mapResult))
@@ -95,6 +114,19 @@ sealed class UnpreparedSQLActionChain<I, O, P> {
     fun <K> map(mapper: (O) -> K): UnpreparedSQLActionChain<I, K, P> =
             addAction(UnpreparedSQLAction.Map(mapper))
 
+    fun <K> mapTry(mapper: (O) -> Try<K>): UnpreparedSQLActionChain<I, K, P> =
+            addAction(UnpreparedSQLAction.MapTry(mapper))
+
     fun <K> flatMap(next: UnpreparedSQLActionChain<O, K, P>): UnpreparedSQLActionChain<I, K, P> =
             addAction(UnpreparedSQLAction.Nested(next))
+
+    fun <O2, K> optionally(doAction: UnpreparedSQLActionChain<O2, K, P>, whenRight: (O) -> Either<K, O2>): UnpreparedSQLActionChain<I, K, P> =
+            addAction(UnpreparedSQLAction.Optional(doAction, map<O, Either<K, O2>, P>(whenRight)))
+
+    fun <J> optionallySimple(doAction: UnpreparedSQLActionChain<J, O, P>, whenNonNull: (O) -> J?): UnpreparedSQLActionChain<I, O, P> =
+            addAction(UnpreparedSQLAction.Optional(doAction, map<O, Either<O, J>, P>({ whenNonNull(it)?.let{Either.Right<O, J>(it)}?:Either.Left(it) })))
+
+    fun <O2, K> optionally(doAction: UnpreparedSQLActionChain<O2, K, P>, whenRight: UnpreparedSQLActionChain<O, Either<K, O2>, P>): UnpreparedSQLActionChain<I, K, P> =
+            addAction(UnpreparedSQLAction.Optional(doAction, whenRight))
+
 }

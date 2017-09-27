@@ -2,6 +2,8 @@ package dev.yn.playground.task
 
 import io.vertx.core.Future
 import io.vertx.core.Vertx
+import org.funktionale.either.Either
+import org.funktionale.tries.Try
 
 /**
  * A head represents a one or more sequential asynchronous actions that can be run as many times as desired.
@@ -27,5 +29,25 @@ interface Task<I, O> {
         }
 
         override fun <O2> andThen(task: Task<O, O2>): Task<I, O2> = TaskLink(this.head, tail.andThen(task))
+    }
+}
+
+data class SyncTask<I, O>(val action: (I) -> Try<O>): Task<I, O> {
+    override fun run(i: I): Future<O> =
+            action(i).let { result ->
+                result.map { Future.succeededFuture(result.get()) }
+                        .getOrElse { Future.failedFuture(result.failed().get()) }
+            }
+}
+
+data class OptionalTask<I, J, O>(val doOptionally: Task<J, O>, val whenRight: Task<I, Either<O, J>>): Task<I, O> {
+    override fun run(i: I): Future<O> {
+        return whenRight.run(i)
+                .compose {
+                    when(it) {
+                        is Either.Left -> it.left().get().let { Future.succeededFuture(it) }
+                        is Either.Right -> it.right().get().let(doOptionally::run)
+                    }
+                }
     }
 }
