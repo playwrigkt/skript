@@ -40,13 +40,37 @@ data class SyncTask<I, O>(val action: (I) -> Try<O>): Task<I, O> {
             }
 }
 
-data class OptionalTask<I, J, O>(val doOptionally: Task<J, O>, val whenRight: Task<I, Either<O, J>>): Task<I, O> {
+data class TaskWhenRight<I, J, O>(val doOptionally: Task<J, O>, val whenRight: Task<I, Either<O, J>>): Task<I, O> {
     override fun run(i: I): Future<O> {
         return whenRight.run(i)
                 .compose {
                     when(it) {
                         is Either.Left -> it.left().get().let { Future.succeededFuture(it) }
                         is Either.Right -> it.right().get().let(doOptionally::run)
+                    }
+                }
+    }
+}
+
+data class TaskWhenNonNull<I, J>(val doOptionally: Task<J, I>, val whenNonNull: Task<I, J?>): Task<I, I> {
+    override fun run(i: I): Future<I> {
+        return whenNonNull.run(i)
+                .compose {
+                    when(it) {
+                        null -> Future.succeededFuture(i)
+                        else -> doOptionally.run(it)
+                    }
+                }
+    }
+}
+
+data class TaskWhenTrue<I>(val doOptionally: Task<I, I>, val whenTrue: Task<I, Boolean>): Task<I, I> {
+    override fun run(i: I): Future<I> {
+        return whenTrue.run(i)
+                .compose {
+                    when(it) {
+                        true -> doOptionally.run(i)
+                        else -> Future.succeededFuture(i)
                     }
                 }
     }

@@ -92,25 +92,37 @@ sealed class SQLAction<I, O> {
         }
     }
 
-    internal data class WhenRight<I, J, O>(val doAction: SQLActionChain<J, O>, val whenRight: SQLActionChain<I, Either<O, J>>): SQLAction<I, O>() {
+    internal data class WhenRight<I, J, O>(val doOptionally: SQLActionChain<J, O>, val whenRight: SQLActionChain<I, Either<O, J>>): SQLAction<I, O>() {
         override fun run(i: I, connection: SQLConnection): Future<O> {
             return whenRight.run(i, connection)
                     .compose {
                         when(it) {
                             is Either.Left -> it.left().get().let { Future.succeededFuture(it) }
-                            is Either.Right -> it.right().get().let { doAction.run(it, connection) }
+                            is Either.Right -> it.right().get().let { doOptionally.run(it, connection) }
                         }
                     }
         }
     }
 
-    internal data class WhenNonNull<I, J>(val doAction: SQLActionChain<J, I>, val whenNonNull: SQLActionChain<I, J?>): SQLAction<I, I>() {
+    internal data class WhenNonNull<I, J>(val doOptionally: SQLActionChain<J, I>, val whenNonNull: SQLActionChain<I, J?>): SQLAction<I, I>() {
         override fun run(i: I, connection: SQLConnection): Future<I> {
             return whenNonNull.run(i, connection)
                     .compose {
                         when(it) {
                             null -> Future.succeededFuture(i)
-                            else -> doAction.run(it, connection)
+                            else -> doOptionally.run(it, connection)
+                        }
+                    }
+        }
+    }
+
+    internal data class WhenTrue<I>(val doOptionally: SQLActionChain<I, I>, val whenTrue: SQLActionChain<I, Boolean>): SQLAction<I, I>() {
+        override fun run(i: I, connection: SQLConnection): Future<I> {
+            return whenTrue.run(i, connection)
+                    .compose {
+                        when(it) {
+                            true -> doOptionally.run(i, connection)
+                            else -> Future.succeededFuture(i)
                         }
                     }
         }

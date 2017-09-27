@@ -1,8 +1,6 @@
 package dev.yn.playground.sql
 
 import dev.yn.playground.task.UnpreparedTask
-import io.vertx.core.Future
-import io.vertx.ext.sql.SQLConnection
 import org.funktionale.either.Either
 import org.funktionale.tries.Try
 
@@ -66,15 +64,21 @@ sealed class UnpreparedSQLAction<I, O, P> {
         }
     }
 
-    data class WhenRight<I, J, O, P>(val doAction: UnpreparedSQLActionChain<J, O, P>, val whenRight: UnpreparedSQLActionChain<I, Either<O, J>, P>): UnpreparedSQLAction<I, O, P>() {
+    data class WhenRight<I, J, O, P>(val doOptionally: UnpreparedSQLActionChain<J, O, P>, val whenRight: UnpreparedSQLActionChain<I, Either<O, J>, P>): UnpreparedSQLAction<I, O, P>() {
         override fun prepare(provider: P): SQLAction<I, O> {
-            return SQLAction.WhenRight(doAction.prepare(provider), whenRight.prepare(provider))
+            return SQLAction.WhenRight(doOptionally.prepare(provider), whenRight.prepare(provider))
         }
     }
 
-    data class WhenNonNull<I, J, P>(val doAction: UnpreparedSQLActionChain<J, I, P>, val whenNonNull: UnpreparedSQLActionChain<I, J?, P>): UnpreparedSQLAction<I, I, P>() {
+    data class WhenNonNull<I, J, P>(val doOptionally: UnpreparedSQLActionChain<J, I, P>, val whenNonNull: UnpreparedSQLActionChain<I, J?, P>): UnpreparedSQLAction<I, I, P>() {
         override fun prepare(provider: P): SQLAction<I, I> {
-            return SQLAction.WhenNonNull(doAction.prepare(provider), whenNonNull.prepare(provider))
+            return SQLAction.WhenNonNull(doOptionally.prepare(provider), whenNonNull.prepare(provider))
+        }
+    }
+
+    data class WhenTrue<I, P>(val doOptionally: UnpreparedSQLActionChain<I, I, P>, val whenTrue: UnpreparedSQLActionChain<I, Boolean, P>): UnpreparedSQLAction<I, I, P>() {
+        override fun prepare(provider: P): SQLAction<I, I> {
+            return SQLAction.WhenTrue(doOptionally.prepare(provider), whenTrue.prepare(provider))
         }
     }
 }

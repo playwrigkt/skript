@@ -24,9 +24,6 @@ data class UnpreparedVertxTask<I, O, PROVIDER: VertxProvider>(val vertxAction: (
 fun <I, O, O2, PROVIDER: VertxProvider> UnpreparedTask<I, O, PROVIDER>.vertxAsync(vertxAction: (O, Vertx) -> Future<O2>): UnpreparedTask<I, O2, PROVIDER> =
         this.andThen(UnpreparedVertxTask(vertxAction))
 
-fun <I, O, O2, PROVIDER: VertxProvider> Task<I, O>.vertxAsync(vertxAction: (O, Vertx) -> Future<O2>, provider: PROVIDER): Task<I, O2> =
-        this.andThen(UnpreparedVertxTask<O, O2, PROVIDER>(vertxAction).prepare(provider))
-
 object VertxTask {
     fun <I, O, PROVIDER: VertxProvider> vertxAsync(vertxAction: (I, Vertx) -> Future<O>, provider: PROVIDER): Task<I, O> =
             UnpreparedVertxTask<I, O, PROVIDER>(vertxAction).prepare(provider)
