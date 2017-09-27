@@ -66,9 +66,15 @@ sealed class UnpreparedSQLAction<I, O, P> {
         }
     }
 
-    data class Optional<I, J, O, P>(val doAction: UnpreparedSQLActionChain<J, O, P>, val whenRight: UnpreparedSQLActionChain<I, Either<O, J>, P>): UnpreparedSQLAction<I, O, P>() {
+    data class WhenRight<I, J, O, P>(val doAction: UnpreparedSQLActionChain<J, O, P>, val whenRight: UnpreparedSQLActionChain<I, Either<O, J>, P>): UnpreparedSQLAction<I, O, P>() {
         override fun prepare(provider: P): SQLAction<I, O> {
-            return SQLAction.Optional(doAction.prepare(provider), whenRight.prepare(provider))
+            return SQLAction.WhenRight(doAction.prepare(provider), whenRight.prepare(provider))
+        }
+    }
+
+    data class WhenNonNull<I, J, P>(val doAction: UnpreparedSQLActionChain<J, I, P>, val whenNonNull: UnpreparedSQLActionChain<I, J?, P>): UnpreparedSQLAction<I, I, P>() {
+        override fun prepare(provider: P): SQLAction<I, I> {
+            return SQLAction.WhenNonNull(doAction.prepare(provider), whenNonNull.prepare(provider))
         }
     }
 }

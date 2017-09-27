@@ -15,24 +15,6 @@ sealed class UnpreparedSQLActionChain<I, O, P> {
             return EndLink(action)
         }
 
-        fun <I, J, O, P> optionally(doAction: UnpreparedSQLActionChain<J, O, P>, whenRight: (I) -> Either<O, J>): UnpreparedSQLActionChain<I, O, P> =
-                new(UnpreparedSQLAction.Optional(doAction, map<I, Either<O, J>, P>(whenRight)))
-
-        fun <I, J, P> optionallySimple(doAction: UnpreparedSQLActionChain<J, I, P>, whenNonNull: (I) -> J?): UnpreparedSQLActionChain<I, I, P> =
-                new(UnpreparedSQLAction.Optional(doAction, map<I, Either<I, J>, P>({ whenNonNull(it)?.let{Either.Right<I, J>(it)}?:Either.Left(it) })))
-
-        fun <I, J, O, P> optionally(doAction: UnpreparedSQLActionChain<J, O, P>, whenRight: UnpreparedSQLActionChain<I, Either<O, J>, P>): UnpreparedSQLActionChain<I, O, P> =
-                new(UnpreparedSQLAction.Optional(doAction, whenRight))
-
-        fun <I, O, P> task(task: UnpreparedTask<I, O, P>): UnpreparedSQLActionChain<I, O, P> =
-                new(UnpreparedSQLAction.MapTask(task))
-
-        fun <I, O, P> map(mapper: (I) -> O): UnpreparedSQLActionChain<I, O, P> =
-                new(UnpreparedSQLAction.Map(mapper))
-
-        fun <I, O, P> mapTry(mapper: (I) -> Try<O>): UnpreparedSQLActionChain<I, O, P> =
-                new(UnpreparedSQLAction.MapTry(mapper))
-
         fun <I, O, P> query(toSql: (I) -> SQLStatement, mapResult: (I, ResultSet) -> Try<O>): UnpreparedSQLActionChain<I, O, P> =
                 query(QuerySQLMapping.create(toSql, mapResult))
 
@@ -59,6 +41,28 @@ sealed class UnpreparedSQLActionChain<I, O, P> {
 
         fun <I, P> deleteAll(tableName: String): UnpreparedSQLActionChain<I, I, P> =
                 update({ SQLStatement.Simple("DELETE FROM $tableName") }, { a, _ -> Try.Success(a) })
+
+        fun <I, J, O, P> whenRight(doAction: UnpreparedSQLActionChain<J, O, P>, whenRight: (I) -> Either<O, J>): UnpreparedSQLActionChain<I, O, P> =
+                new(UnpreparedSQLAction.WhenRight(doAction, map<I, Either<O, J>, P>(whenRight)))
+
+        fun <I, J, P> whenNonNull(doAction: UnpreparedSQLActionChain<J, I, P>, whenNonNull: (I) -> J?): UnpreparedSQLActionChain<I, I, P> =
+                new(UnpreparedSQLAction.WhenNonNull(doAction, map<I, J?, P>(whenNonNull)))
+
+        fun <I, J, O, P> whenRight(doAction: UnpreparedSQLActionChain<J, O, P>, whenRight: UnpreparedSQLActionChain<I, Either<O, J>, P>): UnpreparedSQLActionChain<I, O, P> =
+                new(UnpreparedSQLAction.WhenRight(doAction, whenRight))
+
+        fun <I, J, P> whenNonNull(doAction: UnpreparedSQLActionChain<J, I, P>, whenNonNull: UnpreparedSQLActionChain<I, J?, P>): UnpreparedSQLActionChain<I, I, P> =
+                new(UnpreparedSQLAction.WhenNonNull(doAction, whenNonNull))
+
+        fun <I, O, P> task(task: UnpreparedTask<I, O, P>): UnpreparedSQLActionChain<I, O, P> =
+                new(UnpreparedSQLAction.MapTask(task))
+
+        fun <I, O, P> map(mapper: (I) -> O): UnpreparedSQLActionChain<I, O, P> =
+                new(UnpreparedSQLAction.Map(mapper))
+
+        fun <I, O, P> mapTry(mapper: (I) -> Try<O>): UnpreparedSQLActionChain<I, O, P> =
+                new(UnpreparedSQLAction.MapTry(mapper))
+
     }
     
     abstract fun <U> addAction(action: UnpreparedSQLAction<O, U, P>): UnpreparedSQLActionChain<I, U, P>
@@ -120,13 +124,16 @@ sealed class UnpreparedSQLActionChain<I, O, P> {
     fun <K> flatMap(next: UnpreparedSQLActionChain<O, K, P>): UnpreparedSQLActionChain<I, K, P> =
             addAction(UnpreparedSQLAction.Nested(next))
 
-    fun <O2, K> optionally(doAction: UnpreparedSQLActionChain<O2, K, P>, whenRight: (O) -> Either<K, O2>): UnpreparedSQLActionChain<I, K, P> =
-            addAction(UnpreparedSQLAction.Optional(doAction, map<O, Either<K, O2>, P>(whenRight)))
+    fun <O2, K> whenRight(doAction: UnpreparedSQLActionChain<O2, K, P>, whenRight: (O) -> Either<K, O2>): UnpreparedSQLActionChain<I, K, P> =
+            addAction(UnpreparedSQLAction.WhenRight(doAction, map<O, Either<K, O2>, P>(whenRight)))
 
-    fun <J> optionallySimple(doAction: UnpreparedSQLActionChain<J, O, P>, whenNonNull: (O) -> J?): UnpreparedSQLActionChain<I, O, P> =
-            addAction(UnpreparedSQLAction.Optional(doAction, map<O, Either<O, J>, P>({ whenNonNull(it)?.let{Either.Right<O, J>(it)}?:Either.Left(it) })))
+    fun <J> whenNonNull(doAction: UnpreparedSQLActionChain<J, O, P>, whenNonNull: (O) -> J?): UnpreparedSQLActionChain<I, O, P> =
+            addAction(UnpreparedSQLAction.WhenNonNull(doAction, map<O, J?, P>(whenNonNull)))
 
-    fun <O2, K> optionally(doAction: UnpreparedSQLActionChain<O2, K, P>, whenRight: UnpreparedSQLActionChain<O, Either<K, O2>, P>): UnpreparedSQLActionChain<I, K, P> =
-            addAction(UnpreparedSQLAction.Optional(doAction, whenRight))
+    fun <O2, K> whenRight(doAction: UnpreparedSQLActionChain<O2, K, P>, whenRight: UnpreparedSQLActionChain<O, Either<K, O2>, P>): UnpreparedSQLActionChain<I, K, P> =
+            addAction(UnpreparedSQLAction.WhenRight(doAction, whenRight))
+
+    fun <J> whenNonNull(doAction: UnpreparedSQLActionChain<J, O, P>, whenNonNull: UnpreparedSQLActionChain<O, J?, P>): UnpreparedSQLActionChain<I, O, P> =
+            addAction(UnpreparedSQLAction.WhenNonNull(doAction, whenNonNull))
 
 }
