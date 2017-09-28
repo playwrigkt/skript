@@ -24,6 +24,25 @@ import org.funktionale.tries.Try
 sealed class SQLAction<I, O> {
     abstract fun run(i: I, connection: SQLConnection): Future<O>
 
+    open fun <U> andThen(next: SQLAction<O, U>): SQLAction<I, U> =
+            Link(this, next)
+
+    internal data class DoWithConnection<I, O>(val action: (I, SQLConnection) -> Future<O>): SQLAction<I, O>() {
+        override fun run(i: I, connection: SQLConnection): Future<O> {
+            return action(i, connection)
+        }
+    }
+
+    internal data class Link<I, J, O>(val head: SQLAction<I, J>, val tail: SQLAction<J, O>): SQLAction<I, O>() {
+        override fun run(i: I, connection: SQLConnection): Future<O> {
+            return head.run(i, connection).compose { tail.run(it, connection) }
+        }
+
+        override fun <U> andThen(next: SQLAction<O, U>): SQLAction<I, U> {
+            return Link(head, tail.andThen(next))
+        }
+    }
+
     internal data class Query<I, O>(val mapping: QuerySQLMapping<I, O>): SQLAction<I, O>() {
         override fun run(i: I, connection: SQLConnection): Future<O> {
             val sqlStatement = mapping.toSql(i)
@@ -64,12 +83,6 @@ sealed class SQLAction<I, O> {
         }
     }
 
-    internal data class Nested<I, O>(val chain: SQLActionChain<I, O>): SQLAction<I, O>() {
-        override fun run(i: I, connection: SQLConnection): Future<O> {
-            return chain.run(i, connection)
-        }
-    }
-
     internal data class Map<I, O>(val mapper: (I) -> O): SQLAction<I, O>() {
         override fun run(i: I, connection: SQLConnection): Future<O> {
             return handleFailure(Try { mapper(i) })
@@ -92,7 +105,7 @@ sealed class SQLAction<I, O> {
         }
     }
 
-    internal data class WhenRight<I, J, O>(val doOptionally: SQLActionChain<J, O>, val whenRight: SQLActionChain<I, Either<O, J>>): SQLAction<I, O>() {
+    internal data class WhenRight<I, J, O>(val doOptionally: SQLAction<J, O>, val whenRight: SQLAction<I, Either<O, J>>): SQLAction<I, O>() {
         override fun run(i: I, connection: SQLConnection): Future<O> {
             return whenRight.run(i, connection)
                     .compose {
@@ -104,7 +117,7 @@ sealed class SQLAction<I, O> {
         }
     }
 
-    internal data class WhenNonNull<I, J>(val doOptionally: SQLActionChain<J, I>, val whenNonNull: SQLActionChain<I, J?>): SQLAction<I, I>() {
+    internal data class WhenNonNull<I, J>(val doOptionally: SQLAction<J, I>, val whenNonNull: SQLAction<I, J?>): SQLAction<I, I>() {
         override fun run(i: I, connection: SQLConnection): Future<I> {
             return whenNonNull.run(i, connection)
                     .compose {
@@ -116,7 +129,7 @@ sealed class SQLAction<I, O> {
         }
     }
 
-    internal data class WhenTrue<I>(val doOptionally: SQLActionChain<I, I>, val whenTrue: SQLActionChain<I, Boolean>): SQLAction<I, I>() {
+    internal data class WhenTrue<I>(val doOptionally: SQLAction<I, I>, val whenTrue: SQLAction<I, Boolean>): SQLAction<I, I>() {
         override fun run(i: I, connection: SQLConnection): Future<I> {
             return whenTrue.run(i, connection)
                     .compose {

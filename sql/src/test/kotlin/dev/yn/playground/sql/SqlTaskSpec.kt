@@ -58,7 +58,7 @@ class SqlTaskSpec: StringSpec() {
         "should run a non transactional doOptionally with a single query" {
             val sqlStatement = SQLStatement.Parameterized("sql string", JsonArray(listOf(1, 2, "hello", true, false, "end")))
             val mapping1 = QuerySQLMapping.create<JsonObject, JsonObject>({ sqlStatement }, { input, resultSet -> Try.Success(input)})
-            val unpreparedSqlTransaction = UnpreparedSQLActionChain.query<JsonObject, JsonObject, SQLClientProvider>(mapping1)
+            val unpreparedSqlTransaction = UnpreparedSQLAction.query<JsonObject, JsonObject, SQLClientProvider>(mapping1)
             val unpreparedTask = UnpreparedSQLTask(unpreparedSqlTransaction)
             val task = unpreparedTask.prepare(provider)
 
