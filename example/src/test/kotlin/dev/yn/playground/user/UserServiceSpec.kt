@@ -1,5 +1,6 @@
 package  dev.yn.playground.user
 
+import dev.yn.playground.common.ApplicationContextProvider
 import dev.yn.playground.sql.*
 import io.kotlintest.Spec
 import io.kotlintest.matchers.shouldBe
@@ -40,8 +41,8 @@ class UserServiceSpec : StringSpec() {
             JDBCClient.createShared(vertx, hikariConfig, "test_ds")
         }
 
-        val provider: SQLAndVertxProvider by lazy {
-            SQLAndVertxProvider(vertx, sqlClient)
+        val provider: ApplicationContextProvider by lazy {
+            ApplicationContextProvider(vertx, sqlClient)
         }
 
         val userService by lazy {

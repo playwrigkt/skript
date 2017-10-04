@@ -1,5 +1,6 @@
 package dev.yn.playground.user
 
+import dev.yn.playground.auth.TokenAndInput
 import dev.yn.playground.sql.QuerySQLMapping
 import dev.yn.playground.sql.SQLError
 import dev.yn.playground.sql.SQLStatement

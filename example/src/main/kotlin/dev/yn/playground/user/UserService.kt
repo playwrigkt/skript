@@ -1,5 +1,7 @@
 package dev.yn.playground.user
 
+import dev.yn.playground.auth.TokenAndInput
+import dev.yn.playground.common.ApplicationContextProvider
 import dev.yn.playground.task.*
 import io.vertx.core.Future
 import io.vertx.core.Vertx
@@ -11,7 +13,7 @@ class UserService(sqlClient: SQLClient, vertx: Vertx) {
         vertx.deployVerticle(UserLoginProcessingVerticle())
     }
 
-    val provider = SQLAndVertxProvider(vertx, sqlClient)
+    val provider = ApplicationContextProvider(vertx, sqlClient)
 
     val createTask: Task<UserProfileAndPassword, UserProfile> = UserTasks.unpreparedCreateTask.prepare(provider)
     val loginTask: Task<UserNameAndPassword, UserSession> = UserTasks.unpreparedLoginTask.prepare(provider)

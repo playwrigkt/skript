@@ -23,14 +23,6 @@ object UserSchema {
     expiration timestamp
 );"""
 
-    val userTrustDeviceUserIdUniqueConstraintName = "user_trusted_device_user_id_unique"
-    val createUserSessionAccess = """CREATE TABLE IF NOT EXISTS user_trusted_device (
-    device_key text PRIMARY KEY,
-    user_id text REFERENCES user_profile(id) CONSTRAINT ${userTrustDeviceUserIdUniqueConstraintName} UNIQUE,
-    device_name text,
-    expiration timestamp
-);"""
-
     val createUserRequestTable = """
 CREATE TABLE IF NOT EXISTS user_relationship_request (
     user_id_1 text REFERENCES user_profile(id),

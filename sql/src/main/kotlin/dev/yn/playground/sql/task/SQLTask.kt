@@ -50,7 +50,7 @@ internal data class SQLTask<I, O>(val actionChain: SQLAction<I, O>, val sqlClien
     }
 
     /**
-     * Executes a sql head chain on a single connection with autocommit set to true
+     * Executes a sql head create on a single connection with autocommit set to true
      */
     override fun run(i: I): Future<O> {
         val future: Future<SQLConnection> = Future.future()
@@ -71,7 +71,7 @@ internal data class SQLTask<I, O>(val actionChain: SQLAction<I, O>, val sqlClien
 internal data class TransactionalSQLTask<I, O>(val action: SQLAction<I, O>, val sqlClient: SQLClient): Task<I, O> {
 
     /**
-     * Executes a sql head chain on a single connection with autocommit set to false
+     * Executes a sql head create on a single connection with autocommit set to false
      *
      * Commits if the future is successful
      * Rolls back if the future fails

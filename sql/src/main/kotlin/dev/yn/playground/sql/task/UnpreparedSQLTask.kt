@@ -24,7 +24,7 @@ interface SQLClientProvider {
  */
 data class UnpreparedSQLTask<I, O, P: SQLClientProvider>(val action: UnpreparedSQLAction<I, O, P>): UnpreparedTask<I, O, P> {
     companion object {
-        fun <I, O, P: SQLClientProvider> chain(action: UnpreparedSQLAction<I, O, P>): UnpreparedTask<I, O, P> =
+        fun <I, O, P: SQLClientProvider> create(action: UnpreparedSQLAction<I, O, P>): UnpreparedTask<I, O, P> =
                 UnpreparedSQLTask<I, O, P>(action)
     }
     override fun prepare(p: P): Task<I, O> {
@@ -38,7 +38,7 @@ data class UnpreparedSQLTask<I, O, P: SQLClientProvider>(val action: UnpreparedS
  */
 data class UnpreparedTransactionalSQLTask<I, O, P: SQLClientProvider>(val action: UnpreparedSQLAction<I, O, P>): UnpreparedTask<I, O, P> {
     companion object {
-        fun <I, O, P: SQLClientProvider> chain(action: UnpreparedSQLAction<I, O, P>): UnpreparedTask<I, O, P> =
+        fun <I, O, P: SQLClientProvider> create(action: UnpreparedSQLAction<I, O, P>): UnpreparedTask<I, O, P> =
                 UnpreparedTransactionalSQLTask<I, O, P>(action)
     }
     override fun prepare(p: P): Task<I, O> {

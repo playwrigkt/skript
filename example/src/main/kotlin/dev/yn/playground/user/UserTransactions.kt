@@ -1,8 +1,9 @@
 package dev.yn.playground.user
 
+import dev.yn.playground.auth.TokenAndInput
+import dev.yn.playground.common.ApplicationContextProvider
 import dev.yn.playground.sql.UnpreparedSQLAction
 import dev.yn.playground.task.UnpreparedVertxTask
-import dev.yn.playground.task.VertxProvider
 import dev.yn.playground.task.VertxTask
 import org.funktionale.tries.Try
 import java.time.Instant
@@ -11,21 +12,21 @@ import java.util.*
 object UserTransactions {
     private val createNewSessionKey: (String) -> UserSession = { UserSession(UUID.randomUUID().toString(), it, Instant.now().plusSeconds(3600)) }
 
-    fun <P: VertxProvider> createUserActionChain(): UnpreparedSQLAction<UserProfileAndPassword, UserProfile, P> =
-            UnpreparedSQLAction.update<UserProfileAndPassword, UserProfileAndPassword, P>(InsertUserProfileMapping)
+    val createUserActionChain: UnpreparedSQLAction<UserProfileAndPassword, UserProfile, ApplicationContextProvider> =
+            UnpreparedSQLAction.update<UserProfileAndPassword, UserProfileAndPassword, ApplicationContextProvider>(InsertUserProfileMapping)
                     .update(InsertUserPasswordMapping)
                     .mapTask<UserProfile>(UnpreparedVertxTask(VertxTask.sendWithResponse(userCreatedAddress)))
 
-    fun <P: VertxProvider> loginActionChain(): UnpreparedSQLAction<UserNameAndPassword, UserSession, P> =
-            UnpreparedSQLAction.query<UserNameAndPassword, UserIdAndPassword, P>(SelectUserIdForLogin)
+    val loginActionChain: UnpreparedSQLAction<UserNameAndPassword, UserSession, ApplicationContextProvider> =
+            UnpreparedSQLAction.query<UserNameAndPassword, UserIdAndPassword, ApplicationContextProvider>(SelectUserIdForLogin)
                     .query(ValidatePasswordForUserId)
                     .query(EnsureNoSessionExists)
                     .map(createNewSessionKey)
                     .update(InsertSession)
                     .mapTask<UserSession>(UnpreparedVertxTask(VertxTask.sendWithResponse(userLoginAddress)))
 
-    fun <P> getUserActionChain(): UnpreparedSQLAction<TokenAndInput<String>, UserProfile, P> =
-            validateSession<String, P> { session, userId ->
+    val getUserActionChain: UnpreparedSQLAction<TokenAndInput<String>, UserProfile, ApplicationContextProvider> =
+            validateSession<String, ApplicationContextProvider> { session, userId ->
                 if (session.userId == userId) {
                     Try.Success(userId)
                 } else {

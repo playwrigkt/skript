@@ -19,11 +19,11 @@ class TestSQLAndVertxProvider(val vertx: Vertx, val sqlClient: SQLClient) : SQLC
 
 object UserTasks {
     val unpreparedCreateTask: UnpreparedTask<UserProfileAndPassword, UserProfile, TestSQLAndVertxProvider> =
-            UnpreparedTransactionalSQLTask.chain(UserTransactions.createUserActionChain<TestSQLAndVertxProvider>())
+            UnpreparedTransactionalSQLTask.create(UserTransactions.createUserActionChain<TestSQLAndVertxProvider>())
 
     val unpreparedLoginTask: UnpreparedTask<UserNameAndPassword, UserSession, TestSQLAndVertxProvider> =
-            UnpreparedTransactionalSQLTask.chain(UserTransactions.loginActionChain<TestSQLAndVertxProvider>())
+            UnpreparedTransactionalSQLTask.create(UserTransactions.loginActionChain<TestSQLAndVertxProvider>())
 
     val unpreparedGetTask: UnpreparedTask<TokenAndInput<String>, UserProfile, TestSQLAndVertxProvider> =
-            UnpreparedSQLTask.chain(UserTransactions.getUserActionChain<TestSQLAndVertxProvider>())
+            UnpreparedSQLTask.create(UserTransactions.getUserActionChain<TestSQLAndVertxProvider>())
 }
