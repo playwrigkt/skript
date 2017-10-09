@@ -1,6 +1,7 @@
 package dev.yn.playground.chatrooom.sql.update
 
 import dev.yn.playground.chatrooom.models.ChatRoom
+import dev.yn.playground.chatrooom.models.ChatRoomPermissions
 import dev.yn.playground.sql.SQLError
 import dev.yn.playground.sql.SQLStatement
 import dev.yn.playground.sql.UpdateSQLMapping

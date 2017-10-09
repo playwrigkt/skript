@@ -5,6 +5,7 @@ import dev.yn.playground.auth.TokenAndInput
 import dev.yn.playground.auth.sql.AuthSQLActions
 import dev.yn.playground.chatrooom.models.ChatRoom
 import dev.yn.playground.chatrooom.models.ChatRoomPermissionKey
+import dev.yn.playground.chatrooom.models.ChatRoomPermissions
 import dev.yn.playground.chatrooom.models.ChatRoomUser
 import dev.yn.playground.sql.QuerySQLMapping
 import dev.yn.playground.sql.SQLStatement
@@ -93,22 +94,42 @@ object AuthrorizeCreateChatroom : QuerySQLMapping<SessionAndInput<ChatRoom>, Ses
     }
 }
 
-object AuthorizeAddPublicPermission: QuerySQLMapping<SessionAndInput<ChatRoom>, SessionAndInput<ChatRoom>> {
-    override fun toSql(i: SessionAndInput<ChatRoom>): SQLStatement {
-        return authorizeChatroomSelectStatement(i.input.id, i.session.userId, ChatRoomPermissionKey.AddPublicPermission.key)
+object AuthorizeAddPublicPermission: QuerySQLMapping<SessionAndInput<ChatRoomPermissions>, SessionAndInput<ChatRoomPermissions>> {
+    override fun toSql(i: SessionAndInput<ChatRoomPermissions>): SQLStatement {
+        return authorizeChatroomSelectStatement(i.input.chatroom.id, i.session.userId, ChatRoomPermissionKey.AddPublicPermission.key)
     }
 
-    override fun mapResult(i: SessionAndInput<ChatRoom>, rs: ResultSet): Try<SessionAndInput<ChatRoom>> {
+    override fun mapResult(i: SessionAndInput<ChatRoomPermissions>, rs: ResultSet): Try<SessionAndInput<ChatRoomPermissions>> {
         return mapAuthResultSet(i, rs)
     }
 }
 
-object AuthorizeRemovePublicPermission: QuerySQLMapping<SessionAndInput<ChatRoom>, SessionAndInput<ChatRoom>> {
-    override fun toSql(i: SessionAndInput<ChatRoom>): SQLStatement {
-        return authorizeChatroomSelectStatement(i.input.id, i.session.userId, ChatRoomPermissionKey.RemovePublicPermission.key)
+object AuthorizeRemovePublicPermission: QuerySQLMapping<SessionAndInput<ChatRoomPermissions>, SessionAndInput<ChatRoomPermissions>> {
+    override fun toSql(i: SessionAndInput<ChatRoomPermissions>): SQLStatement {
+        return authorizeChatroomSelectStatement(i.input.chatroom.id, i.session.userId, ChatRoomPermissionKey.RemovePublicPermission.key)
     }
 
-    override fun mapResult(i: SessionAndInput<ChatRoom>, rs: ResultSet): Try<SessionAndInput<ChatRoom>> {
+    override fun mapResult(i: SessionAndInput<ChatRoomPermissions>, rs: ResultSet): Try<SessionAndInput<ChatRoomPermissions>> {
+        return mapAuthResultSet(i, rs)
+    }
+}
+
+object AuthorizeAddUserPermission: QuerySQLMapping<SessionAndInput<ChatRoomUser>, SessionAndInput<ChatRoomUser>> {
+    override fun toSql(i: SessionAndInput<ChatRoomUser>): SQLStatement {
+        return authorizeChatroomSelectStatement(i.input.chatroom.id, i.session.userId, ChatRoomPermissionKey.AddUserPermission.key)
+    }
+
+    override fun mapResult(i: SessionAndInput<ChatRoomUser>, rs: ResultSet): Try<SessionAndInput<ChatRoomUser>> {
+        return mapAuthResultSet(i, rs)
+    }
+}
+
+object AuthorizeRemoveUserPermission: QuerySQLMapping<SessionAndInput<ChatRoomUser>, SessionAndInput<ChatRoomUser>> {
+    override fun toSql(i: SessionAndInput<ChatRoomUser>): SQLStatement {
+        return authorizeChatroomSelectStatement(i.input.chatroom.id, i.session.userId, ChatRoomPermissionKey.RemoveUserPermission.key)
+    }
+
+    override fun mapResult(i: SessionAndInput<ChatRoomUser>, rs: ResultSet): Try<SessionAndInput<ChatRoomUser>> {
         return mapAuthResultSet(i, rs)
     }
 }

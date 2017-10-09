@@ -11,6 +11,8 @@ data class ChatRoom(
         val publicPermissions: Set<String>
 )
 
+data class ChatRoomPermissions(val chatroom: Reference<String, ChatRoom>, val publicPermissions: Set<String>)
+
 data class ChatRoomUser(val user: Reference<String, UserProfile>, val chatroom: Reference<String, ChatRoom>, val permissions: Set<String>)
 
 sealed class ChatRoomPermissionKey {
@@ -20,6 +22,8 @@ sealed class ChatRoomPermissionKey {
     object RemoveUser: ChatRoomPermissionKey()
     object AddPublicPermission: ChatRoomPermissionKey()
     object RemovePublicPermission: ChatRoomPermissionKey()
+    object AddUserPermission: ChatRoomPermissionKey()
+    object RemoveUserPermission: ChatRoomPermissionKey()
     object Update: ChatRoomPermissionKey()
     object Get: ChatRoomPermissionKey()
 }
