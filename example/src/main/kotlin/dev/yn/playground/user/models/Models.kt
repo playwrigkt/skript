@@ -1,4 +1,4 @@
-package dev.yn.playground.user
+package dev.yn.playground.user.models
 
 import java.time.Instant
 

@@ -17,7 +17,7 @@ object UserTransactions {
     fun <P: VertxProvider> createUserActionChain(): UnpreparedSQLAction<UserProfileAndPassword, UserProfile, P> =
             UnpreparedSQLAction.update<UserProfileAndPassword, UserProfileAndPassword, P>(InsertUserProfileMapping)
                     .update(InsertUserPasswordMapping)
-                    .mapTask<UserProfile>(UnpreparedVertxTask(VertxTask.sendWithResponse(userCreatedAddress)))
+                    .mapTask<UserProfile>(VertxTask.sendWithResponse(userCreatedAddress))
 
     fun <P: VertxProvider> loginActionChain(): UnpreparedSQLAction<UserNameAndPassword, UserSession, P> =
             UnpreparedSQLAction.query<UserNameAndPassword, UserIdAndPassword, P>(SelectUserIdForLogin)
@@ -25,7 +25,7 @@ object UserTransactions {
                     .query(EnsureNoSessionExists)
                     .map(createNewSessionKey)
                     .update(InsertSession)
-                    .mapTask<UserSession>(UnpreparedVertxTask(VertxTask.sendWithResponse(userLoginAddress)))
+                    .mapTask<UserSession>(VertxTask.sendWithResponse(userLoginAddress))
 
     fun <P> getUserActionChain(): UnpreparedSQLAction<TokenAndInput<String>, UserProfile, P> =
             validateSession<String, P> { session, userId ->

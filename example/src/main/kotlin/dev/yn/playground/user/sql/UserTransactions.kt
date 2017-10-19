@@ -1,10 +1,13 @@
-package dev.yn.playground.user
+package dev.yn.playground.user.sql
 
 import dev.yn.playground.auth.TokenAndInput
 import dev.yn.playground.common.ApplicationContextProvider
 import dev.yn.playground.sql.UnpreparedSQLAction
 import dev.yn.playground.task.UnpreparedVertxTask
 import dev.yn.playground.task.VertxTask
+import dev.yn.playground.user.models.*
+import dev.yn.playground.user.userCreatedAddress
+import dev.yn.playground.user.userLoginAddress
 import org.funktionale.tries.Try
 import java.time.Instant
 import java.util.*
@@ -15,7 +18,7 @@ object UserTransactions {
     val createUserActionChain: UnpreparedSQLAction<UserProfileAndPassword, UserProfile, ApplicationContextProvider> =
             UnpreparedSQLAction.update<UserProfileAndPassword, UserProfileAndPassword, ApplicationContextProvider>(InsertUserProfileMapping)
                     .update(InsertUserPasswordMapping)
-                    .mapTask<UserProfile>(UnpreparedVertxTask(VertxTask.sendWithResponse(userCreatedAddress)))
+                    .mapTask<UserProfile>(VertxTask.sendWithResponse(userCreatedAddress))
 
     val loginActionChain: UnpreparedSQLAction<UserNameAndPassword, UserSession, ApplicationContextProvider> =
             UnpreparedSQLAction.query<UserNameAndPassword, UserIdAndPassword, ApplicationContextProvider>(SelectUserIdForLogin)
@@ -23,7 +26,7 @@ object UserTransactions {
                     .query(EnsureNoSessionExists)
                     .map(createNewSessionKey)
                     .update(InsertSession)
-                    .mapTask<UserSession>(UnpreparedVertxTask(VertxTask.sendWithResponse(userLoginAddress)))
+                    .mapTask<UserSession>(VertxTask.sendWithResponse(userLoginAddress))
 
     val getUserActionChain: UnpreparedSQLAction<TokenAndInput<String>, UserProfile, ApplicationContextProvider> =
             validateSession<String, ApplicationContextProvider> { session, userId ->

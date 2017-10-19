@@ -14,6 +14,13 @@ import java.util.*
 import dev.yn.playground.user.extensions.schema.dropUserSchema
 import dev.yn.playground.user.extensions.schema.initUserSchema
 import dev.yn.playground.user.extensions.transaction.deleteAllUsers
+import dev.yn.playground.user.models.UserError
+import dev.yn.playground.user.models.UserNameAndPassword
+import dev.yn.playground.user.models.UserProfile
+import dev.yn.playground.user.models.UserProfileAndPassword
+import dev.yn.playground.user.sql.EnsureNoSessionExists
+import dev.yn.playground.user.sql.UserSQL
+import dev.yn.playground.user.sql.ValidatePasswordForUserId
 import io.kotlintest.TestCaseContext
 import io.kotlintest.matchers.fail
 import io.vertx.ext.sql.SQLClient
@@ -75,11 +82,11 @@ class UserServiceSpec : StringSpec() {
             val userId = UUID.randomUUID().toString()
             val password = "pass1"
             val userName = "sally"
-            val user = dev.yn.playground.user.UserProfile(userId, userName, false)
-            val userAndPassword = dev.yn.playground.user.UserNameAndPassword(userName, password)
+            val user = UserProfile(userId, userName, false)
+            val userAndPassword = UserNameAndPassword(userName, password)
 
             awaitSucceededFuture(
-                    userService.createUser(dev.yn.playground.user.UserProfileAndPassword(user, password)),
+                    userService.createUser(UserProfileAndPassword(user, password)),
                     user)
 
             awaitSucceededFuture(userService.loginUser(userAndPassword)).userId shouldBe userId
@@ -89,14 +96,14 @@ class UserServiceSpec : StringSpec() {
             val userId = UUID.randomUUID().toString()
             val password = "pass2"
             val userName = "sally2"
-            val user = dev.yn.playground.user.UserProfile(userId, userName, false)
-            val userAndPassword = dev.yn.playground.user.UserNameAndPassword(userName, password)
+            val user = UserProfile(userId, userName, false)
+            val userAndPassword = UserNameAndPassword(userName, password)
 
             awaitSucceededFuture(
-                    userService.createUser(dev.yn.playground.user.UserProfileAndPassword(user, password)),
+                    userService.createUser(UserProfileAndPassword(user, password)),
                     user)
 
-            val expectedError = SQLError.OnStatement(SQLStatement.Parameterized(dev.yn.playground.user.ValidatePasswordForUserId.selectUserPassword, JsonArray(listOf(userId, "bad"))), dev.yn.playground.user.UserError.AuthenticationFailed)
+            val expectedError = SQLError.OnStatement(SQLStatement.Parameterized(ValidatePasswordForUserId.selectUserPassword, JsonArray(listOf(userId, "bad"))), UserError.AuthenticationFailed)
             awaitFailedFuture(
                     userService.loginUser(userAndPassword.copy(password = "bad")),
                     expectedError)
@@ -106,15 +113,15 @@ class UserServiceSpec : StringSpec() {
             val userId = UUID.randomUUID().toString()
             val password = "pass3"
             val userName = "sally3"
-            val user = dev.yn.playground.user.UserProfile(userId, userName, false)
-            val userAndPassword = dev.yn.playground.user.UserNameAndPassword(userName, password)
+            val user = UserProfile(userId, userName, false)
+            val userAndPassword = UserNameAndPassword(userName, password)
 
             awaitSucceededFuture(
-                    userService.createUser(dev.yn.playground.user.UserProfileAndPassword(user, password)),
+                    userService.createUser(UserProfileAndPassword(user, password)),
                     user)
 
             awaitSucceededFuture(userService.loginUser(userAndPassword)).userId shouldBe userId
-            val expectedError = SQLError.OnStatement(SQLStatement.Parameterized(dev.yn.playground.user.EnsureNoSessionExists.selectUserSessionExists, JsonArray(listOf(userId))), dev.yn.playground.user.UserError.SessionAlreadyExists(userId))
+            val expectedError = SQLError.OnStatement(SQLStatement.Parameterized(EnsureNoSessionExists.selectUserSessionExists, JsonArray(listOf(userId))), UserError.SessionAlreadyExists(userId))
             awaitFailedFuture(
                     userService.loginUser(userAndPassword.copy(password = password)),
                     expectedError)
@@ -124,11 +131,11 @@ class UserServiceSpec : StringSpec() {
             val userId = UUID.randomUUID().toString()
             val password = "pass4"
             val userName = "sally4"
-            val user = dev.yn.playground.user.UserProfile(userId, userName, false)
-            val userAndPassword = dev.yn.playground.user.UserNameAndPassword(userName, password)
+            val user = UserProfile(userId, userName, false)
+            val userAndPassword = UserNameAndPassword(userName, password)
 
             awaitSucceededFuture(
-                    userService.createUser(dev.yn.playground.user.UserProfileAndPassword(user, password)),
+                    userService.createUser(UserProfileAndPassword(user, password)),
                     user)
 
             val session = awaitSucceededFuture(userService.loginUser(userAndPassword))
@@ -142,43 +149,43 @@ class UserServiceSpec : StringSpec() {
             val userId = UUID.randomUUID().toString()
             val password = "pass5"
             val userName = "sally5"
-            val user = dev.yn.playground.user.UserProfile(userId, userName, false)
-            val userAndPassword = dev.yn.playground.user.UserNameAndPassword(userName, password)
+            val user = UserProfile(userId, userName, false)
+            val userAndPassword = UserNameAndPassword(userName, password)
 
             val userId2 = UUID.randomUUID().toString()
             val password2 = "pass6"
             val userName2 = "sally6"
-            val user2 = dev.yn.playground.user.UserProfile(userId2, userName2, false)
+            val user2 = UserProfile(userId2, userName2, false)
 
             awaitSucceededFuture(
-                    userService.createUser(dev.yn.playground.user.UserProfileAndPassword(user, password)),
+                    userService.createUser(UserProfileAndPassword(user, password)),
                     user)
             awaitSucceededFuture(
-                    userService.createUser(dev.yn.playground.user.UserProfileAndPassword(user2, password2)),
+                    userService.createUser(UserProfileAndPassword(user2, password2)),
                     user2)
 
             val session = awaitSucceededFuture(userService.loginUser(userAndPassword))
 
             awaitFailedFuture(
                     userService.getUser(userId2, session.sessionKey),
-                    SQLError.OnStatement(SQLStatement.Parameterized(dev.yn.playground.user.UserSQL.selectSessionByKey, JsonArray(listOf(session.sessionKey))), dev.yn.playground.user.UserError.AuthorizationFailed))
+                    SQLError.OnStatement(SQLStatement.Parameterized(UserSQL.selectSessionByKey, JsonArray(listOf(session.sessionKey))), UserError.AuthorizationFailed))
         }
 
         "Not Allow a user with a bogus key to select another user" {
             val userId = UUID.randomUUID().toString()
             val password = "pass7"
             val userName = "sally7"
-            val user = dev.yn.playground.user.UserProfile(userId, userName, false)
+            val user = UserProfile(userId, userName, false)
 
             awaitSucceededFuture(
-                    userService.createUser(dev.yn.playground.user.UserProfileAndPassword(user, password)),
+                    userService.createUser(UserProfileAndPassword(user, password)),
                     user)
 
             val sessionKey = UUID.randomUUID().toString()
 
             awaitFailedFuture(
                     userService.getUser(userId, sessionKey),
-                    SQLError.OnStatement(SQLStatement.Parameterized(dev.yn.playground.user.UserSQL.selectSessionByKey, JsonArray(listOf(sessionKey))), dev.yn.playground.user.UserError.AuthenticationFailed))
+                    SQLError.OnStatement(SQLStatement.Parameterized(UserSQL.selectSessionByKey, JsonArray(listOf(sessionKey))), UserError.AuthenticationFailed))
         }
     }
 

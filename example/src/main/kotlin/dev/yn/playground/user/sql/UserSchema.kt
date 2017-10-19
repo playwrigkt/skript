@@ -1,4 +1,4 @@
-package dev.yn.playground.user
+package dev.yn.playground.user.sql
 
 import dev.yn.playground.sql.UnpreparedSQLAction
 

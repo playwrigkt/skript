@@ -13,9 +13,9 @@ import dev.yn.playground.common.models.Reference
 import dev.yn.playground.sql.SQLError
 import dev.yn.playground.sql.task.UnpreparedTransactionalSQLTask
 import dev.yn.playground.task.Task
-import dev.yn.playground.user.UserError
+import dev.yn.playground.user.models.UserError
 import dev.yn.playground.user.UserFixture
-import dev.yn.playground.user.UserNameAndPassword
+import dev.yn.playground.user.models.UserNameAndPassword
 import dev.yn.playground.user.extensions.schema.dropUserSchema
 import dev.yn.playground.user.extensions.schema.initUserSchema
 import io.kotlintest.Spec
@@ -29,7 +29,6 @@ import io.vertx.core.json.JsonObject
 import io.vertx.ext.jdbc.JDBCClient
 import io.vertx.ext.sql.SQLClient
 import org.slf4j.LoggerFactory
-import java.sql.Ref
 
 class ChatroomTransactionsSpec : StringSpec() {
 

@@ -27,6 +27,122 @@ sealed class SQLAction<I, O> {
     open fun <U> andThen(next: SQLAction<O, U>): SQLAction<I, U> =
             Link(this, next)
 
+    companion object {
+        fun <I, O> doWithConnection(action: (I, SQLConnection) -> Future<O>): SQLAction<I, O> =
+                DoWithConnection(action)
+
+        fun <I, O> query(toSql: (I) -> SQLStatement, mapResult: (I, ResultSet) -> Try<O>): SQLAction<I, O> =
+                query(QuerySQLMapping.create(toSql, mapResult))
+
+        fun <I, O> query(mapping: QuerySQLMapping<I, O>): SQLAction<I, O> =
+                Query(mapping)
+
+        fun <I, O> update(toSql: (I) -> SQLStatement, mapResult: (I, UpdateResult) -> Try<O>): SQLAction<I, O> =
+                update(UpdateSQLMapping.create(toSql, mapResult))
+
+        fun <I, O> update(mapping: UpdateSQLMapping<I, O>): SQLAction<I, O> =
+                Update(mapping)
+
+        fun <I> exec(statment: String): SQLAction<I, I> =
+                Exec(statment)
+
+        fun <I> dropTable(tableName: String): SQLAction<I, I> =
+                exec("DROP TABLE $tableName")
+
+        fun <I> dropTableIfExists(tableName: String): SQLAction<I, I> =
+                exec("DROP TABLE IF EXISTS $tableName")
+
+        fun <I> deleteAll(tableName: (I) -> String): SQLAction<I, I> =
+                update({ i -> SQLStatement.Simple("DELETE FROM ${tableName(i)}") }, { a, _ -> Try.Success(a) })
+
+        fun <I> deleteAll(tableName: String): SQLAction<I, I> =
+                update({ SQLStatement.Simple("DELETE FROM $tableName") }, { a, _ -> Try.Success(a) })
+
+        fun <I, O> task(task: Task<I, O>): SQLAction<I, O> =
+                MapTask(task)
+
+        fun <I, O> map(mapper: (I) -> O): SQLAction<I, O> =
+                Map(mapper)
+
+        fun <I, O> mapTry(mapper: (I) -> Try<O>): SQLAction<I, O> =
+                MapTry(mapper)
+
+        fun <I, J, O> whenRight(doOptionally: SQLAction<J, O>, whenRight: (I) -> Either<O, J>): SQLAction<I, O> =
+                WhenRight(doOptionally, map<I, Either<O, J>>(whenRight))
+
+        fun <I, J> whenNonNull(doOptionally: SQLAction<J, I>, whenNonNull: (I) -> J?): SQLAction<I, I> =
+                WhenNonNull(doOptionally, map<I, J?>(whenNonNull))
+
+        fun <I> whenTrue(doOptionally: SQLAction<I, I>, whenTrue: (I) -> Boolean): SQLAction<I, I> =
+                WhenTrue(doOptionally, map<I, Boolean>(whenTrue))
+
+        fun <I, J, O> whenRight(doOptionally: SQLAction<J, O>, whenRight: SQLAction<I, Either<O, J>>): SQLAction<I, O> =
+                WhenRight(doOptionally, whenRight)
+
+        fun <I, J> whenNonNull(doOptionally: SQLAction<J, I>, whenNonNull: SQLAction<I, J?>): SQLAction<I, I> =
+                WhenNonNull(doOptionally, whenNonNull)
+
+        fun <I, J> whenTrue(doOptionally: SQLAction<I, I>, whenTrue: SQLAction<I, Boolean>): SQLAction<I, I> =
+                WhenTrue(doOptionally, whenTrue)
+    }
+
+    fun <U> doWithConnection(action: (O, SQLConnection) -> Future<U>): SQLAction<I, U> =
+            andThen(DoWithConnection(action))
+
+    fun <K> query(toSql: (O) -> SQLStatement, mapResult: (O, ResultSet) -> Try<K>): SQLAction<I, K> =
+            query(QuerySQLMapping.create(toSql, mapResult))
+
+    fun <K> query(mapping: QuerySQLMapping<O, K>): SQLAction<I, K> =
+            andThen(Query(mapping))
+
+    fun <K> update(toSql: (O) -> SQLStatement, mapResult: (O, UpdateResult) -> Try<K>): SQLAction<I, K> =
+            update(UpdateSQLMapping.create(toSql, mapResult))
+
+    fun <K> update(mapping: UpdateSQLMapping<O, K>): SQLAction<I, K> =
+            andThen(Update(mapping))
+
+    fun exec(statment: String): SQLAction<I, O> =
+            andThen(Exec(statment))
+
+    fun dropTable(tableName: String): SQLAction<I, O> =
+            exec("DROP TABLE $tableName")
+
+    fun dropTableIfExists(tableName: String): SQLAction<I, O> =
+            exec("DROP TABLE IF EXISTS $tableName")
+
+    fun deleteAll(tableName: (O) -> String): SQLAction<I, O> =
+            update({ o -> SQLStatement.Simple("DELETE FROM ${tableName(o)}") }, { a, _ -> Try.Success(a) })
+
+    fun <K> mapTask(task: Task<O, K>): SQLAction<I, K> =
+            andThen(MapTask(task))
+
+    fun <K> map(mapper: (O) -> K): SQLAction<I, K> =
+            andThen(Map(mapper))
+
+    fun <K> mapTry(mapper: (O) -> Try<K>): SQLAction<I, K> =
+            andThen(MapTry(mapper))
+
+    fun <K> flatMap(next: SQLAction<O, K>): SQLAction<I, K> =
+            andThen(next)
+
+    fun <J, K> whenRight(doOptionally: SQLAction<J, K>, whenRight: (O) -> Either<K, J>): SQLAction<I, K> =
+            andThen(WhenRight(doOptionally, map<O, Either<K, J>>(whenRight)))
+
+    fun <J> whenNonNull(doOptionally: SQLAction<J, O>, whenNonNull: (O) -> J?): SQLAction<I, O> =
+            andThen(WhenNonNull(doOptionally, map<O, J?>(whenNonNull)))
+
+    fun whenTrue(doOptionally: SQLAction<O, O>, whenTrue: (O) -> Boolean): SQLAction<I, O> =
+            andThen(WhenTrue(doOptionally, map<O, Boolean>(whenTrue)))
+
+    fun <J, K> whenRight(doOptionally: SQLAction<J, K>, whenRight: SQLAction<O, Either<K, J>>): SQLAction<I, K> =
+            andThen(WhenRight(doOptionally, whenRight))
+
+    fun <J> whenNonNull(doOptionally: SQLAction<J, O>, whenNonNull: SQLAction<O, J?>): SQLAction<I, O> =
+            andThen(WhenNonNull(doOptionally, whenNonNull))
+
+    fun whenTrue(doOptionally: SQLAction<O, O>, whenTrue: SQLAction<O, Boolean>): SQLAction<I, O> =
+            andThen(WhenTrue(doOptionally, whenTrue))
+    
     internal data class DoWithConnection<I, O>(val action: (I, SQLConnection) -> Future<O>): SQLAction<I, O>() {
         override fun run(i: I, connection: SQLConnection): Future<O> {
             return action(i, connection)

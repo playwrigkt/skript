@@ -1,10 +1,11 @@
-package dev.yn.playground.user
+package dev.yn.playground.user.sql
 
 import dev.yn.playground.auth.TokenAndInput
 import dev.yn.playground.sql.QuerySQLMapping
 import dev.yn.playground.sql.SQLError
 import dev.yn.playground.sql.SQLStatement
 import dev.yn.playground.sql.UpdateSQLMapping
+import dev.yn.playground.user.models.*
 import io.vertx.core.json.JsonArray
 import io.vertx.ext.sql.ResultSet
 import io.vertx.ext.sql.UpdateResult

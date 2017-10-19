@@ -1,7 +1,7 @@
 package dev.yn.playground.chatrooom.models
 
 import dev.yn.playground.common.models.Reference
-import dev.yn.playground.user.UserProfile
+import dev.yn.playground.user.models.UserProfile
 
 data class ChatRoom(
         val id: String,

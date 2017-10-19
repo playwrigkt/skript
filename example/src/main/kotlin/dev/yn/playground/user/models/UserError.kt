@@ -1,4 +1,4 @@
-package dev.yn.playground.user
+package dev.yn.playground.user.models
 
 sealed class UserError: Throwable() {
     data class NoSuchUser(val userName: String): UserError()

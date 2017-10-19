@@ -5,6 +5,11 @@ import dev.yn.playground.common.ApplicationContextProvider
 import dev.yn.playground.sql.task.UnpreparedSQLTask
 import dev.yn.playground.sql.task.UnpreparedTransactionalSQLTask
 import dev.yn.playground.task.UnpreparedTask
+import dev.yn.playground.user.models.UserNameAndPassword
+import dev.yn.playground.user.models.UserProfile
+import dev.yn.playground.user.models.UserProfileAndPassword
+import dev.yn.playground.user.models.UserSession
+import dev.yn.playground.user.sql.UserTransactions
 
 object UserTasks {
     val unpreparedCreateTask: UnpreparedTask<UserProfileAndPassword, UserProfile, ApplicationContextProvider> =

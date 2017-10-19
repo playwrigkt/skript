@@ -1,2 +1,2 @@
-include 'task', 'sql', 'example'
+include 'task', 'sql', 'example', 'load'
 rootProject.name = "vertx-sql-composer"

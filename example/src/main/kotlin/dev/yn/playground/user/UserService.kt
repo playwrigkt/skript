@@ -3,6 +3,10 @@ package dev.yn.playground.user
 import dev.yn.playground.auth.TokenAndInput
 import dev.yn.playground.common.ApplicationContextProvider
 import dev.yn.playground.task.*
+import dev.yn.playground.user.models.UserNameAndPassword
+import dev.yn.playground.user.models.UserProfile
+import dev.yn.playground.user.models.UserProfileAndPassword
+import dev.yn.playground.user.models.UserSession
 import io.vertx.core.Future
 import io.vertx.core.Vertx
 import io.vertx.ext.sql.SQLClient

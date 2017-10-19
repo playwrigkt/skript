@@ -10,7 +10,7 @@ import io.vertx.ext.sql.SQLConnection
 /**
  * Handles the execution of a SQLActionChain without a transaction
  */
-internal data class SQLTask<I, O>(val actionChain: SQLAction<I, O>, val sqlClient: SQLClient): Task<I, O> {
+data class SQLTask<I, O>(val actionChain: SQLAction<I, O>, val sqlClient: SQLClient): Task<I, O> {
     companion object {
         fun <I, O, P: SQLClientProvider> sqlTransaction(action: UnpreparedSQLAction<I, O, P>, provider: P) =
                 UnpreparedTransactionalSQLTask<I, O, P>(action).prepare(provider)
@@ -68,7 +68,7 @@ internal data class SQLTask<I, O>(val actionChain: SQLAction<I, O>, val sqlClien
 /**
  * Handle the transactional execution of a SQLActionChain
  */
-internal data class TransactionalSQLTask<I, O>(val action: SQLAction<I, O>, val sqlClient: SQLClient): Task<I, O> {
+data class TransactionalSQLTask<I, O>(val action: SQLAction<I, O>, val sqlClient: SQLClient): Task<I, O> {
 
     /**
      * Executes a sql head create on a single connection with autocommit set to false

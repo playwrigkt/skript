@@ -6,7 +6,7 @@ import dev.yn.playground.chatrooom.models.ChatRoomUser
 import dev.yn.playground.common.models.Reference
 import dev.yn.playground.sql.QuerySQLMapping
 import dev.yn.playground.sql.SQLStatement
-import dev.yn.playground.user.UserProfile
+import dev.yn.playground.user.models.UserProfile
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.sql.ResultSet

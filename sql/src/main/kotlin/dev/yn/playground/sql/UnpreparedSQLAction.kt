@@ -24,6 +24,8 @@ import org.funktionale.tries.Try
  */
 sealed class UnpreparedSQLAction<I, O, P> {
     companion object {
+        fun <I, P> init(): UnpreparedSQLAction<I, I, P> =
+                map { it }
         fun <I, O, P> doWithConnection(action: (I, SQLConnection) -> Future<O>): UnpreparedSQLAction<I, O, P> =
                 DoWithConnection(action)
 
@@ -31,16 +33,16 @@ sealed class UnpreparedSQLAction<I, O, P> {
                 query(QuerySQLMapping.create(toSql, mapResult))
 
         fun <I, O, P> query(mapping: QuerySQLMapping<I, O>): UnpreparedSQLAction<I, O, P> =
-                UnpreparedSQLAction.Query(mapping)
+                Query(mapping)
 
         fun <I, O, P> update(toSql: (I) -> SQLStatement, mapResult: (I, UpdateResult) -> Try<O>): UnpreparedSQLAction<I, O, P> =
                 update(UpdateSQLMapping.create(toSql, mapResult))
 
         fun <I, O, P> update(mapping: UpdateSQLMapping<I, O>): UnpreparedSQLAction<I, O, P> =
-                UnpreparedSQLAction.Update(mapping)
+                Update(mapping)
 
         fun <I, P> exec(statment: String): UnpreparedSQLAction<I, I, P> =
-                UnpreparedSQLAction.Exec(statment)
+                Exec(statment)
 
         fun <I, P> dropTable(tableName: String): UnpreparedSQLAction<I, I, P> =
                 exec("DROP TABLE $tableName")
@@ -55,31 +57,31 @@ sealed class UnpreparedSQLAction<I, O, P> {
                 update({ SQLStatement.Simple("DELETE FROM $tableName") }, { a, _ -> Try.Success(a) })
 
         fun <I, O, P> task(task: UnpreparedTask<I, O, P>): UnpreparedSQLAction<I, O, P> =
-                UnpreparedSQLAction.MapTask(task)
+                MapTask(task)
 
         fun <I, O, P> map(mapper: (I) -> O): UnpreparedSQLAction<I, O, P> =
-                UnpreparedSQLAction.Map(mapper)
+                Map(mapper)
 
         fun <I, O, P> mapTry(mapper: (I) -> Try<O>): UnpreparedSQLAction<I, O, P> =
-                UnpreparedSQLAction.MapTry(mapper)
+                MapTry(mapper)
 
         fun <I, J, O, P> whenRight(doOptionally: UnpreparedSQLAction<J, O, P>, whenRight: (I) -> Either<O, J>): UnpreparedSQLAction<I, O, P> =
-                UnpreparedSQLAction.WhenRight(doOptionally, map<I, Either<O, J>, P>(whenRight))
+                WhenRight(doOptionally, map<I, Either<O, J>, P>(whenRight))
 
         fun <I, J, P> whenNonNull(doOptionally: UnpreparedSQLAction<J, I, P>, whenNonNull: (I) -> J?): UnpreparedSQLAction<I, I, P> =
-                UnpreparedSQLAction.WhenNonNull(doOptionally, map<I, J?, P>(whenNonNull))
+                WhenNonNull(doOptionally, map<I, J?, P>(whenNonNull))
 
         fun <I, P> whenTrue(doOptionally: UnpreparedSQLAction<I, I, P>, whenTrue: (I) -> Boolean): UnpreparedSQLAction<I, I, P> =
-                UnpreparedSQLAction.WhenTrue(doOptionally, map<I, Boolean, P>(whenTrue))
+                WhenTrue(doOptionally, map<I, Boolean, P>(whenTrue))
 
         fun <I, J, O, P> whenRight(doOptionally: UnpreparedSQLAction<J, O, P>, whenRight: UnpreparedSQLAction<I, Either<O, J>, P>): UnpreparedSQLAction<I, O, P> =
-                UnpreparedSQLAction.WhenRight(doOptionally, whenRight)
+                WhenRight(doOptionally, whenRight)
 
         fun <I, J, P> whenNonNull(doOptionally: UnpreparedSQLAction<J, I, P>, whenNonNull: UnpreparedSQLAction<I, J?, P>): UnpreparedSQLAction<I, I, P> =
-                UnpreparedSQLAction.WhenNonNull(doOptionally, whenNonNull)
+                WhenNonNull(doOptionally, whenNonNull)
 
         fun <I, J, P> whenTrue(doOptionally: UnpreparedSQLAction<I, I, P>, whenTrue: UnpreparedSQLAction<I, Boolean, P>): UnpreparedSQLAction<I, I, P> =
-                UnpreparedSQLAction.WhenTrue(doOptionally, whenTrue)
+                WhenTrue(doOptionally, whenTrue)
     }
 
     fun <U> doWithConnection(action: (O, SQLConnection) -> Future<U>): UnpreparedSQLAction<I, U, P> =
@@ -89,16 +91,16 @@ sealed class UnpreparedSQLAction<I, O, P> {
             query(QuerySQLMapping.create(toSql, mapResult))
 
     fun <K> query(mapping: QuerySQLMapping<O, K>): UnpreparedSQLAction<I, K, P> =
-            addAction(UnpreparedSQLAction.Query(mapping))
+            addAction(Query(mapping))
 
     fun <K> update(toSql: (O) -> SQLStatement, mapResult: (O, UpdateResult) -> Try<K>): UnpreparedSQLAction<I, K, P> =
             update(UpdateSQLMapping.create(toSql, mapResult))
 
     fun <K> update(mapping: UpdateSQLMapping<O, K>): UnpreparedSQLAction<I, K, P> =
-            addAction(UnpreparedSQLAction.Update(mapping))
+            addAction(Update(mapping))
 
     fun exec(statment: String): UnpreparedSQLAction<I, O, P> =
-            addAction(UnpreparedSQLAction.Exec(statment))
+            addAction(Exec(statment))
 
     fun dropTable(tableName: String): UnpreparedSQLAction<I, O, P> =
             exec("DROP TABLE $tableName")
@@ -110,34 +112,34 @@ sealed class UnpreparedSQLAction<I, O, P> {
             update({ o -> SQLStatement.Simple("DELETE FROM ${tableName(o)}") }, { a, _ -> Try.Success(a) })
 
     fun <K> mapTask(task: UnpreparedTask<O, K, P>): UnpreparedSQLAction<I, K, P> =
-            addAction(UnpreparedSQLAction.MapTask(task))
+            addAction(MapTask(task))
 
     fun <K> map(mapper: (O) -> K): UnpreparedSQLAction<I, K, P> =
-            addAction(UnpreparedSQLAction.Map(mapper))
+            addAction(Map(mapper))
 
     fun <K> mapTry(mapper: (O) -> Try<K>): UnpreparedSQLAction<I, K, P> =
-            addAction(UnpreparedSQLAction.MapTry(mapper))
+            addAction(MapTry(mapper))
 
     fun <K> flatMap(next: UnpreparedSQLAction<O, K, P>): UnpreparedSQLAction<I, K, P> =
             addAction(next)
 
     fun <J, K> whenRight(doOptionally: UnpreparedSQLAction<J, K, P>, whenRight: (O) -> Either<K, J>): UnpreparedSQLAction<I, K, P> =
-            addAction(UnpreparedSQLAction.WhenRight(doOptionally, map<O, Either<K, J>, P>(whenRight)))
+            addAction(WhenRight(doOptionally, map<O, Either<K, J>, P>(whenRight)))
 
     fun <J> whenNonNull(doOptionally: UnpreparedSQLAction<J, O, P>, whenNonNull: (O) -> J?): UnpreparedSQLAction<I, O, P> =
-            addAction(UnpreparedSQLAction.WhenNonNull(doOptionally, map<O, J?, P>(whenNonNull)))
+            addAction(WhenNonNull(doOptionally, map<O, J?, P>(whenNonNull)))
 
     fun whenTrue(doOptionally: UnpreparedSQLAction<O, O, P>, whenTrue: (O) -> Boolean): UnpreparedSQLAction<I, O, P> =
-            addAction(UnpreparedSQLAction.WhenTrue(doOptionally, map<O, Boolean, P>(whenTrue)))
+            addAction(WhenTrue(doOptionally, map<O, Boolean, P>(whenTrue)))
 
     fun <J, K> whenRight(doOptionally: UnpreparedSQLAction<J, K, P>, whenRight: UnpreparedSQLAction<O, Either<K, J>, P>): UnpreparedSQLAction<I, K, P> =
-            addAction(UnpreparedSQLAction.WhenRight(doOptionally, whenRight))
+            addAction(WhenRight(doOptionally, whenRight))
 
     fun <J> whenNonNull(doOptionally: UnpreparedSQLAction<J, O, P>, whenNonNull: UnpreparedSQLAction<O, J?, P>): UnpreparedSQLAction<I, O, P> =
-            addAction(UnpreparedSQLAction.WhenNonNull(doOptionally, whenNonNull))
+            addAction(WhenNonNull(doOptionally, whenNonNull))
 
     fun whenTrue(doOptionally: UnpreparedSQLAction<O, O, P>, whenTrue: UnpreparedSQLAction<O, Boolean, P>): UnpreparedSQLAction<I, O, P> =
-            addAction(UnpreparedSQLAction.WhenTrue(doOptionally, whenTrue))
+            addAction(WhenTrue(doOptionally, whenTrue))
 
     abstract fun prepare(provider: P): SQLAction<I, O>
 

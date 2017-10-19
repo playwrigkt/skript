@@ -7,8 +7,8 @@ import dev.yn.playground.common.ApplicationContextProvider
 import dev.yn.playground.sql.QuerySQLMapping
 import dev.yn.playground.sql.SQLStatement
 import dev.yn.playground.sql.UnpreparedSQLAction
-import dev.yn.playground.user.UserError
-import dev.yn.playground.user.UserSQL
+import dev.yn.playground.user.models.UserError
+import dev.yn.playground.user.sql.UserSQL
 import io.vertx.core.json.JsonArray
 import io.vertx.ext.sql.ResultSet
 import org.funktionale.tries.Try

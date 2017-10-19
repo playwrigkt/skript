@@ -2,7 +2,7 @@ package dev.yn.playground.user.extensions.schema
 
 import dev.yn.playground.sql.task.SQLClientProvider
 import dev.yn.playground.sql.task.UnpreparedSQLTask
-import dev.yn.playground.user.UserSchema
+import dev.yn.playground.user.sql.UserSchema
 import io.vertx.core.Future
 
 fun <P: SQLClientProvider> P.initUserSchema() = UnpreparedSQLTask(UserSchema.init()).prepare(this).run(Unit)

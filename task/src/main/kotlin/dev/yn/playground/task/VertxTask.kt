@@ -28,14 +28,26 @@ object VertxTask {
     fun <I, O, PROVIDER: VertxProvider> vertxAsync(vertxAction: (I, Vertx) -> Future<O>, provider: PROVIDER): Task<I, O> =
             UnpreparedVertxTask<I, O, PROVIDER>(vertxAction).prepare(provider)
 
-    fun <T> sendWithResponse(address: String) = { t: T, vertx: Vertx->
+    fun <T, P: VertxProvider> sendWithResponse(address: String) = UnpreparedVertxTask<T, T, P> { t: T, vertx: Vertx->
         val future = Future.future<Message<String>>()
         vertx.eventBus().send(address, Json.encode(t), future.completer())
         future.map { t }
     }
 
-    fun <T> sendAndForget(address: String) = { t: T, vertx: Vertx ->
+    fun <T> sendWithResponse(address: String, vertx: Vertx): AsyncTask<T, T> = AsyncTask { t: T->
+        val future = Future.future<Message<String>>()
+        vertx.eventBus().send(address, Json.encode(t), future.completer())
+        future.map { t }
+    }
+
+    fun <T, P: VertxProvider> sendAndForget(address: String) = UnpreparedVertxTask<T, T, P> { t: T, vertx: Vertx ->
         vertx.eventBus().send(address, Json.encode(t))
         Future.succeededFuture(t)
     }
+
+    fun <T> sendAndForget(address: String, vertx: Vertx): AsyncTask<T, T> = AsyncTask { t: T ->
+        vertx.eventBus().send(address, Json.encode(t))
+        Future.succeededFuture(t)
+    }
+
 }

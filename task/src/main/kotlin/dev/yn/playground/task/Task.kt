@@ -10,6 +10,11 @@ import org.funktionale.tries.Try
  *
  * A head is essentially a set of functions that map into each other
  */
+data class AsyncTask<I, O>(val action: (I) -> Future<O>): Task<I, O> {
+    override fun run(i: I): Future<O> {
+        return action(i)
+    }
+}
 interface Task<I, O> {
     companion object {
         fun <I, O, PROVIDER: VertxProvider> vertxAsync(vertxAction: (I, Vertx) -> Future<O>, provider: PROVIDER): Task<I, O> =
