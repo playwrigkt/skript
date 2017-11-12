@@ -1,35 +1,45 @@
 package dev.yn.playground.user.sql
 
 import dev.yn.playground.auth.TokenAndInput
-import dev.yn.playground.common.ApplicationContextProvider
-import dev.yn.playground.sql.UnpreparedSQLAction
-import dev.yn.playground.task.UnpreparedVertxTask
-import dev.yn.playground.task.VertxTask
+import dev.yn.playground.common.ApplicationContext
+import dev.yn.playground.publisher.PublishCommand
+import dev.yn.playground.publisher.PublishTask
+import dev.yn.playground.sql.SQLTask
+import dev.yn.playground.sql.ext.deleteAll
+import dev.yn.playground.sql.ext.query
+import dev.yn.playground.sql.ext.update
+import dev.yn.playground.task.Task
 import dev.yn.playground.user.models.*
-import dev.yn.playground.user.userCreatedAddress
-import dev.yn.playground.user.userLoginAddress
 import org.funktionale.tries.Try
 import java.time.Instant
 import java.util.*
+import dev.yn.playground.publisher.ex.*
+import dev.yn.playground.user.userCreatedAddress
+import dev.yn.playground.user.userLoginAddress
+import io.vertx.core.json.JsonObject
 
 object UserTransactions {
     private val createNewSessionKey: (String) -> UserSession = { UserSession(UUID.randomUUID().toString(), it, Instant.now().plusSeconds(3600)) }
+    private val publishUserCreateEvent: (UserProfile) -> PublishCommand.Publish =
+            { PublishCommand.Publish(userCreatedAddress, JsonObject.mapFrom(it).encode().toByteArray())}
+    private val publishUserLoginEvent: (UserSession) -> PublishCommand.Publish =
+            { PublishCommand.Publish(userLoginAddress, JsonObject.mapFrom(it).encode().toByteArray())}
 
-    val createUserActionChain: UnpreparedSQLAction<UserProfileAndPassword, UserProfile, ApplicationContextProvider> =
-            UnpreparedSQLAction.update<UserProfileAndPassword, UserProfileAndPassword, ApplicationContextProvider>(InsertUserProfileMapping)
+    val createUserActionChain: Task<UserProfileAndPassword, UserProfile, ApplicationContext> =
+            SQLTask.update<UserProfileAndPassword, UserProfileAndPassword, ApplicationContext>(InsertUserProfileMapping)
                     .update(InsertUserPasswordMapping)
-                    .mapTask<UserProfile>(VertxTask.sendWithResponse(userCreatedAddress))
+                    .publish(publishUserCreateEvent)
 
-    val loginActionChain: UnpreparedSQLAction<UserNameAndPassword, UserSession, ApplicationContextProvider> =
-            UnpreparedSQLAction.query<UserNameAndPassword, UserIdAndPassword, ApplicationContextProvider>(SelectUserIdForLogin)
+    val loginActionChain: Task<UserNameAndPassword, UserSession, ApplicationContext> =
+            SQLTask.query<UserNameAndPassword, UserIdAndPassword, ApplicationContext>(SelectUserIdForLogin)
                     .query(ValidatePasswordForUserId)
                     .query(EnsureNoSessionExists)
                     .map(createNewSessionKey)
                     .update(InsertSession)
-                    .mapTask<UserSession>(VertxTask.sendWithResponse(userLoginAddress))
+                    .publish(publishUserLoginEvent)
 
-    val getUserActionChain: UnpreparedSQLAction<TokenAndInput<String>, UserProfile, ApplicationContextProvider> =
-            validateSession<String, ApplicationContextProvider> { session, userId ->
+    val getUserActionChain: Task<TokenAndInput<String>, UserProfile, ApplicationContext> =
+            validateSession<String> { session, userId ->
                 if (session.userId == userId) {
                     Try.Success(userId)
                 } else {
@@ -38,12 +48,14 @@ object UserTransactions {
             }
                     .query(SelectUserProfileById)
 
-    private fun <T, P> validateSession(validateSession: (UserSession, T) -> Try<T>): UnpreparedSQLAction<TokenAndInput<T>, T, P> =
-            UnpreparedSQLAction.query(SelectSessionByKey(validateSession))
+    private fun <T> validateSession(validateSession: (UserSession, T) -> Try<T>): Task<TokenAndInput<T>, T, ApplicationContext> =
+            SQLTask.query(SelectSessionByKey(validateSession))
 
-    fun <P> deleteAllUserActionChain(): UnpreparedSQLAction<Unit, Unit, P> =
-            UnpreparedSQLAction.deleteAll<Unit, P>("user_relationship_request")
-                    .deleteAll { "user_password" }
-                    .deleteAll { "user_session" }
-                    .deleteAll { "user_profile" }
+    fun deleteAllUserActionChain(): Task<Unit, Unit, ApplicationContext> =
+            deleteAll<ApplicationContext>("user_relationship_request")
+                    .deleteAll("user_password")
+                    .deleteAll("user_session")
+                    .deleteAll("user_profile")
+
+
 }

@@ -8,89 +8,61 @@ import dev.yn.playground.chatrooom.models.ChatRoomUser
 import dev.yn.playground.chatrooom.sql.ChatRoomSchema
 import dev.yn.playground.chatrooom.sql.ChatRoomTransactions
 import dev.yn.playground.chatrooom.sql.query.authorizeChatroomSelectStatement
+import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.common.ApplicationContextProvider
 import dev.yn.playground.common.models.Reference
+import dev.yn.playground.sql.SQLCommand
 import dev.yn.playground.sql.SQLError
-import dev.yn.playground.sql.task.UnpreparedTransactionalSQLTask
 import dev.yn.playground.task.Task
 import dev.yn.playground.user.models.UserError
 import dev.yn.playground.user.UserFixture
+import dev.yn.playground.user.UserService
 import dev.yn.playground.user.models.UserNameAndPassword
 import dev.yn.playground.user.extensions.schema.dropUserSchema
 import dev.yn.playground.user.extensions.schema.initUserSchema
+import devyn.playground.sql.task.SQLTransactionTask
 import io.kotlintest.Spec
-import io.kotlintest.TestCaseContext
 import io.kotlintest.matchers.fail
 import io.kotlintest.matchers.shouldBe
 import io.kotlintest.specs.StringSpec
-import io.vertx.core.Future
-import io.vertx.core.Vertx
-import io.vertx.core.json.JsonObject
-import io.vertx.ext.jdbc.JDBCClient
-import io.vertx.ext.sql.SQLClient
 import org.slf4j.LoggerFactory
 
-class ChatroomTransactionsSpec : StringSpec() {
+abstract class ChatroomTransactionsSpec : StringSpec() {
 
     val LOG = LoggerFactory.getLogger(this.javaClass)
 
-
-
     companion object {
-        val hikariConfig = JsonObject()
-                .put("provider_class", "io.vertx.ext.jdbc.spi.impl.HikariCPDataSourceProvider")
-                .put("jdbcUrl", "jdbc:postgresql://localhost:5432/chitchat")
-                .put("username", "chatty_tammy")
-                .put("password", "gossipy")
-                .put("driver_class", "org.postgresql.Driver")
-                .put("maximumPoolSize", 30)
-                .put("poolName", "test_pool")
-
-        val vertx by lazy { Vertx.vertx() }
-
-        val sqlClient: SQLClient by lazy {
-            JDBCClient.createShared(vertx, hikariConfig, "test_ds")
-        }
-
-        val provider: ApplicationContextProvider by lazy {
-            ApplicationContextProvider(vertx, sqlClient)
-        }
-
-        val userService by lazy {
-            dev.yn.playground.user.UserService(sqlClient, vertx)
-        }
-
-        val createChatRoom: Task<TokenAndInput<ChatRoom>, ChatRoom> by lazy { UnpreparedTransactionalSQLTask(ChatRoomTransactions.createChatRoomTransaction).prepare(provider) }
-        val getChatRoom: Task<TokenAndInput<String>, ChatRoom> by lazy { UnpreparedTransactionalSQLTask(ChatRoomTransactions.getChatRoomTransaction).prepare(provider) }
-        val addUser: Task<TokenAndInput<ChatRoomUser>, ChatRoom> by lazy { UnpreparedTransactionalSQLTask(ChatRoomTransactions.addUserTransaction).prepare(provider) }
-        val deleteUser: Task<TokenAndInput<ChatRoomUser>, ChatRoom> by lazy { UnpreparedTransactionalSQLTask(ChatRoomTransactions.removeUserTransaction).prepare(provider) }
-        val addPublicPermissions: Task<TokenAndInput<ChatRoomPermissions>, ChatRoom> by lazy { UnpreparedTransactionalSQLTask(ChatRoomTransactions.addPermissions).prepare(provider) }
-        val removePublicPermissions: Task<TokenAndInput<ChatRoomPermissions>, ChatRoom> by lazy { UnpreparedTransactionalSQLTask(ChatRoomTransactions.removePermissions).prepare(provider) }
-        val updateChatRoom: Task<TokenAndInput<ChatRoom>, ChatRoom> by lazy { UnpreparedTransactionalSQLTask(ChatRoomTransactions.updateChatRoomTransaction).prepare(provider) }
-        val addUserPermission by lazy { UnpreparedTransactionalSQLTask(ChatRoomTransactions.addUserPermissions).prepare(provider) }
-        val removeUserPermission by lazy { UnpreparedTransactionalSQLTask(ChatRoomTransactions.removeUserPermissions).prepare(provider) }
+        val createChatRoom: Task<TokenAndInput<ChatRoom>, ChatRoom, ApplicationContext> = SQLTransactionTask.transaction(ChatRoomTransactions.createChatRoomTransaction)
+        val getChatRoom: Task<TokenAndInput<String>, ChatRoom, ApplicationContext> = SQLTransactionTask.transaction(ChatRoomTransactions.getChatRoomTransaction)
+        val addUser: Task<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationContext> = SQLTransactionTask.transaction(ChatRoomTransactions.addUserTransaction)
+        val deleteUser: Task<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationContext> = SQLTransactionTask.transaction(ChatRoomTransactions.removeUserTransaction)
+        val addPublicPermissions: Task<TokenAndInput<ChatRoomPermissions>, ChatRoom, ApplicationContext> = SQLTransactionTask.transaction(ChatRoomTransactions.addPermissions)
+        val removePublicPermissions: Task<TokenAndInput<ChatRoomPermissions>, ChatRoom, ApplicationContext> = SQLTransactionTask.transaction(ChatRoomTransactions.removePermissions)
+        val updateChatRoom: Task<TokenAndInput<ChatRoom>, ChatRoom, ApplicationContext> = SQLTransactionTask.transaction(ChatRoomTransactions.updateChatRoomTransaction)
+        val addUserPermission: Task<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationContext> = SQLTransactionTask.transaction(ChatRoomTransactions.addUserPermissions)
+        val removeUserPermission: Task<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationContext> = SQLTransactionTask.transaction(ChatRoomTransactions.removeUserPermissions)
     }
 
+    abstract fun provider(): ApplicationContextProvider
+    val userService = UserService(provider())
 
-
-    override fun interceptTestCase(context: TestCaseContext, test: () -> Unit) {
-        test()
-    }
+    abstract fun closeResources()
 
     override fun interceptSpec(context: Spec, spec: () -> Unit) {
-        awaitSucceededFuture(UnpreparedTransactionalSQLTask(ChatRoomSchema.dropAllAction).prepare(provider).run(Unit))
-        awaitSucceededFuture(provider.dropUserSchema())
-        awaitSucceededFuture(provider.initUserSchema())
-        awaitSucceededFuture(UnpreparedTransactionalSQLTask(ChatRoomSchema.initAction).prepare(provider).run(Unit))
+        awaitSucceededFuture(provider().runOnContext(
+                SQLTransactionTask.transaction<Unit, Unit, ApplicationContext>(ChatRoomSchema.dropAllAction),
+                Unit))
+        awaitSucceededFuture(provider().provideContext().flatMap { it.dropUserSchema() })
+        awaitSucceededFuture(provider().provideContext().flatMap { it.initUserSchema() })
+        awaitSucceededFuture(provider().runOnContext(
+                SQLTransactionTask.transaction<Unit, Unit, ApplicationContext>(ChatRoomSchema.initAction),
+                Unit))
         spec()
-        awaitSucceededFuture(UnpreparedTransactionalSQLTask(ChatRoomSchema.dropAllAction).prepare(provider).run(Unit))
-        awaitSucceededFuture(provider.dropUserSchema())
-        val clientF = Future.future<Void>()
-        sqlClient.close(clientF.completer())
-        awaitSucceededFuture(clientF)
-        val future = Future.future<Void>()
-        vertx.close(future.completer())
-        awaitSucceededFuture(future)
+        awaitSucceededFuture(provider().runOnContext(
+                SQLTransactionTask.transaction<Unit, Unit, ApplicationContext>(ChatRoomSchema.dropAllAction),
+                Unit))
+        awaitSucceededFuture(provider().provideContext().flatMap { it.dropUserSchema() })
+        closeResources()
     }
 
     init {
@@ -100,7 +72,7 @@ class ChatroomTransactionsSpec : StringSpec() {
             awaitSucceededFuture(userService.createUser(user1), user1.userProfile)
             awaitSucceededFuture(userService.createUser(user2), user2.userProfile)
 
-            val session = awaitSucceededFuture(userService.loginUser(UserNameAndPassword(user1.userProfile.name, user1.password)))
+            val session = awaitSucceededFuture(userService.loginUser(UserNameAndPassword(user1.userProfile.name, user1.password)))!!
 
             val chatRoomId = "chatId"
             val chatRoom = ChatRoom(
@@ -123,8 +95,8 @@ class ChatroomTransactionsSpec : StringSpec() {
                     setOf(ChatRoomPermissionKey.Get.key)
             )
 
-            awaitSucceededFuture(createChatRoom.run(TokenAndInput(session.sessionKey, chatRoom)), chatRoom)
-            awaitSucceededFuture(getChatRoom.run(TokenAndInput(session.sessionKey, chatRoomId)), chatRoom)
+            awaitSucceededFuture(provider().runOnContext(createChatRoom, TokenAndInput(session.sessionKey, chatRoom)), chatRoom)
+            awaitSucceededFuture(provider().runOnContext(getChatRoom, TokenAndInput(session.sessionKey, chatRoomId)), chatRoom)
 
             val user3 = UserFixture.generateUser(3)
             awaitSucceededFuture(userService.createUser(user3), user3.userProfile)
@@ -135,39 +107,49 @@ class ChatroomTransactionsSpec : StringSpec() {
                     ChatRoomPermissionKey.AddUserPermission.key,
                     ChatRoomPermissionKey.RemoveUserPermission.key))))
             awaitSucceededFuture(
-                    addUser.run(TokenAndInput(
-                            session.sessionKey,
-                            ChatRoomUser(
-                                    Reference.Defined(user3.userProfile.id, user3.userProfile),
-                                    Reference.Empty(chatRoomId),
-                                    setOf(
-                                            ChatRoomPermissionKey.Get.key,
-                                            ChatRoomPermissionKey.Update.key,
-                                            ChatRoomPermissionKey.AddUserPermission.key,
-                                            ChatRoomPermissionKey.RemoveUserPermission.key)))),
+                    provider().runOnContext(
+                            addUser,
+                            TokenAndInput(
+                                    session.sessionKey,
+                                    ChatRoomUser(
+                                            Reference.Defined(user3.userProfile.id, user3.userProfile),
+                                            Reference.Empty(chatRoomId),
+                                            setOf(
+                                                    ChatRoomPermissionKey.Get.key,
+                                                    ChatRoomPermissionKey.Update.key,
+                                                    ChatRoomPermissionKey.AddUserPermission.key,
+                                                    ChatRoomPermissionKey.RemoveUserPermission.key)))),
                     chatRoomWithNewUser)
             val chatRoomAfterDeleteUser = chatRoomWithNewUser.copy(users = chatRoomWithNewUser.users.filterNot { it.user.id == user2.userProfile.id }.toSet())
             awaitSucceededFuture(
-                    deleteUser.run(TokenAndInput(session.sessionKey, ChatRoomUser(Reference.Empty(user2.userProfile.id), Reference.Empty(chatRoomId), setOf(ChatRoomPermissionKey.Update.key)))),
+                    provider().runOnContext(
+                            deleteUser,
+                            TokenAndInput(session.sessionKey, ChatRoomUser(Reference.Empty(user2.userProfile.id), Reference.Empty(chatRoomId), setOf(ChatRoomPermissionKey.Update.key)))),
                     chatRoomAfterDeleteUser)
 
             awaitSucceededFuture(
-                    addPublicPermissions.run(TokenAndInput(session.sessionKey, ChatRoomPermissions(Reference.Empty(chatRoomId), setOf(ChatRoomPermissionKey.AddUser.key)))),
+                    provider().runOnContext(
+                            addPublicPermissions,
+                            TokenAndInput(session.sessionKey, ChatRoomPermissions(Reference.Empty(chatRoomId), setOf(ChatRoomPermissionKey.AddUser.key)))),
                     chatRoomAfterDeleteUser.copy(publicPermissions = chatRoomAfterDeleteUser.publicPermissions.plus(ChatRoomPermissionKey.AddUser.key)))
 
             val nonPublicChatroom = chatRoomAfterDeleteUser.copy(publicPermissions = emptySet())
 
             awaitSucceededFuture(
-                    removePublicPermissions.run(TokenAndInput(session.sessionKey, ChatRoomPermissions(Reference.Empty(chatRoomId), setOf(ChatRoomPermissionKey.Get.key, ChatRoomPermissionKey.AddUser.key)))),
+                    provider().runOnContext(
+                            removePublicPermissions,
+                            TokenAndInput(session.sessionKey, ChatRoomPermissions(Reference.Empty(chatRoomId), setOf(ChatRoomPermissionKey.Get.key, ChatRoomPermissionKey.AddUser.key)))),
                     nonPublicChatroom)
 
             val updatedChatroom = nonPublicChatroom.copy(name = "upname", description = "chatscription")
             awaitSucceededFuture(
-                    updateChatRoom.run(TokenAndInput(session.sessionKey, updatedChatroom)),
+                    provider().runOnContext(
+                            updateChatRoom,
+                            TokenAndInput(session.sessionKey, updatedChatroom)),
                     updatedChatroom
             )
 
-            val session2 = awaitSucceededFuture(userService.loginUser(UserNameAndPassword(user3.userProfile.name, user3.password)))
+            val session2 = awaitSucceededFuture(userService.loginUser(UserNameAndPassword(user3.userProfile.name, user3.password)))!!
 
             val chatRoomWithUser1AddedPermissions = updatedChatroom.copy(
                     users = updatedChatroom.users.map {
@@ -179,21 +161,27 @@ class ChatroomTransactionsSpec : StringSpec() {
                     }.toSet())
 
             awaitFailedFuture(
-                    addUserPermission.run(TokenAndInput(
-                            session.sessionKey,
-                            ChatRoomUser(Reference.Empty(user1.userProfile.id), Reference.Empty(chatRoomId), setOf(
-                                    ChatRoomPermissionKey.AddUserPermission.key,
-                                    ChatRoomPermissionKey.RemoveUserPermission.key
+                    provider().runOnContext(
+                            addUserPermission,
+                            TokenAndInput(
+                                session.sessionKey,
+                                ChatRoomUser(Reference.Empty(user1.userProfile.id), Reference.Empty(chatRoomId), setOf(
+                                        ChatRoomPermissionKey.AddUserPermission.key,
+                                        ChatRoomPermissionKey.RemoveUserPermission.key
                             )))),
-                    SQLError.OnStatement(authorizeChatroomSelectStatement(chatRoomId, session.userId, ChatRoomPermissionKey.AddUserPermission.key),  UserError.AuthorizationFailed))
+                    SQLError.OnCommand(
+                            SQLCommand.Query(authorizeChatroomSelectStatement(chatRoomId, session.userId, ChatRoomPermissionKey.AddUserPermission.key)),
+                            UserError.AuthorizationFailed))
 
             awaitSucceededFuture(
-                    addUserPermission.run(TokenAndInput(
-                            session2.sessionKey,
-                            ChatRoomUser(Reference.Empty(user1.userProfile.id), Reference.Empty(chatRoomId), setOf(
-                                    ChatRoomPermissionKey.AddUserPermission.key,
-                                    ChatRoomPermissionKey.RemoveUserPermission.key
-                            )))),
+                    provider().runOnContext(
+                            addUserPermission,
+                            TokenAndInput(
+                                    session2.sessionKey,
+                                    ChatRoomUser(Reference.Empty(user1.userProfile.id), Reference.Empty(chatRoomId), setOf(
+                                            ChatRoomPermissionKey.AddUserPermission.key,
+                                            ChatRoomPermissionKey.RemoveUserPermission.key
+                                    )))),
                     chatRoomWithUser1AddedPermissions)
 
             val chatRoomWithUser3RemovedPermissions =
@@ -208,40 +196,40 @@ class ChatroomTransactionsSpec : StringSpec() {
                             }.toSet())
 
             awaitSucceededFuture(
-                    removeUserPermission.run(TokenAndInput(
-                            session.sessionKey,
-                            ChatRoomUser(
-                                    Reference.Empty(user3.userProfile.id),
-                                    Reference.Empty(chatRoomId),
-                                    setOf(
-                                            ChatRoomPermissionKey.AddUserPermission.key,
-                                            ChatRoomPermissionKey.RemoveUserPermission.key
-                                    ))
-                    )),
+                    provider().runOnContext(
+                            removeUserPermission,
+                            TokenAndInput(
+                                    session.sessionKey,
+                                    ChatRoomUser(
+                                            Reference.Empty(user3.userProfile.id),
+                                            Reference.Empty(chatRoomId),
+                                            setOf(
+                                                    ChatRoomPermissionKey.AddUserPermission.key,
+                                                    ChatRoomPermissionKey.RemoveUserPermission.key
+                                            )))),
                     chatRoomWithUser3RemovedPermissions)
         }
     }
-
-    fun <T> awaitSucceededFuture(future: Future<T>, result: T? = null, maxDuration: Long = 1000L): T {
+    fun <T> awaitSucceededFuture(future: dev.yn.playground.task.result.AsyncResult<T>, result: T? = null, maxDuration: Long = 1000L): T? {
         val start = System.currentTimeMillis()
-        while(!future.isComplete && System.currentTimeMillis() - start < maxDuration) {
+        while(!future.isComplete() && System.currentTimeMillis() - start < maxDuration) {
             Thread.sleep(100)
         }
-        if(!future.isComplete) fail("Timeout")
-        if(future.failed()) LOG.error("Expected Success", future.cause())
-        future.succeeded() shouldBe true
+        if(!future.isComplete()) fail("Timeout")
+        if(future.isFailure()) LOG.error("Expected Success", future.error())
+        future.isSuccess() shouldBe true
         result?.let { future.result() shouldBe it }
         return future.result()
     }
 
-    fun <T> awaitFailedFuture(future: Future<T>, cause: Throwable? = null, maxDuration: Long = 1000L): Throwable {
+    fun <T> awaitFailedFuture(future: dev.yn.playground.task.result.AsyncResult<T>, cause: Throwable? = null, maxDuration: Long = 1000L): Throwable? {
         val start = System.currentTimeMillis()
-        while(!future.isComplete && System.currentTimeMillis() - start < maxDuration) {
+        while(!future.isComplete() && System.currentTimeMillis() - start < maxDuration) {
             Thread.sleep(100)
         }
-        future.failed() shouldBe true
-        cause?.let { future.cause() shouldBe it}
-        return future.cause()
+        future.isFailure() shouldBe true
+        cause?.let { future.error() shouldBe it}
+        return future.error()
     }
 
 

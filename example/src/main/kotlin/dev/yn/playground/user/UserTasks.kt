@@ -1,23 +1,23 @@
 package dev.yn.playground.user
 
 import dev.yn.playground.auth.TokenAndInput
-import dev.yn.playground.common.ApplicationContextProvider
-import dev.yn.playground.sql.task.UnpreparedSQLTask
-import dev.yn.playground.sql.task.UnpreparedTransactionalSQLTask
-import dev.yn.playground.task.UnpreparedTask
+import dev.yn.playground.common.ApplicationContext
+import dev.yn.playground.task.Task
 import dev.yn.playground.user.models.UserNameAndPassword
 import dev.yn.playground.user.models.UserProfile
 import dev.yn.playground.user.models.UserProfileAndPassword
 import dev.yn.playground.user.models.UserSession
 import dev.yn.playground.user.sql.UserTransactions
+import devyn.playground.sql.task.SQLTransactionTask
 
 object UserTasks {
-    val unpreparedCreateTask: UnpreparedTask<UserProfileAndPassword, UserProfile, ApplicationContextProvider> =
-            UnpreparedTransactionalSQLTask.create(UserTransactions.createUserActionChain)
+    val unpreparedCreateTask: Task<UserProfileAndPassword, UserProfile, ApplicationContext> =
+            SQLTransactionTask.transaction(UserTransactions.createUserActionChain)
 
-    val unpreparedLoginTask: UnpreparedTask<UserNameAndPassword, UserSession, ApplicationContextProvider> =
-            UnpreparedTransactionalSQLTask.create(UserTransactions.loginActionChain)
+    val unpreparedLoginTask: Task<UserNameAndPassword, UserSession, ApplicationContext> =
+            SQLTransactionTask.transaction(UserTransactions.loginActionChain)
 
-    val unpreparedGetTask: UnpreparedTask<TokenAndInput<String>, UserProfile, ApplicationContextProvider> =
-            UnpreparedSQLTask.create(UserTransactions.getUserActionChain)
+
+    val unpreparedGetTask: Task<TokenAndInput<String>, UserProfile, ApplicationContext> =
+            SQLTransactionTask.autoCommit(UserTransactions.getUserActionChain)
 }

@@ -1,12 +1,12 @@
 package dev.yn.playground.user.extensions.schema
 
-import dev.yn.playground.sql.task.SQLClientProvider
-import dev.yn.playground.sql.task.UnpreparedSQLTask
+import dev.yn.playground.common.ApplicationContext
+import dev.yn.playground.task.result.AsyncResult
 import dev.yn.playground.user.sql.UserSchema
-import io.vertx.core.Future
+import devyn.playground.sql.task.SQLTransactionTask
 
-fun <P: SQLClientProvider> P.initUserSchema() = UnpreparedSQLTask(UserSchema.init()).prepare(this).run(Unit)
-fun <P: SQLClientProvider> P.dropUserSchema() = UnpreparedSQLTask(UserSchema.drop()).prepare(this).run(Unit)
+fun ApplicationContext.initUserSchema() = SQLTransactionTask.transaction<Unit, Unit, ApplicationContext>(UserSchema.init()).run(Unit, this)
+fun ApplicationContext.dropUserSchema() = SQLTransactionTask.autoCommit<Unit, Unit, ApplicationContext>(UserSchema.drop()).run(Unit, this)
 
-fun <T, P: SQLClientProvider> Future<T>.dropUserSchema(provider: P) = this.compose { provider.dropUserSchema() }
-fun <T, P: SQLClientProvider> Future<T>.initUserSchema(provider: P) = this.compose { provider.initUserSchema() }
+fun <T> AsyncResult<T>.dropUserSchema(context: ApplicationContext) = this.flatMap { context.dropUserSchema() }
+fun <T> AsyncResult<T>.initUserSchema(context: ApplicationContext) = this.flatMap{ context.initUserSchema() }

@@ -1,24 +1,17 @@
 package dev.yn.playground.user
 
-import io.vertx.core.AbstractVerticle
+import dev.yn.playground.common.ApplicationContext
+import dev.yn.playground.common.ApplicationContextProvider
+import dev.yn.playground.consumer.alpha.ConsumerFactory
+import dev.yn.playground.vertx.alpha.consumer.VertxConsumerFactory
 
 val userCreatedAddress = "user.updated"
 val userLoginAddress = "user.login"
 
-class UserUpdatedProcessingVerticle: AbstractVerticle() {
-    override fun start() {
-        vertx.eventBus().consumer<String>(userCreatedAddress) {
-            println("it was updated: ${it.body()}")
-            it.reply("me too, thanks")
-        }
-    }
+fun userLoginConsumer(provider: ApplicationContextProvider): ConsumerFactory<ApplicationContext> {
+    return VertxConsumerFactory(userLoginAddress, provider)
 }
 
-class UserLoginProcessingVerticle: AbstractVerticle() {
-    override fun start() {
-        vertx.eventBus().consumer<String>(userLoginAddress) {
-            println("it logged in: ${it.body()}")
-            it.reply("me too, thanks")
-        }
-    }
+fun userCreateConsumer(provider: ApplicationContextProvider): ConsumerFactory<ApplicationContext> {
+    return VertxConsumerFactory(userCreatedAddress, provider)
 }

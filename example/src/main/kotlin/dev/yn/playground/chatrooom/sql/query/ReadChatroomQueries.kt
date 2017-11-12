@@ -4,8 +4,7 @@ import dev.yn.playground.chatrooom.models.ChatRoom
 import dev.yn.playground.chatrooom.models.ChatRoomError
 import dev.yn.playground.chatrooom.models.ChatRoomUser
 import dev.yn.playground.common.models.Reference
-import dev.yn.playground.sql.QuerySQLMapping
-import dev.yn.playground.sql.SQLStatement
+import dev.yn.playground.sql.*
 import dev.yn.playground.user.models.UserProfile
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
@@ -14,7 +13,7 @@ import org.funktionale.collections.tail
 import org.funktionale.tries.Try
 
 
-object GetChatRoom: QuerySQLMapping<String, ChatRoom> {
+object GetChatRoom: SQLQueryMapping<String, ChatRoom> {
     val selectChatroom = """
         |SELECT chatroom.id AS id, chatroom.name AS name, chatroom.description AS description,
         |chatroom_permission.permission_key AS permission_key, chatroom_permission.allow_public AS permission_allow_public,
@@ -35,23 +34,22 @@ object GetChatRoom: QuerySQLMapping<String, ChatRoom> {
         |WHERE chatroom.id=?
     """.trimMargin()
 
-    override fun toSql(i: String): SQLStatement {
-        return SQLStatement.Parameterized(selectChatroom, JsonArray(listOf(i, i)))
+    override fun toSql(i: String): SQLCommand.Query {
+        return SQLCommand.Query(SQLStatement.Parameterized(selectChatroom, listOf(i, i)))
     }
 
-    override fun mapResult(i: String, rs: ResultSet): Try<ChatRoom> {
-        return rs.rows.firstOrNull()
-                ?.let(this::parseFirstRow)
-                ?.let { rs.rows.tail().fold(it) { agg, nextRow -> agg.map { chatRoom ->
+    override fun mapResult(i: String, rs: SQLResult.Query): Try<ChatRoom> {
+        return Try { rs.result.next() }
+                .flatMap(this::parseFirstRow)
+                .flatMap { rs.result.asSequence().fold(Try.Success(it)) { agg: Try<ChatRoom>, nextRow: SQLRow -> agg.map { chatRoom ->
                     chatRoom.copy(
                             users = parseUser(nextRow).map { addTo(chatRoom.users, it) }.getOrElse { chatRoom.users },
                             publicPermissions = parsePermission(nextRow).map { chatRoom.publicPermissions.plus(it) }.getOrElse { chatRoom.publicPermissions }
                     )
                 }} }
-                ?:Try.Failure(ChatRoomError.NotFound(i))
     }
 
-    private fun parseFirstRow(row: JsonObject): Try<ChatRoom> {
+    private fun parseFirstRow(row: SQLRow): Try<ChatRoom> {
         return Try {
             ChatRoom(
                     id = row.getString("id"),
@@ -61,11 +59,11 @@ object GetChatRoom: QuerySQLMapping<String, ChatRoom> {
                     publicPermissions = parsePermission(row).map(::setOf).getOrElse { emptySet() })
         }
     }
-    private fun parsePermission(row: JsonObject): Try<String> {
+    private fun parsePermission(row: SQLRow): Try<String> {
         return Try { row.getString("permission_key") }
     }
 
-    private fun parseUser(row: JsonObject): Try<ChatRoomUser> {
+    private fun parseUser(row: SQLRow): Try<ChatRoomUser> {
         return Try {
             ChatRoomUser(
                     user = Reference.Defined(

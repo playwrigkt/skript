@@ -1,7 +1,10 @@
 package dev.yn.playground.chatrooom.sql
 
-import dev.yn.playground.common.ApplicationContextProvider
-import dev.yn.playground.sql.UnpreparedSQLAction
+import dev.yn.playground.common.ApplicationContext
+import dev.yn.playground.sql.SQLTask
+import dev.yn.playground.sql.SQLMapping
+import dev.yn.playground.sql.ext.dropTableIfExists
+import dev.yn.playground.sql.ext.exec
 
 object ChatRoomSchema {
 
@@ -33,14 +36,13 @@ object ChatRoomSchema {
         date_added timestamp,
         PRIMARY KEY (chatroom_id, user_id))""".trimIndent()
 
-    val initAction = UnpreparedSQLAction
-            .exec<Unit, ApplicationContextProvider>(createChatRoomTable)
-            .exec(createChatRoomPermissionTable)
-            .exec(createChatRoomUserPermissionTable)
-            .exec(createBannedUserTable)
+    val initAction = SQLTask
+            .exec<Unit, Unit, ApplicationContext>(SQLMapping.Companion.exec(createChatRoomTable))
+            .exec(SQLMapping.Companion.exec(createChatRoomPermissionTable))
+            .exec(SQLMapping.Companion.exec(createChatRoomUserPermissionTable))
+            .exec(SQLMapping.Companion.exec(createBannedUserTable))
 
-    val dropAllAction = UnpreparedSQLAction
-            .dropTableIfExists<Unit, ApplicationContextProvider>("chatroom_user_banned")
+    val dropAllAction = dropTableIfExists<ApplicationContext>("chatroom_user_banned")
             .dropTableIfExists("chatroom_user_permission")
             .dropTableIfExists("chatroom_permission")
             .dropTableIfExists("chatroom")

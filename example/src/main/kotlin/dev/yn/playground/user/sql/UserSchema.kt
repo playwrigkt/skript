@@ -1,6 +1,10 @@
 package dev.yn.playground.user.sql
 
-import dev.yn.playground.sql.UnpreparedSQLAction
+import dev.yn.playground.common.ApplicationContext
+import dev.yn.playground.sql.*
+import dev.yn.playground.sql.ext.dropTableIfExists
+import dev.yn.playground.sql.ext.exec
+import dev.yn.playground.task.Task
 
 object UserSchema {
 
@@ -32,15 +36,15 @@ CREATE TABLE IF NOT EXISTS user_relationship_request (
     CONSTRAINT user_relationship_request_pk PRIMARY KEY (user_id_1, user_id_2)
 );"""
 
-    fun <P> init(): UnpreparedSQLAction<Unit, Unit, P> =
-            UnpreparedSQLAction.exec<Unit, P>("CREATE EXTENSION IF NOT EXISTS pgcrypto")
-                    .exec(createUserProfileTable)
-                    .exec(createUserPasswordTable)
-                    .exec(createUserSessionTable)
-                    .exec(createUserRequestTable)
+    fun init(): Task<Unit, Unit, ApplicationContext> =
+            SQLTask.exec<Unit, Unit, ApplicationContext>(SQLMapping.exec("CREATE EXTENSION IF NOT EXISTS pgcrypto"))
+                    .exec(SQLMapping.exec(createUserProfileTable))
+                    .exec(SQLMapping.exec(createUserPasswordTable))
+                    .exec(SQLMapping.exec(createUserSessionTable))
+                    .exec(SQLMapping.exec(createUserRequestTable))
 
-    fun <P> drop(): UnpreparedSQLAction<Unit, Unit, P> =
-            UnpreparedSQLAction.dropTableIfExists<Unit, P>("user_relationship_request")
+    fun drop(): Task<Unit, Unit, ApplicationContext> =
+            dropTableIfExists<ApplicationContext>("user_relationship_request")
                     .dropTableIfExists("user_password")
                     .dropTableIfExists("user_session")
                     .dropTableIfExists("user_profile")

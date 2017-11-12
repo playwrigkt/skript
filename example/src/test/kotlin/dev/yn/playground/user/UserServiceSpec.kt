@@ -1,80 +1,48 @@
 package  dev.yn.playground.user
 
 import dev.yn.playground.common.ApplicationContextProvider
-import dev.yn.playground.sql.*
-import io.kotlintest.Spec
-import io.kotlintest.matchers.shouldBe
-import io.kotlintest.specs.StringSpec
-import io.vertx.core.Future
-import io.vertx.core.Vertx
-import io.vertx.core.json.JsonArray
-import io.vertx.core.json.JsonObject
-import io.vertx.ext.jdbc.JDBCClient
-import java.util.*
+import dev.yn.playground.consumer.alpha.Stream
+import dev.yn.playground.sql.SQLCommand
+import dev.yn.playground.sql.SQLError
+import dev.yn.playground.sql.SQLStatement
+import dev.yn.playground.task.result.Result
 import dev.yn.playground.user.extensions.schema.dropUserSchema
 import dev.yn.playground.user.extensions.schema.initUserSchema
 import dev.yn.playground.user.extensions.transaction.deleteAllUsers
-import dev.yn.playground.user.models.UserError
-import dev.yn.playground.user.models.UserNameAndPassword
-import dev.yn.playground.user.models.UserProfile
-import dev.yn.playground.user.models.UserProfileAndPassword
+import dev.yn.playground.user.models.*
+import io.kotlintest.matchers.shouldBe
+import io.kotlintest.specs.StringSpec
+import java.util.*
 import dev.yn.playground.user.sql.EnsureNoSessionExists
 import dev.yn.playground.user.sql.UserSQL
 import dev.yn.playground.user.sql.ValidatePasswordForUserId
-import io.kotlintest.TestCaseContext
+import io.kotlintest.Spec
 import io.kotlintest.matchers.fail
-import io.vertx.ext.sql.SQLClient
+import io.kotlintest.matchers.shouldNotBe
 import org.slf4j.LoggerFactory
 
-class UserServiceSpec : StringSpec() {
+
+
+abstract class UserServiceSpec : StringSpec() {
 
     val LOG = LoggerFactory.getLogger(this.javaClass)
 
+    abstract fun provider(): ApplicationContextProvider
+    val userService: UserService = UserService(provider())
 
+    abstract fun closeResources()
 
-    companion object {
-        val hikariConfig = JsonObject()
-                .put("provider_class", "io.vertx.ext.jdbc.spi.impl.HikariCPDataSourceProvider")
-                .put("jdbcUrl", "jdbc:postgresql://localhost:5432/chitchat")
-                .put("username", "chatty_tammy")
-                .put("password", "gossipy")
-                .put("driver_class", "org.postgresql.Driver")
-                .put("maximumPoolSize", 30)
-                .put("poolName", "test_pool")
-
-        val vertx by lazy { Vertx.vertx() }
-
-        val sqlClient: SQLClient by lazy {
-            JDBCClient.createShared(vertx, hikariConfig, "test_ds")
-        }
-
-        val provider: ApplicationContextProvider by lazy {
-            ApplicationContextProvider(vertx, sqlClient)
-        }
-
-        val userService by lazy {
-            dev.yn.playground.user.UserService(sqlClient, vertx)
-        }
-    }
-
-
-    override fun interceptTestCase(context: TestCaseContext, test: () -> Unit) {
-        test()
-    }
+    abstract fun loginConsumer(): Stream<UserSession>
+    abstract fun createConsumer(): Stream<UserProfile>
 
     override fun interceptSpec(context: Spec, spec: () -> Unit) {
+        awaitSucceededFuture(provider().provideContext().flatMap{ it.dropUserSchema() })
+        awaitSucceededFuture(provider().provideContext().flatMap{ it.initUserSchema() })
 
-        awaitSucceededFuture(provider.dropUserSchema())
-        awaitSucceededFuture(provider.initUserSchema())
         spec()
-        awaitSucceededFuture(provider.deleteAllUsers()
-                .dropUserSchema(provider))
-        val clientF = Future.future<Void>()
-        sqlClient.close(clientF.completer())
-        awaitSucceededFuture(clientF)
-        val future = Future.future<Void>()
-        vertx.close(future.completer())
-        awaitSucceededFuture(future)
+        awaitSucceededFuture(provider().provideContext().flatMap{ it.deleteAllUsers() })
+        awaitSucceededFuture(provider().provideContext().flatMap{ it.dropUserSchema() })
+        closeResources()
     }
 
     init {
@@ -84,12 +52,24 @@ class UserServiceSpec : StringSpec() {
             val userName = "sally"
             val user = UserProfile(userId, userName, false)
             val userAndPassword = UserNameAndPassword(userName, password)
+            val createStream = createConsumer()
+            val loginStream= loginConsumer()
+
+            createStream.isRunning() shouldBe true
+            loginStream.isRunning() shouldBe true
 
             awaitSucceededFuture(
                     userService.createUser(UserProfileAndPassword(user, password)),
                     user)
 
-            awaitSucceededFuture(userService.loginUser(userAndPassword)).userId shouldBe userId
+            val session = awaitSucceededFuture(userService.loginUser(userAndPassword))
+            session?.userId shouldBe userId
+            session shouldNotBe null
+
+            awaitStreamItem(createStream, user)
+            awaitStreamItem(loginStream, session!!)
+            awaitSucceededFuture(createStream.stop())
+            awaitSucceededFuture(loginStream.stop())
         }
 
         "Fail to loginActionChain a user with a bad password" {
@@ -103,7 +83,9 @@ class UserServiceSpec : StringSpec() {
                     userService.createUser(UserProfileAndPassword(user, password)),
                     user)
 
-            val expectedError = SQLError.OnStatement(SQLStatement.Parameterized(ValidatePasswordForUserId.selectUserPassword, JsonArray(listOf(userId, "bad"))), UserError.AuthenticationFailed)
+            val expectedError = SQLError.OnCommand(
+                    SQLCommand.Query(SQLStatement.Parameterized(ValidatePasswordForUserId.selectUserPassword, listOf(userId, "bad"))),
+                    UserError.AuthenticationFailed)
             awaitFailedFuture(
                     userService.loginUser(userAndPassword.copy(password = "bad")),
                     expectedError)
@@ -120,8 +102,10 @@ class UserServiceSpec : StringSpec() {
                     userService.createUser(UserProfileAndPassword(user, password)),
                     user)
 
-            awaitSucceededFuture(userService.loginUser(userAndPassword)).userId shouldBe userId
-            val expectedError = SQLError.OnStatement(SQLStatement.Parameterized(EnsureNoSessionExists.selectUserSessionExists, JsonArray(listOf(userId))), UserError.SessionAlreadyExists(userId))
+            awaitSucceededFuture(userService.loginUser(userAndPassword))?.userId shouldBe userId
+            val expectedError = SQLError.OnCommand(
+                    SQLCommand.Query(SQLStatement.Parameterized(EnsureNoSessionExists.selectUserSessionExists, listOf(userId))),
+                    UserError.SessionAlreadyExists(userId))
             awaitFailedFuture(
                     userService.loginUser(userAndPassword.copy(password = password)),
                     expectedError)
@@ -138,7 +122,7 @@ class UserServiceSpec : StringSpec() {
                     userService.createUser(UserProfileAndPassword(user, password)),
                     user)
 
-            val session = awaitSucceededFuture(userService.loginUser(userAndPassword))
+            val session = awaitSucceededFuture(userService.loginUser(userAndPassword))!!
 
             awaitSucceededFuture(
                     userService.getUser(userId, session.sessionKey),
@@ -164,11 +148,13 @@ class UserServiceSpec : StringSpec() {
                     userService.createUser(UserProfileAndPassword(user2, password2)),
                     user2)
 
-            val session = awaitSucceededFuture(userService.loginUser(userAndPassword))
+            val session = awaitSucceededFuture(userService.loginUser(userAndPassword))!!
 
             awaitFailedFuture(
                     userService.getUser(userId2, session.sessionKey),
-                    SQLError.OnStatement(SQLStatement.Parameterized(UserSQL.selectSessionByKey, JsonArray(listOf(session.sessionKey))), UserError.AuthorizationFailed))
+                    SQLError.OnCommand(
+                            SQLCommand.Query(SQLStatement.Parameterized(UserSQL.selectSessionByKey, listOf(session.sessionKey))),
+                            UserError.AuthenticationFailed))
         }
 
         "Not Allow a user with a bogus key to select another user" {
@@ -185,30 +171,44 @@ class UserServiceSpec : StringSpec() {
 
             awaitFailedFuture(
                     userService.getUser(userId, sessionKey),
-                    SQLError.OnStatement(SQLStatement.Parameterized(UserSQL.selectSessionByKey, JsonArray(listOf(sessionKey))), UserError.AuthenticationFailed))
+                    SQLError.OnCommand(
+                            SQLCommand.Query(SQLStatement.Parameterized(UserSQL.selectSessionByKey, listOf(sessionKey))),
+                            UserError.AuthenticationFailed))
         }
     }
 
-    fun <T> awaitSucceededFuture(future: Future<T>, result: T? = null, maxDuration: Long = 1000L): T {
+    fun <T> awaitStreamItem(stream: Stream<T>, expected: T, maxDuration: Long = 1000L) {
         val start = System.currentTimeMillis()
-        while(!future.isComplete && System.currentTimeMillis() - start < maxDuration) {
+        while(!stream.hasNext() && System.currentTimeMillis() - start < maxDuration) {
             Thread.sleep(100)
         }
-        if(!future.isComplete) fail("Timeout")
-        if(future.failed()) LOG.error("Expected Success", future.cause())
-        future.succeeded() shouldBe true
+        val result = stream.next()
+        when(result) {
+            is Result.Success -> result.result shouldBe expected
+            is Result.Failure -> throw result.error
+        }
+    }
+
+    fun <T> awaitSucceededFuture(future: dev.yn.playground.task.result.AsyncResult<T>, result: T? = null, maxDuration: Long = 1000L): T? {
+        val start = System.currentTimeMillis()
+        while(!future.isComplete() && System.currentTimeMillis() - start < maxDuration) {
+            Thread.sleep(100)
+        }
+        if(!future.isComplete()) fail("Timeout")
+        if(future.isFailure()) LOG.error("Expected Success", future.error())
+        future.isSuccess() shouldBe true
         result?.let { future.result() shouldBe it }
         return future.result()
     }
 
-    fun <T> awaitFailedFuture(future: Future<T>, cause: Throwable? = null, maxDuration: Long = 1000L): Throwable {
+    fun <T> awaitFailedFuture(future: dev.yn.playground.task.result.AsyncResult<T>, cause: Throwable? = null, maxDuration: Long = 1000L): Throwable? {
         val start = System.currentTimeMillis()
-        while(!future.isComplete && System.currentTimeMillis() - start < maxDuration) {
+        while(!future.isComplete() && System.currentTimeMillis() - start < maxDuration) {
             Thread.sleep(100)
         }
-        future.failed() shouldBe true
-        cause?.let { future.cause() shouldBe it}
-        return future.cause()
+        future.isFailure() shouldBe true
+        cause?.let { future.error() shouldBe it}
+        return future.error()
     }
 
 

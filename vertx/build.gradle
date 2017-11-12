@@ -1,0 +1,9 @@
+dependencies {
+    compile "io.vertx:vertx-core:$vertxVersion"
+    compile "io.vertx:vertx-jdbc-client:$vertxVersion"
+
+    compile project(':sql')
+    compile project(':publisher')
+    compile project(':consumer')
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+}

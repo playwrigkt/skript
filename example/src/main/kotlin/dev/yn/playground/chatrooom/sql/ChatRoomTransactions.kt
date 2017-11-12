@@ -6,14 +6,16 @@ import dev.yn.playground.chatrooom.models.ChatRoomPermissions
 import dev.yn.playground.chatrooom.models.ChatRoomUser
 import dev.yn.playground.chatrooom.sql.query.*
 import dev.yn.playground.chatrooom.sql.update.*
-import dev.yn.playground.sql.*
-import dev.yn.playground.common.ApplicationContextProvider
+import dev.yn.playground.common.ApplicationContext
+import dev.yn.playground.sql.ext.query
+import dev.yn.playground.sql.ext.update
+import dev.yn.playground.task.Task
 import org.funktionale.tries.Try
 
 object ChatRoomTransactions {
     private val onlyIfHasUsers: (ChatRoom) -> Try<ChatRoom> = { if(it.users.isEmpty()) Try.Failure(ChatRoomError.NoUsers) else { Try.Success(it) } }
 
-    val addUserTransaction: UnpreparedSQLAction<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationContextProvider> =
+    val addUserTransaction: Task<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationContext> =
             authenticate<ChatRoomUser>()
                     .query(AuthorizeChatRoomAddUser)
                     .map { it.input }
@@ -21,7 +23,7 @@ object ChatRoomTransactions {
                     .map { it.chatroom.id }
                     .query(GetChatRoom)
 
-    val removeUserTransaction: UnpreparedSQLAction<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationContextProvider> =
+    val removeUserTransaction: Task<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationContext> =
             authenticate<ChatRoomUser>()
                     .query(AuthorizeChatRoomRemoveUser)
                     .map { it.input }
@@ -29,7 +31,7 @@ object ChatRoomTransactions {
                     .map { it.chatroom.id }
                     .query(GetChatRoom)
 
-    val updateChatRoomTransaction: UnpreparedSQLAction<TokenAndInput<ChatRoom>, ChatRoom, ApplicationContextProvider> =
+    val updateChatRoomTransaction: Task<TokenAndInput<ChatRoom>, ChatRoom, ApplicationContext> =
             authenticate<ChatRoom>()
                     .query(AuthorzeChatRoomUpdate)
                     .map { it.input }
@@ -37,13 +39,13 @@ object ChatRoomTransactions {
                     .map { it.id }
                     .query(GetChatRoom)
 
-    val getChatRoomTransaction: UnpreparedSQLAction<TokenAndInput<String>, ChatRoom, ApplicationContextProvider> =
+    val getChatRoomTransaction: Task<TokenAndInput<String>, ChatRoom, ApplicationContext> =
             authenticate<String>()
                     .query(AuthorizedGetChatroom)
                     .map { it.input }
                     .query(GetChatRoom)
 
-    val createChatRoomTransaction: UnpreparedSQLAction<TokenAndInput<ChatRoom>, ChatRoom, ApplicationContextProvider> =
+    val createChatRoomTransaction: Task<TokenAndInput<ChatRoom>, ChatRoom, ApplicationContext> =
             authenticate<ChatRoom>()
                     .query(AuthrorizeCreateChatroom)
                     .map { it.input }
@@ -52,7 +54,7 @@ object ChatRoomTransactions {
                     .update(InsertChatRoomUsers)
                     .update(InsertChatRoomPermissions)
 
-    val addPermissions: UnpreparedSQLAction<TokenAndInput<ChatRoomPermissions>, ChatRoom, ApplicationContextProvider> =
+    val addPermissions: Task<TokenAndInput<ChatRoomPermissions>, ChatRoom, ApplicationContext> =
             authenticate<ChatRoomPermissions>()
                     .query(AuthorizeAddPublicPermission)
                     .map { it.input }
@@ -60,7 +62,7 @@ object ChatRoomTransactions {
                     .map { it.chatroom.id }
                     .query(GetChatRoom)
 
-    val removePermissions: UnpreparedSQLAction<TokenAndInput<ChatRoomPermissions>, ChatRoom, ApplicationContextProvider> =
+    val removePermissions: Task<TokenAndInput<ChatRoomPermissions>, ChatRoom, ApplicationContext> =
             authenticate<ChatRoomPermissions>()
                     .query(AuthorizeRemovePublicPermission)
                     .map { it.input }
@@ -68,7 +70,7 @@ object ChatRoomTransactions {
                     .map { it.chatroom.id }
                     .query(GetChatRoom)
 
-    val addUserPermissions: UnpreparedSQLAction<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationContextProvider> =
+    val addUserPermissions: Task<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationContext> =
             authenticate<ChatRoomUser>()
                     .query(AuthorizeAddUserPermission)
                     .map { it.input}
@@ -76,7 +78,7 @@ object ChatRoomTransactions {
                     .map { it.chatroom.id }
                     .query(GetChatRoom)
 
-    val removeUserPermissions: UnpreparedSQLAction<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationContextProvider> =
+    val removeUserPermissions: Task<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationContext> =
             authenticate<ChatRoomUser>()
                     .query(AuthorizeRemoveUserPermission)
                     .map { it.input}

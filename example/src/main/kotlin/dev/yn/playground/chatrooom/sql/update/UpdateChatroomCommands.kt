@@ -3,70 +3,66 @@ package dev.yn.playground.chatrooom.sql.update
 import dev.yn.playground.chatrooom.models.ChatRoom
 import dev.yn.playground.chatrooom.models.ChatRoomPermissions
 import dev.yn.playground.chatrooom.models.ChatRoomUser
-import dev.yn.playground.sql.SQLError
-import dev.yn.playground.sql.SQLStatement
-import dev.yn.playground.sql.UpdateSQLMapping
-import io.vertx.core.json.JsonArray
-import io.vertx.ext.sql.UpdateResult
+import dev.yn.playground.sql.*
 import org.funktionale.tries.Try
 
-object InsertChatRoomUserPermissions : UpdateSQLMapping<ChatRoomUser, ChatRoomUser> {
-    override fun toSql(i: ChatRoomUser): SQLStatement {
-        return SQLStatement.Parameterized(
+object InsertChatRoomUserPermissions : SQLUpdateMapping<ChatRoomUser, ChatRoomUser> {
+    override fun toSql(i: ChatRoomUser): SQLCommand.Update {
+        return SQLCommand.Update(SQLStatement.Parameterized(
                 "INSERT INTO chatroom_user_permission (chatroom_id, user_id, permission_key, date_added) VALUES ${(1..i.permissions.size).map {"(?, ?, ?, transaction_timestamp())"}.joinToString(",")}",
-                JsonArray(i.permissions.flatMap { listOf(i.chatroom.id, i.user.id, it) }))
+                i.permissions.flatMap { listOf(i.chatroom.id, i.user.id, it) }))
     }
 
-    override fun mapResult(i: ChatRoomUser, rs: UpdateResult): Try<ChatRoomUser> {
-        return if(rs.updated == i.permissions.size) Try.Success(i) else Try.Failure(SQLError.UpdateFailed(this, i))
+    override fun mapResult(i: ChatRoomUser, rs: SQLResult.Update): Try<ChatRoomUser> {
+        return if(rs.count == i.permissions.size) Try.Success(i) else Try.Failure(SQLError.UpdateMappingFailed(this, i))
     }
 }
 
-object DeleteChatRoomUserPermissions : UpdateSQLMapping<ChatRoomUser, ChatRoomUser> {
-    override fun toSql(i: ChatRoomUser): SQLStatement {
-        return SQLStatement.Parameterized(
+object DeleteChatRoomUserPermissions : SQLUpdateMapping<ChatRoomUser, ChatRoomUser> {
+    override fun toSql(i: ChatRoomUser): SQLCommand.Update {
+        return SQLCommand.Update(SQLStatement.Parameterized(
                 "DELETE FROM chatroom_user_permission WHERE chatroom_id=? AND user_id=? AND (${i.permissions.map { "permission_key = ?"}.joinToString(" OR ")})",
-                JsonArray(listOf(i.chatroom.id, i.user.id) + i.permissions))
+                listOf(i.chatroom.id, i.user.id) + i.permissions))
     }
 
-    override fun mapResult(i: ChatRoomUser, rs: UpdateResult): Try<ChatRoomUser> {
-        return if(rs.updated == i.permissions.size) Try.Success(i) else Try.Failure(SQLError.UpdateFailed(this, i))
+    override fun mapResult(i: ChatRoomUser, rs: SQLResult.Update): Try<ChatRoomUser> {
+        return if(rs.count == i.permissions.size) Try.Success(i) else Try.Failure(SQLError.UpdateMappingFailed(this, i))
     }
 }
 
-object DeleteChatRoomPermissions: UpdateSQLMapping<ChatRoomPermissions, ChatRoomPermissions> {
-    override fun toSql(i: ChatRoomPermissions): SQLStatement {
-        return SQLStatement.Parameterized(
+object DeleteChatRoomPermissions: SQLUpdateMapping<ChatRoomPermissions, ChatRoomPermissions> {
+    override fun toSql(i: ChatRoomPermissions): SQLCommand.Update {
+        return SQLCommand.Update(SQLStatement.Parameterized(
                 "DELETE FROM chatroom_permission WHERE chatroom_id=? AND (${i.publicPermissions.map { "permission_key = ?"}.joinToString(" OR ")})",
-        JsonArray(listOf(i.chatroom.id) + i.publicPermissions))
+        listOf(i.chatroom.id) + i.publicPermissions))
     }
 
-    override fun mapResult(i: ChatRoomPermissions, rs: UpdateResult): Try<ChatRoomPermissions> {
-        return if(rs.updated == i.publicPermissions.size) Try.Success(i) else Try.Failure(SQLError.UpdateFailed(this, i))
+    override fun mapResult(i: ChatRoomPermissions, rs: SQLResult.Update): Try<ChatRoomPermissions> {
+        return if(rs.count== i.publicPermissions.size) Try.Success(i) else Try.Failure(SQLError.UpdateMappingFailed(this, i))
     }
 
 }
 
-object UpdateChatRoomFields: UpdateSQLMapping<ChatRoom, ChatRoom> {
-    override fun mapResult(i: ChatRoom, rs: UpdateResult): Try<ChatRoom> {
-        return if(rs.updated == 1) Try.Success(i) else Try.Failure(SQLError.UpdateFailed(this, i))
+object UpdateChatRoomFields: SQLUpdateMapping<ChatRoom, ChatRoom> {
+    override fun mapResult(i: ChatRoom, rs: SQLResult.Update): Try<ChatRoom> {
+        return if(rs.count== 1) Try.Success(i) else Try.Failure(SQLError.UpdateMappingFailed(this, i))
     }
 
-    override fun toSql(i: ChatRoom): SQLStatement {
-        return SQLStatement.Parameterized(
+    override fun toSql(i: ChatRoom): SQLCommand.Update {
+        return SQLCommand.Update(SQLStatement.Parameterized(
                 "UPDATE chatroom SET name=?, description=? WHERE id=?",
-                JsonArray(listOf(i.name, i.description, i.id)))
+                listOf(i.name, i.description, i.id)))
     }
 }
 
-object AddChatRoomPermissions : UpdateSQLMapping<ChatRoomPermissions, ChatRoomPermissions> {
-    override fun toSql(i: ChatRoomPermissions): SQLStatement {
-        return SQLStatement.Parameterized(
+object AddChatRoomPermissions : SQLUpdateMapping<ChatRoomPermissions, ChatRoomPermissions> {
+    override fun toSql(i: ChatRoomPermissions): SQLCommand.Update {
+        return SQLCommand.Update(SQLStatement.Parameterized(
                 "INSERT INTO chatroom_permission (chatroom_id, permission_key, allow_public) VALUES ${i.publicPermissions.map { "(?, ?, true)" }.joinToString(",") }",
-                JsonArray(i.publicPermissions.flatMap { listOf(i.chatroom.id, it)}))
+                i.publicPermissions.flatMap { listOf(i.chatroom.id, it)}))
     }
 
-    override fun mapResult(i: ChatRoomPermissions, rs: UpdateResult): Try<ChatRoomPermissions> {
-        return if(rs.updated == i.publicPermissions.size) Try.Success(i) else Try.Failure(SQLError.UpdateFailed(this, i))
+    override fun mapResult(i: ChatRoomPermissions, rs: SQLResult.Update): Try<ChatRoomPermissions> {
+        return if(rs.count == i.publicPermissions.size) Try.Success(i) else Try.Failure(SQLError.UpdateMappingFailed(this, i))
     }
 }
