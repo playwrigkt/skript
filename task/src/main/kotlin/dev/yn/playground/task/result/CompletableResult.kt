@@ -151,5 +151,25 @@ interface CompletableResult<T>: AsyncResult<T>, Completable<T> {
         override fun error(): Throwable? {
             return result?.error
         }
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is CompletableResultImpl<*>) return false
+
+            if (result != other.result) return false
+            if (handler != other.handler) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result1 = result?.hashCode() ?: 0
+            result1 = 31 * result1 + (handler?.hashCode() ?: 0)
+            return result1
+        }
+
+        override fun toString(): String {
+            return "CompletableResultImpl(result=$result, handler=$handler)"
+        }
     }
 }

@@ -38,14 +38,16 @@ object UserTransactions {
                     .update(InsertSession)
                     .publish(publishUserLoginEvent)
 
+    private val onlyIfRequestedUserMatchesSessionUser =  { session: UserSession, userId: String ->
+        if (session.userId == userId) {
+            Try.Success(userId)
+        } else {
+            Try.Failure<String>(UserError.AuthorizationFailed)
+        }
+    }
+
     val getUserActionChain: Task<TokenAndInput<String>, UserProfile, ApplicationContext> =
-            validateSession<String> { session, userId ->
-                if (session.userId == userId) {
-                    Try.Success(userId)
-                } else {
-                    Try.Failure(UserError.AuthorizationFailed)
-                }
-            }
+            validateSession<String>(onlyIfRequestedUserMatchesSessionUser)
                     .query(SelectUserProfileById)
 
     private fun <T> validateSession(validateSession: (UserSession, T) -> Try<T>): Task<TokenAndInput<T>, T, ApplicationContext> =

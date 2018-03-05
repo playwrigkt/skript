@@ -7,5 +7,5 @@ interface SQLTaskContextProvider<C: SQLExecutor> {
 }
 
 interface SQLTaskContext<C: SQLExecutor> {
-    fun getSQLActionContext(): C
+    fun getSQLExecutor(): C
 }

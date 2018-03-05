@@ -9,6 +9,7 @@ import dev.yn.playground.sql.context.SQLTaskContextProvider
 import dev.yn.playground.sql.context.SQLTaskContext
 import dev.yn.playground.task.Task
 import dev.yn.playground.task.result.AsyncResult
+import dev.yn.playground.user.models.UserSession
 import dev.yn.playground.vertx.task.VertxTaskContext
 import io.vertx.core.Vertx
 
@@ -39,11 +40,11 @@ class ApplicationContextProvider(
     }
 }
 
-class ApplicationContext(private val vertx: Vertx, val publishTaskExecutor: PublishTaskExecutor, val sqlExecutor: SQLExecutor):
+class ApplicationContext(private val vertx: Vertx, val publishTaskExecutor: PublishTaskExecutor, val sqlExecutor: SQLExecutor, val session: UserSession? = null):
         PublishTaskContext<PublishTaskExecutor>,
         SQLTaskContext<SQLExecutor>,
         VertxTaskContext {
     override fun getVertx(): Vertx = vertx
     override fun getPublishExecutor(): PublishTaskExecutor = publishTaskExecutor
-    override fun getSQLActionContext(): SQLExecutor = sqlExecutor
+    override fun getSQLExecutor(): SQLExecutor = sqlExecutor
 }

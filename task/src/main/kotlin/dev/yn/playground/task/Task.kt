@@ -6,12 +6,17 @@ import org.funktionale.either.Either
 import org.funktionale.tries.Try
 
 interface Task<I, O, C> {
-
     fun run(i: I, context: C): AsyncResult<O>
 
     companion object {
+        fun <I, C> identity(): Task<I, I, C> = map { it }
         fun <I, O, C> mapWithContext(mapper: (I, C) -> O): Task<I, O, C> = Map(mapper)
         fun <I, O, C> map(mapper: (I) -> O): Task<I, O, C> = mapWithContext({o, context -> mapper(o) })
+        fun <I, O, C> mapTryWithContext(mapper: (I, C) -> Try<O>): Task<I, O, C> = MapTry(mapper)
+        fun <I, O, C> mapTry(mapper: (I) -> Try<O>): Task<I, O, C> = mapTryWithContext({o, context -> mapper(o) })
+        fun <I, J, K, C, O> branch(control: Task<I, Either<J, K>, C>, left: Task<J, O, C>, right: Task<K, O, C>): Task<I, O, C> = Branch(control, left, right)
+        fun <I, J, K, C> branch(control: Task<I, Either<J, K>, C>): Branch.Builder<I, J, K, C> = Branch.Builder.control(control)
+        fun <I, C> updateContext(task: Task<I, Unit, C>): Task<I, I, C> = UpdateContext(task)
     }
 
     fun <O2> andThen(task: Task<O, O2, C>): Task<I, O2, C> = TaskLink(this, task)
@@ -23,14 +28,19 @@ interface Task<I, O, C> {
     fun <O2> mapTryWithContext(mapper: (O, C) -> Try<O2>): Task<I, O2, C> = this.andThen(MapTry(mapper))
     fun <O2> mapTry(mapper: (O) -> Try<O2>): Task<I, O2, C> = this.mapTryWithContext({ o, context -> mapper(o) })
 
-    fun <J, O2>whenRight(doOptionally: Task<J, O2, C>, whenRight: Task<O, Either<O2, J>, C>): Task<I, O2, C> =
-            this.andThen(TaskWhenRight(doOptionally, whenRight))
+    fun updateContext(task: Task<O, Unit, C>): Task<I, O, C> = this.andThen(UpdateContext(task))
 
-    fun <J>whenNonNull(doOptionally: Task<J, O, C>, whenNonNull: Task<O, J?, C>): Task<I, O, C> =
-            this.andThen(TaskWhenNonNull(doOptionally, whenNonNull))
+    fun <J, K, O2> branch(control: Task<O, Either<J, K>, C>, left: Task<J, O2, C>, right: Task<K, O2, C>): Task<I, O2, C> =
+        this.andThen(Branch(control, left, right))
+        
+    fun <J, O2>whenRight(doOptionally: Task<J, O2, C>, control: Task<O, Either<O2, J>, C>): Task<I, O2, C> =
+        this.andThen(Branch(control, identity(), doOptionally))
 
-    fun whenTrue(doOptionally: Task<O, O, C>, whenTrue: Task<O, Boolean, C>): Task<I, O, C> =
-            this.andThen(TaskWhenTrue(doOptionally, whenTrue))
+    fun <J>whenNonNull(doOptionally: Task<J, O, C>, control: Task<O, J?, C>): Task<I, O, C> =
+            this.andThen(TaskWhenNonNull(doOptionally, control))
+
+    fun whenTrue(doOptionally: Task<O, O, C>, control: Task<O, Boolean, C>): Task<I, O, C> =
+            this.andThen(TaskWhenTrue(doOptionally, control))
 
     /**
      * A link that contains two tasks that have been chained together.  A chain is essentially a single linked list of tasks.
@@ -43,7 +53,7 @@ interface Task<I, O, C> {
         override fun <O2> andThen(task: Task<O, O2, C>): Task<I, O2, C> = TaskLink(this.head, tail.andThen(task))
     }
 
-    private data class Map<I, O, C>(val mapper: (I, C) -> O): Task<I, O, C> {
+    data class Map<I, O, C>(val mapper: (I, C) -> O): Task<I, O, C> {
         override fun run(i: I, context: C): AsyncResult<O> {
             val tri = Try { mapper(i, context) }
             return when(tri) {
@@ -53,7 +63,7 @@ interface Task<I, O, C> {
         }
     }
 
-    private data class MapTry<I, O, C>(val mapper: (I, C) -> Try<O>): Task<I, O, C> {
+    data class MapTry<I, O, C>(val mapper: (I, C) -> Try<O>): Task<I, O, C> {
         override fun run(i: I, context: C): AsyncResult<O> {
             val tri = mapper(i, context)
             return when(tri) {
@@ -63,21 +73,44 @@ interface Task<I, O, C> {
         }
     }
 
-    private data class TaskWhenRight<I, J, O, C>(val doOptionally: Task<J, O, C>, val whenRight: Task<I, Either<O, J>, C>): Task<I, O, C> {
+    data class Branch<I, J, K, O, C>(val control: Task<I, Either<J, K>, C>, val left: Task<J, O, C>, val right: Task<K, O, C>): Task<I, O, C> {
         override fun run(i: I, context: C): AsyncResult<O> {
-            return whenRight.run(i, context)
-                    .flatMap {
-                        when(it) {
-                            is Either.Left -> it.left().get().let { CompletableResult.succeeded(it) }
-                            is Either.Right -> it.right().get().let { doOptionally.run(it, context) }
-                        }
-                    }
+            return control.run(i, context)
+                    .flatMap { when(it) {
+                        is Either.Left -> left.run(it.l, context)
+                        is Either.Right -> right.run(it.r, context)
+                    } }
+        }
+
+        sealed class Builder<I, J, K, C> {
+            abstract val control: Task<I, Either<J, K>, C>
+
+            companion object {
+                fun <I, J, K, C> control(control: Task<I, Either<J, K>, C>): Builder<I, J, K, C> = Impl(control)
+            }
+
+            fun <O> left(left: Task<J, O, C>): Left<I, J, K, O, C> = Left(control, left)
+            fun <O> right(right: Task<K, O, C>): Right<I, J, K, O, C> = Right(control, right)
+            fun <O> ifLeft(left: Task<J, O, C>): Left<I, J, K, O, C> = left(left)
+            fun <O> ifRight(right: Task<K, O, C>): Right<I, J, K, O, C> = right(right)
+
+            private data class Impl<I, J, K, C>(override val control: Task<I, Either<J, K>, C>): Builder<I, J, K, C>()
+
+            data class Left<I, J, K, O, C>(val control: Task<I, Either<J, K>, C>, val left: Task<J, O, C>) {
+                fun right(right: Task<K, O, C>): Task<I, O, C> = Branch(control, left, right)
+                fun ifRight(right: Task<K, O, C>): Task<I, O, C> = right(right)
+            }
+            
+            data class Right<I, J, K, O, C>(val control: Task<I, Either<J, K>, C>, val right: Task<K, O, C>) {
+                fun left(left: Task<J, O, C>): Task<I, O, C> = Branch(control, left, right)
+                fun ifLeft(left: Task<J, O, C>): Task<I, O, C> = left(left)
+            }
         }
     }
 
-    data class TaskWhenNonNull<I, J, C>(val doOptionally: Task<J, I, C>, val whenNonNull: Task<I, J?, C>): Task<I, I, C> {
+    data class TaskWhenNonNull<I, J, C>(val doOptionally: Task<J, I, C>, val control: Task<I, J?, C>): Task<I, I, C> {
         override fun run(i: I, context: C): AsyncResult<I> {
-            return whenNonNull.run(i, context)
+            return control.run(i, context)
                     .flatMap {
                         when(it) {
                             null -> CompletableResult.succeeded(i)
@@ -87,9 +120,9 @@ interface Task<I, O, C> {
         }
     }
 
-    data class TaskWhenTrue<I, C>(val doOptionally: Task<I, I, C>, val whenTrue: Task<I, Boolean, C>): Task<I, I, C> {
+    data class TaskWhenTrue<I, C>(val doOptionally: Task<I, I, C>, val control: Task<I, Boolean, C>): Task<I, I, C> {
         override fun run(i: I, context: C): AsyncResult<I> {
-            return whenTrue.run(i, context)
+            return control.run(i, context)
                     .flatMap {
                         when(it) {
                             true -> doOptionally.run(i, context)
@@ -97,5 +130,13 @@ interface Task<I, O, C> {
                         }
                     }
         }
+    }
+
+    data class UpdateContext<I, C>(val task: Task<I, Unit, C>): Task<I, I, C> {
+        override fun run(i: I, context: C): AsyncResult<I> {
+            return task.run(i, context)
+                    .map { i }
+        }
+
     }
 }

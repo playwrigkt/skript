@@ -21,7 +21,7 @@ sealed class SQLTask<IN, OUT, C: SQLTaskContext<*>>: Task<IN, OUT, C> {
     private data class Query<IN, OUT, C: SQLTaskContext<*>>(override val mapping: SQLMapping<IN, OUT, SQLCommand.Query, SQLResult.Query>): SQLTask<IN, OUT, C>() {
         override fun run(i: IN, context: C): AsyncResult<OUT> {
             val sqlCommand = mapping.toSql(i)
-            return context.getSQLActionContext().query(sqlCommand)
+            return context.getSQLExecutor().query(sqlCommand)
                     .map { mapping.mapResult(i, it) }
                     .flatMap(this::handleFailure)
                     .recover { AsyncResult.failed(SQLError.OnCommand(sqlCommand, it)) }
@@ -31,7 +31,7 @@ sealed class SQLTask<IN, OUT, C: SQLTaskContext<*>>: Task<IN, OUT, C> {
     private data class Update<IN, OUT, C: SQLTaskContext<*>>(override val mapping: SQLMapping<IN, OUT, SQLCommand.Update, SQLResult.Update>): SQLTask<IN, OUT, C>() {
         override fun run(i: IN, context: C): AsyncResult<OUT> {
             val sqlCommand = mapping.toSql(i)
-            return context.getSQLActionContext().update(sqlCommand)
+            return context.getSQLExecutor().update(sqlCommand)
                     .map { mapping.mapResult(i, it) }
                     .flatMap(this::handleFailure)
                     .recover { AsyncResult.failed(SQLError.OnCommand(sqlCommand, it)) }
@@ -41,7 +41,7 @@ sealed class SQLTask<IN, OUT, C: SQLTaskContext<*>>: Task<IN, OUT, C> {
     private data class Exec<IN, OUT, C: SQLTaskContext<*>>(override val mapping: SQLMapping<IN, OUT, SQLCommand.Exec, SQLResult.Void>): SQLTask<IN, OUT, C>() {
         override fun run(i: IN, context: C): AsyncResult<OUT> {
             val sqlCommand = mapping.toSql(i)
-            return context.getSQLActionContext().exec(sqlCommand)
+            return context.getSQLExecutor().exec(sqlCommand)
                     .map { mapping.mapResult(i, it) }
                     .flatMap(this::handleFailure)
                     .recover { AsyncResult.failed(SQLError.OnCommand(sqlCommand, it)) }

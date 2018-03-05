@@ -33,10 +33,10 @@ sealed class SQLTransactionTask<I, O, C: SQLTaskContext<*>>: Task<I, O, C> {
                 }
 
         override fun run(i: I, context: C): AsyncResult<O> =
-                context.getSQLActionContext().setAutoCommit(true)
+                context.getSQLExecutor().setAutoCommit(true)
                         .flatMap { transaction.run(i, context) }
-                        .flatMap(context.getSQLActionContext().close())
-                        .recover(context.getSQLActionContext().closeOnFailure())
+                        .flatMap(context.getSQLExecutor().close())
+                        .recover(context.getSQLExecutor().closeOnFailure())
     }
 
     data class TransactionalSQLTransactionTask<I, O, C: SQLTaskContext<*>>(override val transaction: Task<I, O, C>) : SQLTransactionTask<I, O, C>() {
@@ -47,14 +47,14 @@ sealed class SQLTransactionTask<I, O, C: SQLTaskContext<*>>: Task<I, O, C> {
                 }
 
         override fun run(i: I, context: C): AsyncResult<O> =
-                context.getSQLActionContext().setAutoCommit(false)
+                context.getSQLExecutor().setAutoCommit(false)
                         .flatMap {
                             transaction.run(i, context)
-                                    .flatMap(context.getSQLActionContext().commit())
-                                    .recover(context.getSQLActionContext().rollback())
+                                    .flatMap(context.getSQLExecutor().commit())
+                                    .recover(context.getSQLExecutor().rollback())
                         }
-                        .flatMap(context.getSQLActionContext().close())
-                        .recover(context.getSQLActionContext().closeOnFailure())
+                        .flatMap(context.getSQLExecutor().close())
+                        .recover(context.getSQLExecutor().closeOnFailure())
     }
 }
 
