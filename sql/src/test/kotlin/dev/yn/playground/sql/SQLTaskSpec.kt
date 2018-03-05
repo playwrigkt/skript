@@ -17,9 +17,7 @@ import java.util.*
 class SQLTaskSpec: StringSpec() {
     data class UserSession(val sessionKey: String, val userId: String, val expiration: Instant)
 
-    interface OperationCache<R> {
-        fun getOperationCache(): R
-    }
+
 
     data class ApplicationContext<R>(val sqlExecutor: SQLExecutor, val cache: R):
             SQLTaskContext<SQLExecutor>,
@@ -29,6 +27,10 @@ class SQLTaskSpec: StringSpec() {
         override fun getSQLExecutor(): SQLExecutor {
             return sqlExecutor
         }
+    }
+
+    interface OperationCache<R> {
+        fun getOperationCache(): R
     }
 
     interface UserSessionContext {

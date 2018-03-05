@@ -5,8 +5,8 @@ import dev.yn.playground.task.result.AsyncResult
 import dev.yn.playground.user.sql.UserSchema
 import devyn.playground.sql.task.SQLTransactionTask
 
-fun ApplicationContext.initUserSchema() = SQLTransactionTask.transaction<Unit, Unit, ApplicationContext>(UserSchema.init()).run(Unit, this)
-fun ApplicationContext.dropUserSchema() = SQLTransactionTask.autoCommit<Unit, Unit, ApplicationContext>(UserSchema.drop()).run(Unit, this)
+fun ApplicationContext<Unit>.initUserSchema() = SQLTransactionTask.transaction<Unit, Unit, ApplicationContext<Unit>>(UserSchema.init()).run(Unit, this)
+fun ApplicationContext<Unit>.dropUserSchema() = SQLTransactionTask.autoCommit<Unit, Unit, ApplicationContext<Unit>>(UserSchema.drop()).run(Unit, this)
 
-fun <T> AsyncResult<T>.dropUserSchema(context: ApplicationContext) = this.flatMap { context.dropUserSchema() }
-fun <T> AsyncResult<T>.initUserSchema(context: ApplicationContext) = this.flatMap{ context.initUserSchema() }
+fun <T> AsyncResult<T>.dropUserSchema(context: ApplicationContext<Unit>) = this.flatMap { context.dropUserSchema() }
+fun <T> AsyncResult<T>.initUserSchema(context: ApplicationContext<Unit>) = this.flatMap{ context.initUserSchema() }

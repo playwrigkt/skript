@@ -152,9 +152,7 @@ abstract class UserServiceSpec : StringSpec() {
 
             awaitFailedFuture(
                     userService.getUser(userId2, session.sessionKey),
-                    SQLError.OnCommand(
-                            SQLCommand.Query(SQLStatement.Parameterized(UserSQL.selectSessionByKey, listOf(session.sessionKey))),
-                            UserError.AuthenticationFailed))
+                    UserError.AuthorizationFailed)
         }
 
         "Not Allow a user with a bogus key to select another user" {

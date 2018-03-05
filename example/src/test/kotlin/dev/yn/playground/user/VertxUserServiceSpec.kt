@@ -60,7 +60,7 @@ class VertxUserServiceSpec: UserServiceSpec() {
         return awaitSucceededFuture(
                 userLoginConsumer(provider)
                         .stream(Task
-                                .map<ConsumedMessage, JsonObject, ApplicationContext> { JsonObject(String(it.body)) }
+                                .map<ConsumedMessage, JsonObject, ApplicationContext<Unit>> { JsonObject(String(it.body)) }
                                 .mapTry { Try {
                                     UserSession(
                                             it.getString("sessionKey"),
@@ -72,7 +72,7 @@ class VertxUserServiceSpec: UserServiceSpec() {
         return awaitSucceededFuture(
                 dev.yn.playground.user.userCreateConsumer(provider)
                         .stream(Task
-                                .map<ConsumedMessage, JsonObject, ApplicationContext> { JsonObject(String(it.body)) }
+                                .map<ConsumedMessage, JsonObject, ApplicationContext<Unit>> { JsonObject(String(it.body)) }
                                 .mapTry { Try {
                                     UserProfile(
                                             it.getString("id"),

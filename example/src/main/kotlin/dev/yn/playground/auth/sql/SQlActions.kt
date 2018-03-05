@@ -1,39 +1,44 @@
 package dev.yn.playground.auth.sql
 
 import dev.yn.playground.auth.AuthSession
-import dev.yn.playground.auth.SessionAndInput
-import dev.yn.playground.auth.TokenAndInput
+import dev.yn.playground.auth.context.UserSessionCache
 import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.sql.*
+import dev.yn.playground.sql.ext.query
+import dev.yn.playground.task.Task
 import dev.yn.playground.user.models.UserError
 import dev.yn.playground.user.sql.UserSQL
 import org.funktionale.tries.Try
 import java.time.Instant
 
 object AuthSQLActions {
-    fun <T> validateAction() = SQLTask.query<TokenAndInput<T>, SessionAndInput<T>, ApplicationContext>(SelectSessionByKey())
+    fun <T, R: UserSessionCache> validate(): Task<T, T, ApplicationContext<R>> =
+            Task.updateContext(
+                    Task.identity<T, ApplicationContext<R>>()
+                            .mapWithContext { i, c -> c.cache.getUserSessionKey() }
+                            .query(SelectSessionByKey)
+                            .mapWithContext { session, c -> c.cache.setUserSession(session) })
 
-    class SelectSessionByKey<T>: SQLMapping<TokenAndInput<T>, SessionAndInput<T>, SQLCommand.Query, SQLResult.Query> {
-        override fun mapResult(i: TokenAndInput<T>, rs: SQLResult.Query): Try<SessionAndInput<T>> =
+    object SelectSessionByKey: SQLMapping<String, AuthSession, SQLCommand.Query, SQLResult.Query> {
+        override fun mapResult(i: String, rs: SQLResult.Query): Try<AuthSession> =
                 Try { rs.result.next() }
-                        .map {SessionAndInput(
+                        .map {
                                 AuthSession.User(
                                         it.getString("user_id"),
-                                        it.getInstant("expiration")),
-                                i.input)
+                                        it.getInstant("expiration"))
 
                         }
                         .rescue { Try.Failure(UserError.AuthenticationFailed) }
-                        .flatMap {
-                            if(it.session.expiration.isBefore(Instant.now())) {
-                                Try.Failure<SessionAndInput<T>>(UserError.SessionExpired)
+                        .flatMap<AuthSession> {
+                            if(it.expiration.isBefore(Instant.now())) {
+                                Try.Failure(UserError.SessionExpired)
                             } else {
                                 Try.Success(it)
                             } }
 
 
 
-        override fun toSql(i: TokenAndInput<T>): SQLCommand.Query =
-                SQLCommand.Query(SQLStatement.Parameterized(UserSQL.selectSessionByKey, listOf(i.token)))
+        override fun toSql(i: String): SQLCommand.Query =
+                SQLCommand.Query(SQLStatement.Parameterized(UserSQL.selectSessionByKey, listOf(i)))
     }
 }

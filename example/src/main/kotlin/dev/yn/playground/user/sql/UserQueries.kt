@@ -1,11 +1,9 @@
 package dev.yn.playground.user.sql
 
-import dev.yn.playground.auth.TokenAndInput
 import dev.yn.playground.sql.*
 import dev.yn.playground.user.models.*
 import org.funktionale.tries.Try
 import java.sql.Timestamp
-import java.time.Instant
 
 object UserSQL {
     val selectSessionByKey= "SELECT session_key, user_id, expiration FROM user_session where session_key = ?"
@@ -65,27 +63,6 @@ object InsertSession: SQLUpdateMapping<UserSession, UserSession> {
             if(rs.count == 1) Try.Success(i) else Try.Failure(SQLError.UpdateMappingFailed(this, i))
 }
 
-class SelectSessionByKey<T>(val validateSesssion: (UserSession, T) -> Try<T>): SQLQueryMapping<TokenAndInput<T>, T> {
-    override fun mapResult(i: TokenAndInput<T>, rs: SQLResult.Query): Try<T> =
-        Try { rs.result.iterator().next() }
-                .map {  UserSession(
-                        it.getString("session_key"),
-                        it.getString("user_id"),
-                        it.getInstant("expiration"))
-                }
-                .flatMap {
-                    if(it.expiration.isBefore(Instant.now())) {
-                        Try.Failure(UserError.SessionExpired)
-                    } else {
-                        validateSesssion(it, i.input)
-                    } }
-                .rescue { Try.Failure(UserError.AuthenticationFailed) }
-
-
-    override fun toSql(i: TokenAndInput<T>): SQLCommand.Query =
-            SQLCommand.Query(SQLStatement.Parameterized(UserSQL.selectSessionByKey, listOf(i.token)))
-}
-
 object SelectUserProfileById: SQLQueryMapping<String, UserProfile> {
     val selectUser = "SELECT id, user_name, allow_public_message FROM user_profile where id = ?"
     override fun toSql(i: String): SQLCommand.Query = SQLCommand.Query(SQLStatement.Parameterized(selectUser, listOf(i)))
@@ -119,33 +96,3 @@ val EnsureNoSessionExists = SelectUserSessionExists({ userId, exists ->
         Try.Success(userId)
     }
 })
-
-object InsertTrustedDevice: SQLUpdateMapping<UserTrustedDevice, UserTrustedDevice> {
-    val insertTrustedDevice = "INSERT INTO user_trusted_device (device_key, user_id, device_name, expiration) VALUES (?, ?, ?, ?)"
-
-    override fun toSql(i: UserTrustedDevice): SQLCommand.Update =
-            SQLCommand.Update(SQLStatement.Parameterized(insertTrustedDevice, listOf(i.deviceKey, i.userId, i.deviceName, Timestamp.from(i.expiration))))
-
-    override fun mapResult(i: UserTrustedDevice, rs: SQLResult.Update): Try<UserTrustedDevice> =
-            if(rs.count== 1) Try.Success(i) else Try.Failure(SQLError.UpdateMappingFailed(this, i))
-}
-
-object SelectUserSessionFromTrustedDevice: SQLQueryMapping<UserTrustedDevice, UserSession> {
-    val selectUserSessionFromTrustedDevice =
-            "SELECT user_session.session_key, user_session.user_id, user_session.expiration from user_trusted_device " +
-                    "LEFT JOIN user_session on user_trusted_device.user_id = user_session.user_id " +
-                    "WHERE user_trusted_device.device_key=? AND user_trusted_device.user_id=?"
-
-    override fun toSql(i: UserTrustedDevice): SQLCommand.Query =
-            SQLCommand.Query(SQLStatement.Parameterized(selectUserSessionFromTrustedDevice, listOf(i.deviceKey, i.userId)))
-
-    override fun mapResult(i: UserTrustedDevice, rs: SQLResult.Query): Try<UserSession> =
-        Try { rs.result.next() }
-                .rescue { Try.Failure(UserError.NoSuchTrustedDevice(i)) }
-                .map {
-                    UserSession(
-                            it.getString("session_key"),
-                            it.getString("user_id"),
-                            it.getInstant("expiration"))
-                }
-}

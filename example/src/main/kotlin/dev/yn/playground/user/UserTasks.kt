@@ -1,8 +1,8 @@
 package dev.yn.playground.user
 
-import dev.yn.playground.auth.TokenAndInput
 import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.task.Task
+import dev.yn.playground.user.context.GetUserContext
 import dev.yn.playground.user.models.UserNameAndPassword
 import dev.yn.playground.user.models.UserProfile
 import dev.yn.playground.user.models.UserProfileAndPassword
@@ -11,13 +11,13 @@ import dev.yn.playground.user.sql.UserTransactions
 import devyn.playground.sql.task.SQLTransactionTask
 
 object UserTasks {
-    val unpreparedCreateTask: Task<UserProfileAndPassword, UserProfile, ApplicationContext> =
+    val unpreparedCreateTask: Task<UserProfileAndPassword, UserProfile, ApplicationContext<Unit>> =
             SQLTransactionTask.transaction(UserTransactions.createUserActionChain)
 
-    val unpreparedLoginTask: Task<UserNameAndPassword, UserSession, ApplicationContext> =
+    val unpreparedLoginTask: Task<UserNameAndPassword, UserSession, ApplicationContext<Unit>> =
             SQLTransactionTask.transaction(UserTransactions.loginActionChain)
 
 
-    val unpreparedGetTask: Task<TokenAndInput<String>, UserProfile, ApplicationContext> =
+    val unpreparedGetTask: Task<String, UserProfile, ApplicationContext<GetUserContext>> =
             SQLTransactionTask.autoCommit(UserTransactions.getUserActionChain)
 }

@@ -8,10 +8,10 @@ import dev.yn.playground.vertx.alpha.consumer.VertxConsumerFactory
 val userCreatedAddress = "user.updated"
 val userLoginAddress = "user.login"
 
-fun userLoginConsumer(provider: ApplicationContextProvider): ConsumerFactory<ApplicationContext> {
+fun userLoginConsumer(provider: ApplicationContextProvider): ConsumerFactory<ApplicationContext<Unit>> {
     return VertxConsumerFactory(userLoginAddress, provider)
 }
 
-fun userCreateConsumer(provider: ApplicationContextProvider): ConsumerFactory<ApplicationContext> {
+fun userCreateConsumer(provider: ApplicationContextProvider): ConsumerFactory<ApplicationContext<Unit>> {
     return VertxConsumerFactory(userCreatedAddress, provider)
 }

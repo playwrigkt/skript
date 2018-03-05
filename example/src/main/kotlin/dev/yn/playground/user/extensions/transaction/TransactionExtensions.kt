@@ -6,5 +6,5 @@ import dev.yn.playground.user.sql.UserTransactions
 import devyn.playground.sql.task.SQLTransactionTask
 import io.vertx.core.Future
 
-fun ApplicationContext.deleteAllUsers() = SQLTransactionTask.autoCommit<Unit, Unit, ApplicationContext>(UserTransactions.deleteAllUserActionChain()).run(Unit, this)
-fun <T> Future<T>.deleteAllUsers(context: ApplicationContext) = context.deleteAllUsers()
+fun ApplicationContext<Unit>.deleteAllUsers() = SQLTransactionTask.autoCommit<Unit, Unit, ApplicationContext<Unit>>(UserTransactions.deleteAllUserActionChain()).run(Unit, this)
+fun <T> Future<T>.deleteAllUsers(context: ApplicationContext<Unit>) = context.deleteAllUsers()

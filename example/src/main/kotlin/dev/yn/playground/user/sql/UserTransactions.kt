@@ -1,9 +1,8 @@
 package dev.yn.playground.user.sql
 
-import dev.yn.playground.auth.TokenAndInput
+import dev.yn.playground.auth.sql.AuthSQLActions
 import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.publisher.PublishCommand
-import dev.yn.playground.publisher.PublishTask
 import dev.yn.playground.sql.SQLTask
 import dev.yn.playground.sql.ext.deleteAll
 import dev.yn.playground.sql.ext.query
@@ -14,9 +13,11 @@ import org.funktionale.tries.Try
 import java.time.Instant
 import java.util.*
 import dev.yn.playground.publisher.ex.*
+import dev.yn.playground.user.context.GetUserContext
 import dev.yn.playground.user.userCreatedAddress
 import dev.yn.playground.user.userLoginAddress
 import io.vertx.core.json.JsonObject
+import org.funktionale.option.getOrElse
 
 object UserTransactions {
     private val createNewSessionKey: (String) -> UserSession = { UserSession(UUID.randomUUID().toString(), it, Instant.now().plusSeconds(3600)) }
@@ -25,13 +26,20 @@ object UserTransactions {
     private val publishUserLoginEvent: (UserSession) -> PublishCommand.Publish =
             { PublishCommand.Publish(userLoginAddress, JsonObject.mapFrom(it).encode().toByteArray())}
 
-    val createUserActionChain: Task<UserProfileAndPassword, UserProfile, ApplicationContext> =
-            SQLTask.update<UserProfileAndPassword, UserProfileAndPassword, ApplicationContext>(InsertUserProfileMapping)
+    private val authorizeUser: Task<String, String, ApplicationContext<GetUserContext>> = Task.mapTryWithContext { userId, context ->
+        context.cache.getUserSession()
+                .filter { it.userId == userId }
+                .map { Try.Success(userId) }
+                .getOrElse { Try.Failure<String>(UserError.AuthorizationFailed) }
+    }
+
+    val createUserActionChain: Task<UserProfileAndPassword, UserProfile, ApplicationContext<Unit>> =
+            SQLTask.update<UserProfileAndPassword, UserProfileAndPassword, ApplicationContext<Unit>>(InsertUserProfileMapping)
                     .update(InsertUserPasswordMapping)
                     .publish(publishUserCreateEvent)
 
-    val loginActionChain: Task<UserNameAndPassword, UserSession, ApplicationContext> =
-            SQLTask.query<UserNameAndPassword, UserIdAndPassword, ApplicationContext>(SelectUserIdForLogin)
+    val loginActionChain: Task<UserNameAndPassword, UserSession, ApplicationContext<Unit>> =
+            SQLTask.query<UserNameAndPassword, UserIdAndPassword, ApplicationContext<Unit>>(SelectUserIdForLogin)
                     .query(ValidatePasswordForUserId)
                     .query(EnsureNoSessionExists)
                     .map(createNewSessionKey)
@@ -46,15 +54,13 @@ object UserTransactions {
         }
     }
 
-    val getUserActionChain: Task<TokenAndInput<String>, UserProfile, ApplicationContext> =
-            validateSession<String>(onlyIfRequestedUserMatchesSessionUser)
+    val getUserActionChain: Task<String, UserProfile, ApplicationContext<GetUserContext>> =
+            AuthSQLActions.validate<String, GetUserContext>()
+                    .andThen(authorizeUser)
                     .query(SelectUserProfileById)
 
-    private fun <T> validateSession(validateSession: (UserSession, T) -> Try<T>): Task<TokenAndInput<T>, T, ApplicationContext> =
-            SQLTask.query(SelectSessionByKey(validateSession))
-
-    fun deleteAllUserActionChain(): Task<Unit, Unit, ApplicationContext> =
-            deleteAll<ApplicationContext>("user_relationship_request")
+    fun deleteAllUserActionChain(): Task<Unit, Unit, ApplicationContext<Unit>> =
+            deleteAll<ApplicationContext<Unit>>("user_relationship_request")
                     .deleteAll("user_password")
                     .deleteAll("user_session")
                     .deleteAll("user_profile")

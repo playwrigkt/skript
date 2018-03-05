@@ -57,7 +57,7 @@ class JDBCUserServiceSpec: UserServiceSpec() {
         return awaitSucceededFuture(
                 userLoginConsumer(provider)
                         .stream(Task
-                                .map<ConsumedMessage, JsonObject, ApplicationContext> { JsonObject(String(it.body)) }
+                                .map<ConsumedMessage, JsonObject, ApplicationContext<Unit>> { JsonObject(String(it.body)) }
                                 .mapTry { Try {
                                     UserSession(
                                             it.getString("sessionKey"),
@@ -69,7 +69,7 @@ class JDBCUserServiceSpec: UserServiceSpec() {
         return awaitSucceededFuture(
                 userCreateConsumer(provider)
                         .stream(Task
-                                .map<ConsumedMessage, JsonObject, ApplicationContext> { JsonObject(String(it.body)) }
+                                .map<ConsumedMessage, JsonObject, ApplicationContext<Unit>> { JsonObject(String(it.body)) }
                                 .mapTry { Try {
                                     UserProfile(
                                             it.getString("id"),
