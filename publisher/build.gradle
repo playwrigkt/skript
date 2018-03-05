@@ -1,4 +1,3 @@
 dependencies {
     compile project(":task")
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
 }

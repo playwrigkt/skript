@@ -5,5 +5,4 @@ dependencies {
     compile project(':sql')
     compile project(':publisher')
     compile project(':consumer')
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
 }

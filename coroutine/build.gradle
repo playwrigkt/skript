@@ -6,5 +6,5 @@ kotlin {
 
 dependencies {
     compile project(":sql")
-    compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:0.19.3"
+    compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutine_version"
 }

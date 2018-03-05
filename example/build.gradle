@@ -2,7 +2,6 @@
 dependencies {
     compile project(':vertx')
     compile project(':coroutine')
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
 }
 buildscript {
     ext.kotlin_version = '1.1.50'
