@@ -5,7 +5,6 @@ import dev.yn.playground.sql.SQLResult
 import dev.yn.playground.task.result.AsyncResult
 
 abstract class SQLExecutor {
-
     abstract fun <T> close(): (T) -> AsyncResult<T>
     abstract fun <T> closeOnFailure(): (Throwable) -> AsyncResult<T>
     abstract fun <T> commit(): (T) -> AsyncResult<T>

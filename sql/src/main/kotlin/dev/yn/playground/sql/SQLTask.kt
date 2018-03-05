@@ -15,7 +15,6 @@ sealed class SQLTask<IN, OUT, C: SQLTaskContext<*>>: Task<IN, OUT, C> {
     fun <U> query(mapping: SQLMapping<OUT, U, SQLCommand.Query, SQLResult.Query>): Task<IN, U, C> = this.andThen(Query(mapping))
     fun <U> update(mapping: SQLMapping<OUT, U, SQLCommand.Update, SQLResult.Update>): Task<IN, U, C> = this.andThen(Update(mapping))
     fun <U> exec(mapping: SQLMapping<OUT, U, SQLCommand.Exec, SQLResult.Void>): Task<IN, U, C> = this.andThen(Exec(mapping))
-//    fun <U, T> unsafe(mapping: SQLMapping<OUT, U, SQLCommand, SQLResult.Generic<T>): SQLTask<IN, U> = this.andThen(SQLTask.Unsafe(mapping))
 
     abstract val mapping: SQLMapping<IN, OUT, *, *>
     private data class Query<IN, OUT, C: SQLTaskContext<*>>(override val mapping: SQLMapping<IN, OUT, SQLCommand.Query, SQLResult.Query>): SQLTask<IN, OUT, C>() {
@@ -53,7 +52,6 @@ sealed class SQLTask<IN, OUT, C: SQLTaskContext<*>>: Task<IN, OUT, C> {
                 is Try.Failure -> AsyncResult.failed(tri.throwable)
                 is Try.Success -> AsyncResult.succeeded(tri.get())
             }
-//        data class Unsafe<IN, OUT, T>(override val mapping: SQLMapping<IN, OUT, SQLCommand, SQLResult.Generic<T>>): IO<IN, OUT, SQLCommand, SQLResult.Generic<T>>()
 }
 
 

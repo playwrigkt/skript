@@ -51,7 +51,7 @@ class TaskSpec: StringSpec() {
         "A task can transform and branch based on the result of a task" {
             val double: Task<Double, Double, Unit> = Task.map { it * 2 }
             val stringLength = Task.map<String, Int, Unit> { it.length }
-            fun<N: Number> toLong(): Task<N, Long, Unit> = Task.map { it.toLong() }
+            fun toLong(): Task<Number, Long, Unit> = Task.map { it.toLong() }
 
             val rightIfGreaterThanTen = Task.map<Int, Either<Double, String>, Unit> {
                 if(it > 10) {

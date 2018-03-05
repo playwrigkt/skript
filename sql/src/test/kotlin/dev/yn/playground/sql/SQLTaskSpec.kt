@@ -144,6 +144,8 @@ class SQLTaskSpec: StringSpec() {
                                     .andThen(addExistingUserToContext())
                                     .andThen(failIfProfileNotCached())
                                     .update(UpdateUserProfile))
+
+
         }
     }
 }

@@ -5,7 +5,7 @@ import dev.yn.playground.task.result.CompletableResult
 import org.funktionale.either.Either
 import org.funktionale.tries.Try
 
-interface Task<I, O, C> {
+interface Task<in I, O, C> {
     fun run(i: I, context: C): AsyncResult<O>
 
     companion object {
