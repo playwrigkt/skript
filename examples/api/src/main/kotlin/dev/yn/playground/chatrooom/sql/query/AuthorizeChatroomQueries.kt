@@ -9,10 +9,11 @@ import dev.yn.playground.chatrooom.models.ChatRoomPermissions
 import dev.yn.playground.chatrooom.models.ChatRoomUser
 import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.sql.*
+import dev.yn.playground.task.Task
 import dev.yn.playground.user.models.UserError
 import org.funktionale.tries.Try
 
-fun <T> authenticate(): SQLTask<TokenAndInput<T>, SessionAndInput<T>, ApplicationContext> {
+fun <T> authenticate(): Task<TokenAndInput<T>, SessionAndInput<T>, ApplicationContext> {
     return AuthSQLActions.validateAction()
 }
 

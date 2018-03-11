@@ -5,13 +5,16 @@ import dev.yn.playground.auth.SessionAndInput
 import dev.yn.playground.auth.TokenAndInput
 import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.sql.*
+import dev.yn.playground.task.Task
 import dev.yn.playground.user.models.UserError
 import dev.yn.playground.user.sql.UserSQL
 import org.funktionale.tries.Try
 import java.time.Instant
 
 object AuthSQLActions {
-    fun <T> validateAction() = SQLTask.query<TokenAndInput<T>, SessionAndInput<T>, ApplicationContext>(SelectSessionByKey())
+    fun <T> validateAction() =
+            Task.identity<TokenAndInput<T>, ApplicationContext>()
+                    .query(SelectSessionByKey())
 
     class SelectSessionByKey<T>: SQLMapping<TokenAndInput<T>, SessionAndInput<T>, SQLCommand.Query, SQLResult.Query> {
         override fun mapResult(i: TokenAndInput<T>, rs: SQLResult.Query): Try<SessionAndInput<T>> =

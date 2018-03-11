@@ -36,16 +36,16 @@ CREATE TABLE IF NOT EXISTS user_relationship_request (
     CONSTRAINT user_relationship_request_pk PRIMARY KEY (user_id_1, user_id_2)
 );"""
 
-    fun init(): Task<Unit, Unit, ApplicationContext<Unit>> =
-            SQLTask.exec<Unit, Unit, ApplicationContext<Unit>>(SQLMapping.exec("CREATE EXTENSION IF NOT EXISTS pgcrypto"))
-                    .exec(SQLMapping.exec(createUserProfileTable))
-                    .exec(SQLMapping.exec(createUserPasswordTable))
-                    .exec(SQLMapping.exec(createUserSessionTable))
-                    .exec(SQLMapping.exec(createUserRequestTable))
+    fun init() = Task.identity<Unit, ApplicationContext<Unit>>()
+            .exec(SQLMapping.exec("CREATE EXTENSION IF NOT EXISTS pgcrypto"))
+            .exec(SQLMapping.exec(createUserProfileTable))
+            .exec(SQLMapping.exec(createUserPasswordTable))
+            .exec(SQLMapping.exec(createUserSessionTable))
+            .exec(SQLMapping.exec(createUserRequestTable))
 
-    fun drop(): Task<Unit, Unit, ApplicationContext<Unit>> =
-            dropTableIfExists<ApplicationContext<Unit>>("user_relationship_request")
-                    .dropTableIfExists("user_password")
-                    .dropTableIfExists("user_session")
-                    .dropTableIfExists("user_profile")
+    fun drop() = Task.identity<Unit, ApplicationContext<Unit>>()
+            .dropTableIfExists("user_relationship_request")
+            .dropTableIfExists("user_password")
+            .dropTableIfExists("user_session")
+            .dropTableIfExists("user_profile")
 }

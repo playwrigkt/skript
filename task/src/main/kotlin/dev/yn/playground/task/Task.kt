@@ -5,6 +5,10 @@ import dev.yn.playground.task.result.CompletableResult
 import org.funktionale.either.Either
 import org.funktionale.tries.Try
 
+fun <I, O, O2, C: CP, CP> Task<I, O, C>.andThen(task: Task<O, O2, CP>): Task<I, O2, C> {
+    return this.flatMap(Task.Wrapped<O, O2, C, CP>(task))
+}
+
 interface Task<in I, O, C> {
     fun run(i: I, context: C): AsyncResult<O>
 
@@ -19,29 +23,34 @@ interface Task<in I, O, C> {
         fun <I, C> updateContext(task: Task<I, Unit, C>): Task<I, I, C> = UpdateContext(task)
     }
 
-    fun <O2> andThen(task: Task<O, O2, C>): Task<I, O2, C> = TaskLink(this, task)
-    fun <O2> flatMap(task: Task<O, O2, C>): Task<I, O2, C> = this.andThen(task)
+//    fun <O2> andThen(task: Task<O, O2, C>): Task<I, O2, C> = TaskLink(this, task)
+    fun <O2> flatMap(task: Task<O, O2, C>): Task<I, O2, C> = TaskLink(this, task)
 
-    fun <O2> mapWithContext(mapper: (O, C) -> O2): Task<I, O2, C> = this.andThen(Map(mapper))
+    fun <O2> mapWithContext(mapper: (O, C) -> O2): Task<I, O2, C> = this.flatMap(Map(mapper))
     fun <O2> map(mapper: (O) -> O2): Task<I, O2, C> = this.mapWithContext({ o, context -> mapper(o) })
 
-    fun <O2> mapTryWithContext(mapper: (O, C) -> Try<O2>): Task<I, O2, C> = this.andThen(MapTry(mapper))
+    fun <O2> mapTryWithContext(mapper: (O, C) -> Try<O2>): Task<I, O2, C> = this.flatMap(MapTry(mapper))
     fun <O2> mapTry(mapper: (O) -> Try<O2>): Task<I, O2, C> = this.mapTryWithContext({ o, context -> mapper(o) })
 
-    fun updateContext(task: Task<O, Unit, C>): Task<I, O, C> = this.andThen(UpdateContext(task))
+    fun updateContext(task: Task<O, Unit, C>): Task<I, O, C> = this.flatMap(UpdateContext(task))
 
     fun <J, K, O2> branch(control: Task<O, Either<J, K>, C>, left: Task<J, O2, C>, right: Task<K, O2, C>): Task<I, O2, C> =
-        this.andThen(Branch(control, left, right))
+        this.flatMap(Branch(control, left, right))
         
     fun <J, O2>whenRight(doOptionally: Task<J, O2, C>, control: Task<O, Either<O2, J>, C>): Task<I, O2, C> =
-        this.andThen(Branch(control, identity(), doOptionally))
+        this.flatMap(Branch(control, identity(), doOptionally))
 
     fun <J>whenNonNull(doOptionally: Task<J, O, C>, control: Task<O, J?, C>): Task<I, O, C> =
-            this.andThen(TaskWhenNonNull(doOptionally, control))
+            this.flatMap(TaskWhenNonNull(doOptionally, control))
 
     fun whenTrue(doOptionally: Task<O, O, C>, control: Task<O, Boolean, C>): Task<I, O, C> =
-            this.andThen(TaskWhenTrue(doOptionally, control))
+            this.flatMap(TaskWhenTrue(doOptionally, control))
 
+    data class Wrapped<I, O, C: CP, CP>(val task: Task<I, O, CP>): Task<I, O, C> {
+        override fun run(i: I, context: C): AsyncResult<O> {
+            return task.run(i, context)
+        }
+    }
     /**
      * A link that contains two tasks that have been chained together.  A chain is essentially a single linked list of tasks.
      */
@@ -50,7 +59,7 @@ interface Task<in I, O, C> {
             return head.run(i, context).flatMap { tail.run(it, context) }
         }
 
-        override fun <O2> andThen(task: Task<O, O2, C>): Task<I, O2, C> = TaskLink(this.head, tail.andThen(task))
+        override fun <O2> flatMap(task: Task<O, O2, C>): Task<I, O2, C> = TaskLink(this.head, tail.flatMap(task))
     }
 
     data class Map<I, O, C>(val mapper: (I, C) -> O): Task<I, O, C> {

@@ -26,12 +26,14 @@ object UserTransactions {
             { PublishCommand.Publish(userLoginAddress, JsonObject.mapFrom(it).encode().toByteArray())}
 
     val createUserActionChain: Task<UserProfileAndPassword, UserProfile, ApplicationContext> =
-            SQLTask.update<UserProfileAndPassword, UserProfileAndPassword, ApplicationContext>(InsertUserProfileMapping)
+            Task.identity<UserProfileAndPassword, ApplicationContext>()
+                    .update(InsertUserProfileMapping)
                     .update(InsertUserPasswordMapping)
                     .publish(publishUserCreateEvent)
 
     val loginActionChain: Task<UserNameAndPassword, UserSession, ApplicationContext> =
-            SQLTask.query<UserNameAndPassword, UserIdAndPassword, ApplicationContext>(SelectUserIdForLogin)
+            Task.identity<UserNameAndPassword, ApplicationContext>()
+                    .query(SelectUserIdForLogin)
                     .query(ValidatePasswordForUserId)
                     .query(EnsureNoSessionExists)
                     .map(createNewSessionKey)
@@ -51,10 +53,12 @@ object UserTransactions {
                     .query(SelectUserProfileById)
 
     private fun <T> validateSession(validateSession: (UserSession, T) -> Try<T>): Task<TokenAndInput<T>, T, ApplicationContext> =
-            SQLTask.query(SelectSessionByKey(validateSession))
+            Task.identity<TokenAndInput<T>, ApplicationContext>()
+                    .query(SelectSessionByKey(validateSession))
 
     fun deleteAllUserActionChain(): Task<Unit, Unit, ApplicationContext> =
-            deleteAll<ApplicationContext>("user_relationship_request")
+            Task.identity<Unit, ApplicationContext>()
+                    .deleteAll("user_relationship_request")
                     .deleteAll("user_password")
                     .deleteAll("user_session")
                     .deleteAll("user_profile")

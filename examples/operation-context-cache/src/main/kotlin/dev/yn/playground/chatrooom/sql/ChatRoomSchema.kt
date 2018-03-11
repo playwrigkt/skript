@@ -5,6 +5,7 @@ import dev.yn.playground.sql.SQLTask
 import dev.yn.playground.sql.SQLMapping
 import dev.yn.playground.sql.ext.dropTableIfExists
 import dev.yn.playground.sql.ext.exec
+import dev.yn.playground.task.Task
 
 object ChatRoomSchema {
 
@@ -36,13 +37,14 @@ object ChatRoomSchema {
         date_added timestamp,
         PRIMARY KEY (chatroom_id, user_id))""".trimIndent()
 
-    val initAction = SQLTask
-            .exec<Unit, Unit, ApplicationContext<Unit>>(SQLMapping.Companion.exec(createChatRoomTable))
+    val initAction = Task.identity<Unit, ApplicationContext<Unit>>()
+            .exec(SQLMapping.Companion.exec(createChatRoomTable))
             .exec(SQLMapping.Companion.exec(createChatRoomPermissionTable))
             .exec(SQLMapping.Companion.exec(createChatRoomUserPermissionTable))
             .exec(SQLMapping.Companion.exec(createBannedUserTable))
 
-    val dropAllAction = dropTableIfExists<ApplicationContext<Unit>>("chatroom_user_banned")
+    val dropAllAction = Task.identity<Unit, ApplicationContext<Unit>>()
+            .dropTableIfExists("chatroom_user_banned")
             .dropTableIfExists("chatroom_user_permission")
             .dropTableIfExists("chatroom_permission")
             .dropTableIfExists("chatroom")

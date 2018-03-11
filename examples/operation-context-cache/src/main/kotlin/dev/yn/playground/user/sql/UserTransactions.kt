@@ -13,6 +13,7 @@ import org.funktionale.tries.Try
 import java.time.Instant
 import java.util.*
 import dev.yn.playground.publisher.ex.*
+import dev.yn.playground.task.andThen
 import dev.yn.playground.user.context.GetUserContext
 import dev.yn.playground.user.userCreatedAddress
 import dev.yn.playground.user.userLoginAddress
@@ -34,12 +35,14 @@ object UserTransactions {
     }
 
     val createUserActionChain: Task<UserProfileAndPassword, UserProfile, ApplicationContext<Unit>> =
-            SQLTask.update<UserProfileAndPassword, UserProfileAndPassword, ApplicationContext<Unit>>(InsertUserProfileMapping)
+            Task.identity<UserProfileAndPassword, ApplicationContext<Unit>>()
+                    .update(InsertUserProfileMapping)
                     .update(InsertUserPasswordMapping)
                     .publish(publishUserCreateEvent)
 
     val loginActionChain: Task<UserNameAndPassword, UserSession, ApplicationContext<Unit>> =
-            SQLTask.query<UserNameAndPassword, UserIdAndPassword, ApplicationContext<Unit>>(SelectUserIdForLogin)
+            Task.identity<UserNameAndPassword, ApplicationContext<Unit>>()
+                    .query(SelectUserIdForLogin)
                     .query(ValidatePasswordForUserId)
                     .query(EnsureNoSessionExists)
                     .map(createNewSessionKey)
@@ -59,11 +62,11 @@ object UserTransactions {
                     .andThen(authorizeUser)
                     .query(SelectUserProfileById)
 
-    fun deleteAllUserActionChain(): Task<Unit, Unit, ApplicationContext<Unit>> =
-            deleteAll<ApplicationContext<Unit>>("user_relationship_request")
-                    .deleteAll("user_password")
-                    .deleteAll("user_session")
-                    .deleteAll("user_profile")
+    fun deleteAllUserActionChain() = Task.identity<Unit, ApplicationContext<Unit>>()
+            .deleteAll("user_relationship_request")
+            .deleteAll("user_password")
+            .deleteAll("user_session")
+            .deleteAll("user_profile")
 
 
 }

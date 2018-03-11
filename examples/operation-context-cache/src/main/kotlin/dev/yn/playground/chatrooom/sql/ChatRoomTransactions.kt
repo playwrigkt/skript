@@ -10,6 +10,7 @@ import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.sql.ext.query
 import dev.yn.playground.sql.ext.update
 import dev.yn.playground.task.Task
+import dev.yn.playground.task.andThen
 import dev.yn.playground.user.models.UserError
 import org.funktionale.option.firstOption
 import org.funktionale.option.getOrElse
@@ -21,7 +22,7 @@ object ChatRoomTransactions {
 
     val addUserTransaction: Task<ChatRoomUser, ChatRoom, ApplicationContext<ChatroomOperationCache>> =
             AuthSQLActions.validate<ChatRoomUser, ChatroomOperationCache>()
-                    .andThen(ChatroomCacheTasks.hydrateExistingChatroom<ChatRoomUser, ChatroomOperationCache>())
+                    .andThen(ChatroomCacheTasks.hydrateExistingChatroom<ChatRoomUser>())
                     .andThen(authorizeUser(ChatRoomPermissionKey.AddUser))
                     .update(InsertChatRoomUserPermissions)
                     .map { it.chatroom.id }
@@ -29,7 +30,7 @@ object ChatRoomTransactions {
 
     val removeUserTransaction: Task<ChatRoomUser, ChatRoom, ApplicationContext<ChatroomOperationCache>> =
             AuthSQLActions.validate<ChatRoomUser, ChatroomOperationCache>()
-                    .andThen(ChatroomCacheTasks.hydrateExistingChatroom<ChatRoomUser, ChatroomOperationCache>())
+                    .andThen(ChatroomCacheTasks.hydrateExistingChatroom<ChatRoomUser>())
                     .andThen(authorizeUser(ChatRoomPermissionKey.RemoveUser))
                     .update(DeleteChatRoomUserPermissions)
                     .map { it.chatroom.id }
@@ -37,7 +38,7 @@ object ChatRoomTransactions {
 
     val updateChatRoomTransaction: Task<ChatRoom, ChatRoom, ApplicationContext<ChatroomOperationCache>> =
             AuthSQLActions.validate<ChatRoom, ChatroomOperationCache>()
-                    .andThen(ChatroomCacheTasks.hydrateExistingChatroom<ChatRoom, ChatroomOperationCache>())
+                    .andThen(ChatroomCacheTasks.hydrateExistingChatroom<ChatRoom>())
                     .andThen(authorizeUser(ChatRoomPermissionKey.Update))
                     .update(UpdateChatRoomFields)
                     .map { it.id }
@@ -58,7 +59,7 @@ object ChatRoomTransactions {
 
     val addPermissions: Task<ChatRoomPermissions, ChatRoom, ApplicationContext<ChatroomOperationCache>> =
             AuthSQLActions.validate<ChatRoomPermissions, ChatroomOperationCache>()
-                    .andThen(ChatroomCacheTasks.hydrateExistingChatroom<ChatRoomPermissions, ChatroomOperationCache>())
+                    .andThen(ChatroomCacheTasks.hydrateExistingChatroom<ChatRoomPermissions>())
                     .andThen(authorizeUser(ChatRoomPermissionKey.AddPublicPermission))
                     .update(AddChatRoomPermissions)
                     .map { it.chatroom.id }
@@ -66,7 +67,7 @@ object ChatRoomTransactions {
 
     val removePermissions: Task<ChatRoomPermissions, ChatRoom, ApplicationContext<ChatroomOperationCache>> =
             AuthSQLActions.validate<ChatRoomPermissions, ChatroomOperationCache>()
-                    .andThen(ChatroomCacheTasks.hydrateExistingChatroom<ChatRoomPermissions, ChatroomOperationCache>())
+                    .andThen(ChatroomCacheTasks.hydrateExistingChatroom<ChatRoomPermissions>())
                     .andThen(authorizeUser(ChatRoomPermissionKey.RemovePublicPermission))
                     .update(DeleteChatRoomPermissions)
                     .map { it.chatroom.id }
@@ -74,7 +75,7 @@ object ChatRoomTransactions {
 
     val addUserPermissions: Task<ChatRoomUser, ChatRoom, ApplicationContext<ChatroomOperationCache>> =
             AuthSQLActions.validate<ChatRoomUser, ChatroomOperationCache>()
-                    .andThen(ChatroomCacheTasks.hydrateExistingChatroom<ChatRoomUser, ChatroomOperationCache>())
+                    .andThen(ChatroomCacheTasks.hydrateExistingChatroom<ChatRoomUser>())
                     .andThen(authorizeUser(ChatRoomPermissionKey.AddUserPermission))
                     .update(InsertChatRoomUserPermissions)
                     .map { it.chatroom.id }
@@ -82,7 +83,7 @@ object ChatRoomTransactions {
 
     val removeUserPermissions: Task<ChatRoomUser, ChatRoom, ApplicationContext<ChatroomOperationCache>> =
             AuthSQLActions.validate<ChatRoomUser, ChatroomOperationCache>()
-                    .andThen(ChatroomCacheTasks.hydrateExistingChatroom<ChatRoomUser, ChatroomOperationCache>())
+                    .andThen(ChatroomCacheTasks.hydrateExistingChatroom<ChatRoomUser>())
                     .andThen(authorizeUser(ChatRoomPermissionKey.RemoveUserPermission))
                     .update(DeleteChatRoomUserPermissions)
                     .map { it.chatroom.id }

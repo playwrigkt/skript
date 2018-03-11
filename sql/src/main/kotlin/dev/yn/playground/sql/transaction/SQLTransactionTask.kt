@@ -28,7 +28,7 @@ sealed class SQLTransactionTask<I, O, C: SQLTaskContext<*>>: Task<I, O, C> {
         override fun <J> mapInsideTransaction(task: Task<O, J, C>): SQLTransactionTask<I, J, C> =
                 when(task) {
                     is SQLTransactionTask -> this.mapInsideTransaction(task.transaction)
-                    else -> AutoCommitSQlTransactionTask(this.transaction.andThen(task))
+                    else -> AutoCommitSQlTransactionTask(this.transaction.flatMap(task))
 
                 }
 
@@ -43,7 +43,7 @@ sealed class SQLTransactionTask<I, O, C: SQLTaskContext<*>>: Task<I, O, C> {
         override fun <J> mapInsideTransaction(task: Task<O, J, C>): SQLTransactionTask<I, J, C> =
                 when(task) {
                     is SQLTransactionTask -> this.mapInsideTransaction(task.transaction)
-                    else -> TransactionalSQLTransactionTask(this.transaction.andThen(task))
+                    else -> TransactionalSQLTransactionTask(this.transaction.flatMap(task))
                 }
 
         override fun run(i: I, context: C): AsyncResult<O> =

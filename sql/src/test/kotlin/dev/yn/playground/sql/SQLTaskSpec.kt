@@ -5,6 +5,7 @@ import dev.yn.playground.sql.context.SQLTaskContext
 import dev.yn.playground.sql.ext.query
 import dev.yn.playground.sql.ext.update
 import dev.yn.playground.task.Task
+import dev.yn.playground.task.andThen
 import devyn.playground.sql.task.SQLTransactionTask
 import io.kotlintest.mock.mock
 import io.kotlintest.specs.StringSpec
@@ -141,8 +142,8 @@ class SQLTaskSpec: StringSpec() {
                     SQLTransactionTask.transaction(
                                 validateSession<UserProfile, UpdateUserProfileContext>()
                                     .andThen(authenticateUpdateUserProfile)
-                                    .andThen(addExistingUserToContext())
-                                    .andThen(failIfProfileNotCached())
+                                    .andThen(addExistingUserToContext<UpdateUserProfileContext>())
+                                    .andThen(failIfProfileNotCached<UpdateUserProfileContext>())
                                     .update(UpdateUserProfile))
 
 

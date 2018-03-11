@@ -7,12 +7,16 @@ import dev.yn.playground.sql.ext.query
 import dev.yn.playground.task.Task
 
 object ChatroomCacheTasks {
-    fun <I: ChatroomId, R: ExistingChatroomCache> hydrateExistingChatroom(): Task<I, I, ApplicationContext<R>> = Task.updateContext(Task.identity<I, ApplicationContext<R>>()
-                    .map { it.getChatroomId() }
-                    .query(GetChatRoom)
-                    .mapWithContext { chatroom, context -> context.cache.useChatroom(chatroom) })
+    fun <I: ChatroomId> hydrateExistingChatroom(): Task<I, I, ApplicationContext<ChatroomOperationCache>> =
+            Task.updateContext(
+                    Task.identity<I, ApplicationContext<ChatroomOperationCache>>()
+                            .map { it.getChatroomId() }
+                            .query(GetChatRoom)
+                            .mapWithContext { chatroom, context -> context.cache.useChatroom(chatroom) })
 
-    fun <R: ExistingChatroomCache> hydrateExistingChatroomById(): Task<String, String, ApplicationContext<R>> = Task.updateContext(Task.identity<String, ApplicationContext<R>>()
-            .query(GetChatRoom)
-            .mapWithContext { chatroom, context -> context.cache.useChatroom(chatroom) })
+    fun hydrateExistingChatroomById(): Task<String, String, ApplicationContext<ChatroomOperationCache>> =
+            Task.updateContext(
+                    Task.identity<String, ApplicationContext<ChatroomOperationCache>>()
+                            .query(GetChatRoom)
+                            .mapWithContext { chatroom, context -> context.cache.useChatroom(chatroom) })
 }

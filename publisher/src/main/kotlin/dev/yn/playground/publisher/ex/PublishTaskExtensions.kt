@@ -4,6 +4,7 @@ import dev.yn.playground.publisher.PublishCommand
 import dev.yn.playground.publisher.PublishTask
 import dev.yn.playground.publisher.PublishTaskContext
 import dev.yn.playground.task.Task
+import dev.yn.playground.task.andThen
 
 fun <I, O, C: PublishTaskContext<*>> Task<I, O, C>.publish(mapping: (O) -> PublishCommand.Publish) =
         this.andThen(PublishTask.publish(mapping))
