@@ -12,9 +12,9 @@ import io.vertx.core.buffer.Buffer
 import io.vertx.core.eventbus.Message
 import java.util.concurrent.LinkedBlockingQueue
 
-class VertxConsumerFactory<C: VertxTaskContext>(
+class VertxConsumerExecutor<C: VertxTaskContext>(
         val address: String,
-        val provider: ContextProvider<C>): ConsumerFactory<C> {
+        val provider: ContextProvider<C>): ConsumerExecutor<C> {
 
     override fun <O> stream(task: Task<ConsumedMessage, O, C>): AsyncResult<Stream<O>> {
         return provider.provideContext()
