@@ -1,9 +1,15 @@
 package dev.yn.playground.user
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.KotlinModule
 import dev.yn.playground.common.ApplicationContextProvider
 import dev.yn.playground.consumer.alpha.ConsumerExecutorProvider
 import dev.yn.playground.publisher.PublishTaskContextProvider
 import dev.yn.playground.publisher.PublishTaskExecutor
+import dev.yn.playground.serialize.SerializeTaskContextProvider
+import dev.yn.playground.serialize.SerializeTaskExecutor
+import dev.yn.playground.serialize.jackson.JacksonSerializeTaskContextProvider
 import dev.yn.playground.sql.context.SQLExecutor
 import dev.yn.playground.sql.context.SQLTaskContextProvider
 import dev.yn.playground.vertx.alpha.consumer.VertxConsumerExecutorProvider
@@ -18,6 +24,8 @@ import io.vertx.ext.sql.SQLClient
 
 class VertxUserServiceSpec: UserServiceSpec() {
     companion object {
+        val objectMapper = ObjectMapper().registerModule(KotlinModule()).registerModule(JavaTimeModule())
+
         val vertx by lazy { Vertx.vertx() }
 
         val hikariConfig = JsonObject()
@@ -34,8 +42,10 @@ class VertxUserServiceSpec: UserServiceSpec() {
 
         val sqlConnectionProvider by lazy { VertxSQLTaskContextProvider(sqlClient) as SQLTaskContextProvider<SQLExecutor> }
         val publishContextProvider by lazy { VertxPublishTaskContextProvider(vertx) as PublishTaskContextProvider<PublishTaskExecutor> }
+        val serializeContextProvider by lazy { JacksonSerializeTaskContextProvider(objectMapper) as SerializeTaskContextProvider<SerializeTaskExecutor> }
+
         val provider: ApplicationContextProvider by lazy {
-            ApplicationContextProvider(publishContextProvider, sqlConnectionProvider)
+            ApplicationContextProvider(publishContextProvider, sqlConnectionProvider, serializeContextProvider)
         }
         val consumerExecutorProvider: ConsumerExecutorProvider = VertxConsumerExecutorProvider(vertx)
     }

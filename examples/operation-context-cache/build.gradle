@@ -3,10 +3,12 @@ dependencies {
     compile project(':publisher')
     compile project(':consumer')
     compile project(':sql')
+    compile project(':serialize')
 
     testCompile project(':vertx')
     testCompile project(':coroutine')
     testCompile project(':amqp')
+    testCompile project(':jackson')
 }
 buildscript {
     ext.kotlin_version = '1.1.50'

@@ -1,8 +1,5 @@
 package dev.yn.playground.user.sql
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import dev.yn.playground.auth.sql.AuthSQLActions
 import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.publisher.PublishCommand
@@ -15,6 +12,8 @@ import org.funktionale.tries.Try
 import java.time.Instant
 import java.util.*
 import dev.yn.playground.publisher.ex.*
+import dev.yn.playground.serialize.ex.deserialize
+import dev.yn.playground.serialize.ex.serialize
 import dev.yn.playground.task.andThen
 import dev.yn.playground.user.context.GetUserContext
 import dev.yn.playground.user.userCreatedAddress
@@ -22,12 +21,19 @@ import dev.yn.playground.user.userLoginAddress
 import org.funktionale.option.getOrElse
 
 object UserTransactions {
-    val objectMapper = ObjectMapper().registerModule(KotlinModule()).registerModule(JavaTimeModule())
     private val createNewSessionKey: (String) -> UserSession = { UserSession(UUID.randomUUID().toString(), it, Instant.now().plusSeconds(3600)) }
-    private val publishUserCreateEvent: (UserProfile) -> PublishCommand.Publish =
-            { PublishCommand.Publish(userCreatedAddress, objectMapper.writeValueAsBytes(it))}
-    private val publishUserLoginEvent: (UserSession) -> PublishCommand.Publish =
-            { PublishCommand.Publish(userLoginAddress, objectMapper.writeValueAsBytes(it))}
+
+    private val publishUserCreateEvent: Task<UserProfile, UserProfile, ApplicationContext<Unit>> =
+            Task.identity<UserProfile, ApplicationContext<Unit>>()
+                    .serialize()
+                    .publish { PublishCommand.Publish(userCreatedAddress, it) }
+                    .deserialize(UserProfile::class.java)
+
+    private val publishUserLoginEvent: Task<UserSession, UserSession, ApplicationContext<Unit>> =
+            Task.identity<UserSession, ApplicationContext<Unit>>()
+                    .serialize()
+                    .publish { PublishCommand.Publish(userLoginAddress, it) }
+                    .deserialize(UserSession::class.java)
 
     private val authorizeUser: Task<String, String, ApplicationContext<GetUserContext>> = Task.mapTryWithContext { userId, context ->
         context.cache.getUserSession()
@@ -40,7 +46,7 @@ object UserTransactions {
             Task.identity<UserProfileAndPassword, ApplicationContext<Unit>>()
                     .update(InsertUserProfileMapping)
                     .update(InsertUserPasswordMapping)
-                    .publish(publishUserCreateEvent)
+                    .andThen(publishUserCreateEvent)
 
     val loginActionChain: Task<UserNameAndPassword, UserSession, ApplicationContext<Unit>> =
             Task.identity<UserNameAndPassword, ApplicationContext<Unit>>()
@@ -49,7 +55,7 @@ object UserTransactions {
                     .query(EnsureNoSessionExists)
                     .map(createNewSessionKey)
                     .update(InsertSession)
-                    .publish(publishUserLoginEvent)
+                    .andThen(publishUserLoginEvent)
 
     private val onlyIfRequestedUserMatchesSessionUser =  { session: UserSession, userId: String ->
         if (session.userId == userId) {

@@ -1,5 +1,8 @@
 package dev.yn.playground.chatroom
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.rabbitmq.client.ConnectionFactory
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
@@ -9,17 +12,18 @@ import dev.yn.playground.common.ApplicationContextProvider
 import dev.yn.playground.coroutine.sql.JDBCDataSourceTaskContextProvider
 import dev.yn.playground.publisher.PublishTaskContextProvider
 import dev.yn.playground.publisher.PublishTaskExecutor
+import dev.yn.playground.serialize.SerializeTaskContextProvider
+import dev.yn.playground.serialize.SerializeTaskExecutor
+import dev.yn.playground.serialize.jackson.JacksonSerializeTaskContextProvider
 import dev.yn.playground.sql.context.SQLExecutor
 import dev.yn.playground.sql.context.SQLTaskContextProvider
 import dev.yn.playground.user.JDBCUserServiceSpec
-import dev.yn.playground.vertx.publisher.VertxPublishTaskContextProvider
-import dev.yn.playground.vertx.task.VertxResult
-import io.vertx.core.Future
-import io.vertx.core.Vertx
 
 class JDBCChatroomTransactionSpec: ChatroomTransactionsSpec() {
 
     companion object {
+        val objectMapper = ObjectMapper().registerModule(KotlinModule()).registerModule(JavaTimeModule())
+
         val amqpConnectionFactory: ConnectionFactory by lazy {
             AMQPManager.connectionFactory()
         }
@@ -41,8 +45,10 @@ class JDBCChatroomTransactionSpec: ChatroomTransactionsSpec() {
         val hikariDataSource = HikariDataSource(hikariDSConfig)
         val sqlConnectionProvider = JDBCDataSourceTaskContextProvider(hikariDataSource) as SQLTaskContextProvider<SQLExecutor>
         val publishContextProvider by lazy { AMQPPublishTaskContextProvider(AMQPManager.amqpExchange, JDBCUserServiceSpec.amqpConnection, AMQPManager.basicProperties) as PublishTaskContextProvider<PublishTaskExecutor> }
+        val serializeContextProvider = JacksonSerializeTaskContextProvider(objectMapper) as SerializeTaskContextProvider<SerializeTaskExecutor>
+
         val provider: ApplicationContextProvider by lazy {
-            ApplicationContextProvider(publishContextProvider, sqlConnectionProvider)
+            ApplicationContextProvider(publishContextProvider, sqlConnectionProvider, serializeContextProvider)
         } }
 
     override fun provider(): ApplicationContextProvider = JDBCChatroomTransactionSpec.provider

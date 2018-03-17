@@ -1,13 +1,11 @@
 package  dev.yn.playground.user
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.KotlinModule
 import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.common.ApplicationContextProvider
 import dev.yn.playground.consumer.alpha.ConsumedMessage
 import dev.yn.playground.consumer.alpha.ConsumerExecutorProvider
 import dev.yn.playground.consumer.alpha.Stream
+import dev.yn.playground.serialize.ex.deserialize
 import dev.yn.playground.sql.SQLCommand
 import dev.yn.playground.sql.SQLError
 import dev.yn.playground.sql.SQLStatement
@@ -26,7 +24,6 @@ import dev.yn.playground.user.sql.ValidatePasswordForUserId
 import io.kotlintest.Spec
 import io.kotlintest.matchers.fail
 import io.kotlintest.matchers.shouldNotBe
-import org.funktionale.tries.Try
 import org.slf4j.LoggerFactory
 
 
@@ -40,19 +37,20 @@ abstract class UserServiceSpec : StringSpec() {
 
     abstract fun closeResources()
 
-    val objectMapper = ObjectMapper().registerModule(KotlinModule()).registerModule(JavaTimeModule())
     fun loginConsumer(): Stream<UserSession> {
         return awaitSucceededFuture(
                 userLoginConsumer(consumerExecutorProvider(), provider())
                         .stream(Task.identity<ConsumedMessage, ApplicationContext<Unit>>()
-                                .mapTry { Try { objectMapper.readValue(it.body, UserSession::class.java) } }))!!
+                                .map { it.body }
+                                .deserialize(UserSession::class.java)))!!
     }
 
     fun createConsumer(): Stream<UserProfile> {
         return awaitSucceededFuture(
                 userCreateConsumer(consumerExecutorProvider(), provider())
                         .stream(Task.identity<ConsumedMessage, ApplicationContext<Unit>>()
-                                .mapTry { Try { objectMapper.readValue(it.body, UserProfile::class.java) } }))!!
+                                .map { it.body }
+                                .deserialize(UserProfile::class.java)))!!
     }
     abstract fun consumerExecutorProvider(): ConsumerExecutorProvider
     override fun interceptSpec(context: Spec, spec: () -> Unit) {
