@@ -3,10 +3,10 @@ package dev.yn.playground.task.result
 import org.funktionale.tries.Try
 
 fun <T> Try<T>.toAsyncResult(): AsyncResult<T> =
-    this.let { when(it) {
-        is Try.Success -> AsyncResult.succeeded(it.get())
-        is Try.Failure -> AsyncResult.failed(it.throwable)
-    }}
+    when(this) {
+        is Try.Success -> AsyncResult.succeeded(this.get())
+        is Try.Failure -> AsyncResult.failed(this.throwable)
+    }
 
 interface AsyncResult<T> {
     companion object {

@@ -1,7 +1,6 @@
 package dev.yn.playground.amqp.alpha.consumer
 
 import com.rabbitmq.client.*
-import com.rabbitmq.client.impl.AMQConnection
 import dev.yn.playground.consumer.alpha.*
 import dev.yn.playground.consumer.alpha.Consumer
 import dev.yn.playground.task.Task
@@ -9,13 +8,17 @@ import dev.yn.playground.task.result.AsyncResult
 import dev.yn.playground.task.result.CompletableResult
 import dev.yn.playground.task.result.Result
 import dev.yn.playground.task.result.toAsyncResult
-import org.funktionale.option.Option
-import org.funktionale.option.getOrElse
 import org.funktionale.tries.Try
 import java.util.concurrent.LinkedBlockingQueue
 
+class AMQPConsumerExecutorProvider(val amqpConnection: Connection): ConsumerExecutorProvider {
+    override fun <C> buildExecutor(target: String, contextProvider: ContextProvider<C>): ConsumerExecutor<C> {
+        return AMQPConsumerExecutor(amqpConnection, contextProvider, target)
+    }
+}
+
 class AMQPConsumerExecutor<C>(
-        val amqpConnection: AMQConnection,
+        val amqpConnection: Connection,
         val contextProvider: ContextProvider<C>,
         val queue: String): ConsumerExecutor<C> {
 
@@ -28,11 +31,17 @@ class AMQPConsumerExecutor<C>(
     }
 
     override fun <O> stream(task: Task<ConsumedMessage, O, C>): AsyncResult<Stream<O>> {
-        return Try {
-            AMQPStream(amqpConnection.createChannel(), queue, task, contextProvider)
+        val result = Try {
+            val stream = AMQPStream(
+                    amqpConnection.createChannel(),
+                    queue,
+                    task,
+                    contextProvider)
+            stream
         }
                 .toAsyncResult()
                 .map { it as Stream<O> }
+        return result
     }
 }
 
@@ -45,7 +54,7 @@ abstract class AMQPConsumer<O, C>(
     private val consumerTag: String
 
     init {
-        consumerTag = channel.basicConsume(queue, object: DefaultConsumer(channel) {
+        consumerTag = channel.basicConsume(queue, false, object: DefaultConsumer(channel) {
             override fun handleDelivery(
                     consumerTag: String,
                     envelope: Envelope,
@@ -64,16 +73,11 @@ abstract class AMQPConsumer<O, C>(
 
     override fun stop(): AsyncResult<Unit> {
         if(!result.isComplete()) {
-            Option.Some(Unit)
-                    .filter { channel.isOpen }
-                    .flatMap {
-                        Try {
-                            channel.basicCancel(consumerTag)
-                            channel.close()
-                        }.toOption()
-                    }
-                    .map { result.succeed(it) }
-                    .getOrElse { result.fail(RuntimeException("TODO")) }
+            Try { channel.basicCancel(consumerTag) }
+                    .onFailure { channel.close() }
+                    .map { channel.close() }
+                    .onFailure { result.fail(it) }
+                    .onSuccess { result.succeed(it) }
         }
         return result
     }

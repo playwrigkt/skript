@@ -2,6 +2,9 @@ package dev.yn.playground.consumer.alpha
 
 import dev.yn.playground.task.Task
 import dev.yn.playground.task.result.AsyncResult
+interface ConsumerExecutorProvider {
+    fun <C> buildExecutor(target: String, contextProvider: ContextProvider<C>): ConsumerExecutor<C>
+}
 
 interface ConsumerExecutor<C> {
     fun <O> sink(task: Task<ConsumedMessage, O, C>): AsyncResult<Sink>

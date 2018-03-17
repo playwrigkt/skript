@@ -12,21 +12,24 @@ import io.vertx.core.buffer.Buffer
 import io.vertx.core.eventbus.Message
 import java.util.concurrent.LinkedBlockingQueue
 
-class VertxConsumerExecutor<C: VertxTaskContext>(
+class VertxConsumerExecutorProvider(val vertx: Vertx): ConsumerExecutorProvider {
+    override fun <C> buildExecutor(target: String, contextProvider: ContextProvider<C>): ConsumerExecutor<C> {
+        return VertxConsumerExecutor(target, vertx, contextProvider)
+    }
+
+}
+class VertxConsumerExecutor<C>(
         val address: String,
+        val vertx: Vertx,
         val provider: ContextProvider<C>): ConsumerExecutor<C> {
 
     override fun <O> stream(task: Task<ConsumedMessage, O, C>): AsyncResult<Stream<O>> {
-        return provider.provideContext()
-                .map { it.getVertx() }
-                .map { VertxConsumeStream(it, address, task, provider) }
+        return AsyncResult.succeeded(VertxConsumeStream(vertx, address, task, provider))
     }
 
 
     override fun <O> sink(task: Task<ConsumedMessage, O, C>): AsyncResult<Sink> {
-        return provider.provideContext()
-                .map { it.getVertx() }
-                .map { VertxConsumeSink(it, address, task, provider) }
+        return AsyncResult.succeeded(VertxConsumeSink(vertx, address, task, provider))
     }
 }
 

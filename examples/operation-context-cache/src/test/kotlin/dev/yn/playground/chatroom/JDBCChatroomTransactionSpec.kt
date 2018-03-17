@@ -33,7 +33,7 @@ class JDBCChatroomTransactionSpec: ChatroomTransactionsSpec() {
         val sqlConnectionProvider = JDBCDataSourceTaskContextProvider(hikariDataSource) as SQLTaskContextProvider<SQLExecutor>
         val publishContextProvider = VertxPublishTaskContextProvider(vertx) as PublishTaskContextProvider<PublishTaskExecutor>
         val provider: ApplicationContextProvider by lazy {
-            ApplicationContextProvider(publishContextProvider, sqlConnectionProvider, vertx)
+            ApplicationContextProvider(publishContextProvider, sqlConnectionProvider)
         } }
 
     override fun provider(): ApplicationContextProvider = JDBCChatroomTransactionSpec.provider

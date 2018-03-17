@@ -3,6 +3,7 @@ package dev.yn.playground.user
 import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.common.ApplicationContextProvider
 import dev.yn.playground.consumer.alpha.ConsumedMessage
+import dev.yn.playground.consumer.alpha.ConsumerExecutorProvider
 import dev.yn.playground.consumer.alpha.Stream
 import dev.yn.playground.publisher.PublishTaskContextProvider
 import dev.yn.playground.publisher.PublishTaskExecutor
@@ -11,6 +12,7 @@ import dev.yn.playground.sql.context.SQLTaskContextProvider
 import dev.yn.playground.task.Task
 import dev.yn.playground.user.models.UserProfile
 import dev.yn.playground.user.models.UserSession
+import dev.yn.playground.vertx.alpha.consumer.VertxConsumerExecutorProvider
 import dev.yn.playground.vertx.publisher.VertxPublishTaskContextProvider
 import dev.yn.playground.vertx.sql.VertxSQLTaskContextProvider
 import dev.yn.playground.vertx.task.VertxResult
@@ -42,10 +44,12 @@ class VertxUserServiceSpec: UserServiceSpec() {
         val provider: ApplicationContextProvider by lazy {
             ApplicationContextProvider(publishContextProvider, sqlConnectionProvider, vertx)
         }
+
+        val consumerExecutorProvider = VertxConsumerExecutorProvider(vertx)
     }
 
     override fun provider(): ApplicationContextProvider = VertxUserServiceSpec.provider
-
+    override fun consumerExecutorProvider(): ConsumerExecutorProvider = consumerExecutorProvider
     override fun closeResources() {
         val clientF = Future.future<Void>()
         sqlClient.close(clientF.completer())
@@ -54,31 +58,5 @@ class VertxUserServiceSpec: UserServiceSpec() {
         vertx.close(future.completer())
         awaitSucceededFuture(VertxResult(future))
 
-    }
-
-    override fun loginConsumer(): Stream<UserSession> {
-        return awaitSucceededFuture(
-                userLoginConsumer(provider)
-                        .stream(Task
-                                .map<ConsumedMessage, JsonObject, ApplicationContext> { JsonObject(String(it.body)) }
-                                .mapTry { Try {
-                                    UserSession(
-                                            it.getString("sessionKey"),
-                                            it.getString("userId"),
-                                            it.getInstant("expiration")) } }))!!
-    }
-
-    override fun createConsumer(): Stream<UserProfile> {
-        return awaitSucceededFuture(
-                dev.yn.playground.user.userCreateConsumer(provider)
-                        .stream(Task
-                                .map<ConsumedMessage, JsonObject, ApplicationContext> { JsonObject(String(it.body)) }
-                                .mapTry { Try {
-                                    UserProfile(
-                                            it.getString("id"),
-                                            it.getString("name"),
-                                            it.getBoolean("allowPublicMessage")
-                                    )
-                                } }))!!
     }
 }

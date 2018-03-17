@@ -10,13 +10,10 @@ import dev.yn.playground.sql.context.SQLTaskContextProvider
 import dev.yn.playground.sql.context.SQLTaskContext
 import dev.yn.playground.task.Task
 import dev.yn.playground.task.result.AsyncResult
-import dev.yn.playground.vertx.task.VertxTaskContext
-import io.vertx.core.Vertx
 
 class ApplicationContextProvider (
         val publishProvider: PublishTaskContextProvider<PublishTaskExecutor>,
-        val sqlProvider: SQLTaskContextProvider<SQLExecutor>,
-        val vertx: Vertx//TODO this should be a ConsumerContextProvider<ConsumerExecutor>
+        val sqlProvider: SQLTaskContextProvider<SQLExecutor>
 ): ContextProvider<ApplicationContext<Unit>> {
 
     override fun provideContext(): AsyncResult<ApplicationContext<Unit>> = provideContext(Unit)
@@ -31,7 +28,7 @@ class ApplicationContextProvider (
         return getConnection()
                 .flatMap { sqlExecutor ->
                     getPublishExecutor().map { publishExecutor ->
-                        ApplicationContext(vertx, publishExecutor, sqlExecutor, r)
+                        ApplicationContext(publishExecutor, sqlExecutor, r)
                     }
                 }
     }
@@ -44,8 +41,7 @@ class ApplicationContextProvider (
 
 class CacheApplicationContextProvider<R>(
         val publishProvider: PublishTaskContextProvider<PublishTaskExecutor>,
-        val sqlProvider: SQLTaskContextProvider<SQLExecutor>,
-        val vertx: Vertx
+        val sqlProvider: SQLTaskContextProvider<SQLExecutor>
 ): CacheContextProvider<ApplicationContext<R>, R> {
 
     private fun getPublishExecutor(): AsyncResult<PublishTaskExecutor> {
@@ -58,7 +54,7 @@ class CacheApplicationContextProvider<R>(
         return getConnection()
                 .flatMap { sqlExecutor ->
                     getPublishExecutor().map { publishExecutor ->
-                        ApplicationContext(vertx, publishExecutor, sqlExecutor, r)
+                        ApplicationContext(publishExecutor, sqlExecutor, r)
                     }
                 }
     }
@@ -69,17 +65,15 @@ interface OperationCache<R> {
     fun getOperationCache(): R
 }
 
-class ApplicationContext<R>(private val vertx: Vertx,
+class ApplicationContext<R>(
                          val publishTaskExecutor: PublishTaskExecutor,
                          val sqlExecutor: SQLExecutor,
                          val cache: R):
         PublishTaskContext<PublishTaskExecutor>,
         SQLTaskContext<SQLExecutor>,
-        VertxTaskContext,
         OperationCache<R>
 {
     override fun getOperationCache(): R = cache
-    override fun getVertx(): Vertx = vertx
     override fun getPublishExecutor(): PublishTaskExecutor = publishTaskExecutor
     override fun getSQLExecutor(): SQLExecutor = sqlExecutor
 }

@@ -1,10 +1,14 @@
 package  dev.yn.playground.user
 
+import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.common.ApplicationContextProvider
+import dev.yn.playground.consumer.alpha.ConsumedMessage
+import dev.yn.playground.consumer.alpha.ConsumerExecutorProvider
 import dev.yn.playground.consumer.alpha.Stream
 import dev.yn.playground.sql.SQLCommand
 import dev.yn.playground.sql.SQLError
 import dev.yn.playground.sql.SQLStatement
+import dev.yn.playground.task.Task
 import dev.yn.playground.task.result.Result
 import dev.yn.playground.user.extensions.schema.dropUserSchema
 import dev.yn.playground.user.extensions.schema.initUserSchema
@@ -19,8 +23,9 @@ import dev.yn.playground.user.sql.ValidatePasswordForUserId
 import io.kotlintest.Spec
 import io.kotlintest.matchers.fail
 import io.kotlintest.matchers.shouldNotBe
+import io.vertx.core.json.JsonObject
+import org.funktionale.tries.Try
 import org.slf4j.LoggerFactory
-
 
 
 abstract class UserServiceSpec : StringSpec() {
@@ -28,13 +33,36 @@ abstract class UserServiceSpec : StringSpec() {
     val LOG = LoggerFactory.getLogger(this.javaClass)
 
     abstract fun provider(): ApplicationContextProvider
-    val userService: UserService = UserService(provider())
-
+    abstract fun consumerExecutorProvider(): ConsumerExecutorProvider
     abstract fun closeResources()
 
-    abstract fun loginConsumer(): Stream<UserSession>
-    abstract fun createConsumer(): Stream<UserProfile>
+    val userService: UserService = UserService(provider())
 
+    fun loginConsumer(): Stream<UserSession> {
+        return awaitSucceededFuture(
+                userLoginConsumer(consumerExecutorProvider(), provider())
+                        .stream(Task.identity<ConsumedMessage, ApplicationContext>()
+                                .map { JsonObject(String(it.body)) }
+                                .mapTry { Try {
+                                    UserSession(
+                                            it.getString("sessionKey"),
+                                            it.getString("userId"),
+                                            it.getInstant("expiration")) } }))!!
+    }
+
+    fun createConsumer(): Stream<UserProfile> {
+        return awaitSucceededFuture(
+                dev.yn.playground.user.userCreateConsumer(consumerExecutorProvider(), provider())
+                        .stream(Task.identity<ConsumedMessage, ApplicationContext>()
+                                .map { JsonObject(String(it.body)) }
+                                .mapTry { Try {
+                                    UserProfile(
+                                            it.getString("id"),
+                                            it.getString("name"),
+                                            it.getBoolean("allowPublicMessage")
+                                    )
+                                } }))!!
+    }
     override fun interceptSpec(context: Spec, spec: () -> Unit) {
         awaitSucceededFuture(provider().provideContext().flatMap{ it.dropUserSchema() })
         awaitSucceededFuture(provider().provideContext().flatMap{ it.initUserSchema() })

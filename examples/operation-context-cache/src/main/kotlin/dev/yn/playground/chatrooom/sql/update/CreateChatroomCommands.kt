@@ -2,8 +2,6 @@ package dev.yn.playground.chatrooom.sql.update
 
 import dev.yn.playground.chatrooom.models.ChatRoom
 import dev.yn.playground.sql.*
-import io.vertx.core.json.JsonArray
-import io.vertx.ext.sql.UpdateResult
 import org.funktionale.tries.Try
 
 object InsertChatRoom: SQLUpdateMapping<ChatRoom, ChatRoom> {

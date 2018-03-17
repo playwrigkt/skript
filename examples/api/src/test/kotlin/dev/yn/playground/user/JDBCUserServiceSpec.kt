@@ -5,6 +5,7 @@ import com.zaxxer.hikari.HikariDataSource
 import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.common.ApplicationContextProvider
 import dev.yn.playground.consumer.alpha.ConsumedMessage
+import dev.yn.playground.consumer.alpha.ConsumerExecutorProvider
 import dev.yn.playground.consumer.alpha.Stream
 import dev.yn.playground.coroutine.sql.JDBCDataSourceTaskContextProvider
 import dev.yn.playground.publisher.PublishTaskContextProvider
@@ -14,6 +15,7 @@ import dev.yn.playground.sql.context.SQLTaskContextProvider
 import dev.yn.playground.task.Task
 import dev.yn.playground.user.models.UserProfile
 import dev.yn.playground.user.models.UserSession
+import dev.yn.playground.vertx.alpha.consumer.VertxConsumerExecutorProvider
 import dev.yn.playground.vertx.publisher.VertxPublishTaskContextProvider
 import dev.yn.playground.vertx.task.VertxResult
 import io.vertx.core.Future
@@ -35,6 +37,7 @@ class JDBCUserServiceSpec: UserServiceSpec() {
             config.poolName = "test_pool"
             config
         }
+
         val hikariDataSource by lazy { HikariDataSource(hikariDSConfig) }
 
         val sqlConnectionProvider by lazy { JDBCDataSourceTaskContextProvider(hikariDataSource) as SQLTaskContextProvider<SQLExecutor> }
@@ -42,10 +45,12 @@ class JDBCUserServiceSpec: UserServiceSpec() {
         val provider: ApplicationContextProvider by lazy {
             ApplicationContextProvider(publishContextProvider, sqlConnectionProvider, vertx)
         }
+
+        val consumerExecutorProvider = VertxConsumerExecutorProvider(vertx)
     }
 
     override fun provider(): ApplicationContextProvider = provider
-
+    override fun consumerExecutorProvider(): ConsumerExecutorProvider = consumerExecutorProvider
     override fun closeResources() {
         hikariDataSource.close()
         val future = Future.future<Void>()
@@ -53,29 +58,5 @@ class JDBCUserServiceSpec: UserServiceSpec() {
         awaitSucceededFuture(VertxResult(future))
     }
 
-    override fun loginConsumer(): Stream<UserSession> {
-        return awaitSucceededFuture(
-                userLoginConsumer(provider)
-                        .stream(Task
-                                .map<ConsumedMessage, JsonObject, ApplicationContext> { JsonObject(String(it.body)) }
-                                .mapTry { Try {
-                                    UserSession(
-                                            it.getString("sessionKey"),
-                                            it.getString("userId"),
-                                            it.getInstant("expiration")) } }))!!
-    }
 
-    override fun createConsumer(): Stream<UserProfile> {
-        return awaitSucceededFuture(
-                userCreateConsumer(provider)
-                        .stream(Task
-                                .map<ConsumedMessage, JsonObject, ApplicationContext> { JsonObject(String(it.body)) }
-                                .mapTry { Try {
-                                    UserProfile(
-                                            it.getString("id"),
-                                            it.getString("name"),
-                                            it.getBoolean("allowPublicMessage")
-                                    )
-                                } }))!!
-    }
 }
