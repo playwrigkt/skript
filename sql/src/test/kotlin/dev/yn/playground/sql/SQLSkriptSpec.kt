@@ -1,11 +1,11 @@
 package dev.yn.playground.sql
 
-import dev.yn.playground.Task
+import dev.yn.playground.Skript
 import dev.yn.playground.ex.andThen
 import dev.yn.playground.context.SQLTaskContext
 import dev.yn.playground.ex.query
 import dev.yn.playground.ex.update
-import devyn.playground.sql.task.SQLTransactionTask
+import dev.yn.playground.sql.transaction.SQLTransactionSkript
 import io.kotlintest.mock.mock
 import io.kotlintest.specs.StringSpec
 import org.funktionale.option.Option
@@ -13,7 +13,7 @@ import org.funktionale.option.getOrElse
 import org.funktionale.tries.Try
 import java.time.Instant
 
-class SQLTaskSpec: StringSpec() {
+class SQLSkriptSpec : StringSpec() {
     data class UserSession(val sessionKey: String, val userId: String, val expiration: Instant)
 
 
@@ -106,25 +106,25 @@ class SQLTaskSpec: StringSpec() {
                 .getOrElse { Try.Failure<UserProfile>(IllegalArgumentException("not authorized")) }
     }
 
-    val authenticateUpdateUserProfile = Task.mapTryWithContext(onlyIfSessionUserIdMathcesRequested)
+    val authenticateUpdateUserProfile = Skript.mapTryWithContext(onlyIfSessionUserIdMathcesRequested)
 
     fun <R: ExistingUserProfileContext> addExistingUserToContext() =
-            Task.updateContext(Task.identity<UserProfile, ApplicationContext<R>>()
+            Skript.updateContext(Skript.identity<UserProfile, ApplicationContext<R>>()
                     .map { it.id }
                     .query(SelectUserProfileById)
                     .mapWithContext { existing, context ->
                         context.getOperationCache().useProfile(existing)
                     })
 
-    fun <R: ExistingUserProfileContext> failIfProfileNotCached() = Task.mapTryWithContext<UserProfile, UserProfile, ApplicationContext<R>> {
+    fun <R: ExistingUserProfileContext> failIfProfileNotCached() = Skript.mapTryWithContext<UserProfile, UserProfile, ApplicationContext<R>> {
         i, context ->
         context.getOperationCache().getExistingProfile()
                 .map { Try.Success(i) }
                 .getOrElse { Try.Failure<UserProfile>(IllegalArgumentException("No such user")) }
     }
 
-    fun <I, R: UserSessionContext> validateSession(): Task<I, I, ApplicationContext<R>> =
-            Task.updateContext(Task.identity<I, ApplicationContext<R>>()
+    fun <I, R: UserSessionContext> validateSession(): Skript<I, I, ApplicationContext<R>> =
+            Skript.updateContext(Skript.identity<I, ApplicationContext<R>>()
                             .mapWithContext { _, c -> c.cache.getUserSessionKey()}
                             .query(SelectSessionByKey)
                             .mapWithContext { session, c -> c.cache.setUserSession(session) })
@@ -136,8 +136,8 @@ class SQLTaskSpec: StringSpec() {
             val sessionKey = "TEST_SESSION_KEY"
             val context = ApplicationContext<UpdateUserProfileContext>(executor, UpdateUserProfileContext(sessionKey))
 
-            val udpateUser: SQLTransactionTask<UserProfile, UserProfile, ApplicationContext<UpdateUserProfileContext>> =
-                    SQLTransactionTask.transaction(
+            val udpateUser: SQLTransactionSkript<UserProfile, UserProfile, ApplicationContext<UpdateUserProfileContext>> =
+                    SQLTransactionSkript.transaction(
                                 validateSession<UserProfile, UpdateUserProfileContext>()
                                     .andThen(authenticateUpdateUserProfile)
                                     .andThen(addExistingUserToContext<UpdateUserProfileContext>())

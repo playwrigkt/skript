@@ -1,11 +1,11 @@
 package dev.yn.playground.coroutine
 
-import dev.yn.playground.Task
+import dev.yn.playground.Skript
 import dev.yn.playground.result.AsyncResult
 import dev.yn.playground.result.CompletableResult
 import kotlinx.coroutines.experimental.launch
 
-data class CoroutineTask<I, O, C>(val f: suspend (I) -> O): Task<I, O, C> {
+data class CoroutineSkript<I, O, C>(val f: suspend (I) -> O): Skript<I, O, C> {
     override fun run(i: I, context: C): AsyncResult<O> {
         val asyncResult = CompletableResult<O>()
         launch {

@@ -1,6 +1,6 @@
 package  dev.yn.playground.user
 
-import dev.yn.playground.Task
+import dev.yn.playground.Skript
 import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.common.ApplicationContextProvider
 import dev.yn.playground.consumer.alpha.ConsumedMessage
@@ -40,7 +40,7 @@ abstract class UserServiceSpec : StringSpec() {
     fun loginConsumer(): Stream<UserSession> {
         return awaitSucceededFuture(
                 userLoginConsumer(consumerExecutorProvider(), provider())
-                        .stream(Task.identity<ConsumedMessage, ApplicationContext<Unit>>()
+                        .stream(Skript.identity<ConsumedMessage, ApplicationContext<Unit>>()
                                 .map { it.body }
                                 .deserialize(UserSession::class.java)))!!
     }
@@ -48,7 +48,7 @@ abstract class UserServiceSpec : StringSpec() {
     fun createConsumer(): Stream<UserProfile> {
         return awaitSucceededFuture(
                 userCreateConsumer(consumerExecutorProvider(), provider())
-                        .stream(Task.identity<ConsumedMessage, ApplicationContext<Unit>>()
+                        .stream(Skript.identity<ConsumedMessage, ApplicationContext<Unit>>()
                                 .map { it.body }
                                 .deserialize(UserProfile::class.java)))!!
     }

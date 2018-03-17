@@ -1,6 +1,6 @@
 package dev.yn.playground.common
 
-import dev.yn.playground.Task
+import dev.yn.playground.Skript
 import dev.yn.playground.context.*
 import dev.yn.playground.publisher.PublishTaskExecutor
 import dev.yn.playground.result.AsyncResult
@@ -34,9 +34,9 @@ class ApplicationContextProvider (
                 }
     }
 
-    fun <I, O, R> runOnContext(task: Task<I, O, ApplicationContext<R>>, i: I, r: R): AsyncResult<O> {
+    fun <I, O, R> runOnContext(skript: Skript<I, O, ApplicationContext<R>>, i: I, r: R): AsyncResult<O> {
         return provideContext(r)
-                .flatMap { task.run(i, it) }
+                .flatMap { skript.run(i, it) }
     }
 }
 

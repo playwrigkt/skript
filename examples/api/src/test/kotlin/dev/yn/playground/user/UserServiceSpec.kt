@@ -1,9 +1,6 @@
 package  dev.yn.playground.user
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.KotlinModule
-import dev.yn.playground.Task
+import dev.yn.playground.Skript
 import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.common.ApplicationContextProvider
 import dev.yn.playground.consumer.alpha.ConsumedMessage
@@ -27,7 +24,6 @@ import io.kotlintest.matchers.fail
 import io.kotlintest.matchers.shouldBe
 import io.kotlintest.matchers.shouldNotBe
 import io.kotlintest.specs.StringSpec
-import org.funktionale.tries.Try
 import org.slf4j.LoggerFactory
 import java.util.*
 
@@ -45,7 +41,7 @@ abstract class UserServiceSpec : StringSpec() {
     fun loginConsumer(): Stream<UserSession> {
         return awaitSucceededFuture(
                 userLoginConsumer(consumerExecutorProvider(), provider())
-                        .stream(Task.identity<ConsumedMessage, ApplicationContext>()
+                        .stream(Skript.identity<ConsumedMessage, ApplicationContext>()
                                 .map { it.body }
                                 .deserialize(UserSession::class.java)))!!
     }
@@ -53,7 +49,7 @@ abstract class UserServiceSpec : StringSpec() {
     fun createConsumer(): Stream<UserProfile> {
         return awaitSucceededFuture(
                 dev.yn.playground.user.userCreateConsumer(consumerExecutorProvider(), provider())
-                        .stream(Task.identity<ConsumedMessage, ApplicationContext>()
+                        .stream(Skript.identity<ConsumedMessage, ApplicationContext>()
                                 .map { it.body }
                                 .deserialize(UserProfile::class.java)))!!
     }

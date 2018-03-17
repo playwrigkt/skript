@@ -1,12 +1,12 @@
 package dev.yn.playground.ex
 
-import dev.yn.playground.Task
+import dev.yn.playground.Skript
 import dev.yn.playground.context.SerializeTaskContext
-import dev.yn.playground.serialize.SerializeTask
+import dev.yn.playground.serialize.SerializeSkript
 
 
-fun <I, O, C: SerializeTaskContext<*>> Task<I, O, C>.serialize(): Task<I, ByteArray, C> =
-        this.andThen(SerializeTask.Serialize())
+fun <I, O, C: SerializeTaskContext<*>> Skript<I, O, C>.serialize(): Skript<I, ByteArray, C> =
+        this.andThen(SerializeSkript.Serialize())
 
-fun <I, O, C: SerializeTaskContext<*>> Task<I, ByteArray, C>.deserialize(clazz: Class<O>): Task<I, O, C> =
-        this.andThen(SerializeTask.Deserialize(clazz))
+fun <I, O, C: SerializeTaskContext<*>> Skript<I, ByteArray, C>.deserialize(clazz: Class<O>): Skript<I, O, C> =
+        this.andThen(SerializeSkript.Deserialize(clazz))

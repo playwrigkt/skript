@@ -1,7 +1,7 @@
 package dev.yn.playground.consumer.alpha
 
 import com.rabbitmq.client.*
-import dev.yn.playground.Task
+import dev.yn.playground.Skript
 import dev.yn.playground.context.ContextProvider
 import dev.yn.playground.result.AsyncResult
 import dev.yn.playground.result.CompletableResult
@@ -21,20 +21,20 @@ class AMQPConsumerExecutor<C>(
         val contextProvider: ContextProvider<C>,
         val queue: String): ConsumerExecutor<C> {
 
-    override fun <O> sink(task: Task<ConsumedMessage, O, C>): AsyncResult<Sink> {
+    override fun <O> sink(skript: Skript<ConsumedMessage, O, C>): AsyncResult<Sink> {
         return Try {
-            AMQPSink(amqpConnection.createChannel(), queue, task, contextProvider)
+            AMQPSink(amqpConnection.createChannel(), queue, skript, contextProvider)
         }
                 .toAsyncResult()
                 .map { it as Sink }
     }
 
-    override fun <O> stream(task: Task<ConsumedMessage, O, C>): AsyncResult<Stream<O>> {
+    override fun <O> stream(skript: Skript<ConsumedMessage, O, C>): AsyncResult<Stream<O>> {
         val result = Try {
             val stream = AMQPStream(
                     amqpConnection.createChannel(),
                     queue,
-                    task,
+                    skript,
                     contextProvider)
             stream
         }
@@ -47,7 +47,7 @@ class AMQPConsumerExecutor<C>(
 abstract class AMQPConsumer<O, C>(
         val channel: Channel,
         val queue: String,
-        val task: Task<ConsumedMessage, O, C>,
+        val skript: Skript<ConsumedMessage, O, C>,
         val provider: ContextProvider<C>): Consumer {
     private val result = CompletableResult<Unit>()
     private val consumerTag: String
@@ -88,11 +88,11 @@ abstract class AMQPConsumer<O, C>(
 class AMQPSink<O, C>(
         channel: Channel,
         queue: String,
-        task: Task<ConsumedMessage, O, C>,
-        provider: ContextProvider<C>): Sink, AMQPConsumer<O, C>(channel, queue, task, provider) {
+        skript: Skript<ConsumedMessage, O, C>,
+        provider: ContextProvider<C>): Sink, AMQPConsumer<O, C>(channel, queue, skript, provider) {
     override fun handleMessage(consumerTag: String, envelope: Envelope, properties: BasicProperties, body: ByteArray) {
         provider.provideContext()
-                .flatMap { context -> task.run(ConsumedMessage(envelope.routingKey, body), context) }
+                .flatMap { context -> skript.run(ConsumedMessage(envelope.routingKey, body), context) }
                 .map { channel.basicAck(envelope.deliveryTag, false) }
                 .recover {
                     Try {
@@ -106,11 +106,11 @@ class AMQPSink<O, C>(
 class AMQPStream<O, C>(
         channel: Channel,
         queue: String,
-        task: Task<ConsumedMessage, O, C>,
-        provider: ContextProvider<C>): Stream<O>, AMQPConsumer<O, C>(channel, queue, task, provider) {
+        skript: Skript<ConsumedMessage, O, C>,
+        provider: ContextProvider<C>): Stream<O>, AMQPConsumer<O, C>(channel, queue, skript, provider) {
     override fun handleMessage(consumerTag: String, envelope: Envelope, properties: BasicProperties, body: ByteArray) {
         provider.provideContext()
-                .flatMap { context -> task.run(ConsumedMessage(envelope.routingKey, body), context) }
+                .flatMap { context -> skript.run(ConsumedMessage(envelope.routingKey, body), context) }
                 .enqueue()
                 .map { channel.basicAck(envelope.deliveryTag, false) }
                 .recover {

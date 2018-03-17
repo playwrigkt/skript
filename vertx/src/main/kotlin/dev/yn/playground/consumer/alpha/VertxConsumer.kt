@@ -1,6 +1,6 @@
 package dev.yn.playground.consumer.alpha
 
-import dev.yn.playground.Task
+import dev.yn.playground.Skript
 import dev.yn.playground.context.ContextProvider
 import dev.yn.playground.result.AsyncResult
 import dev.yn.playground.result.CompletableResult
@@ -22,20 +22,20 @@ class VertxConsumerExecutor<C>(
         val vertx: Vertx,
         val provider: ContextProvider<C>): ConsumerExecutor<C> {
 
-    override fun <O> stream(task: Task<ConsumedMessage, O, C>): AsyncResult<Stream<O>> {
-        return AsyncResult.succeeded(VertxConsumeStream(vertx, address, task, provider))
+    override fun <O> stream(skript: Skript<ConsumedMessage, O, C>): AsyncResult<Stream<O>> {
+        return AsyncResult.succeeded(VertxConsumeStream(vertx, address, skript, provider))
     }
 
 
-    override fun <O> sink(task: Task<ConsumedMessage, O, C>): AsyncResult<Sink> {
-        return AsyncResult.succeeded(VertxConsumeSink(vertx, address, task, provider))
+    override fun <O> sink(skript: Skript<ConsumedMessage, O, C>): AsyncResult<Sink> {
+        return AsyncResult.succeeded(VertxConsumeSink(vertx, address, skript, provider))
     }
 }
 
 abstract class VertxConsumer<O, C>(
         val vertx: Vertx,
         val address: String,
-        val task: Task<ConsumedMessage, O, C>,
+        val skript: Skript<ConsumedMessage, O, C>,
         val provider: ContextProvider<C>): Consumer {
     private val result: CompletableResult<Unit> = CompletableResult()
     private val verticle: AbstractVerticle
@@ -79,12 +79,12 @@ abstract class VertxConsumer<O, C>(
 class VertxConsumeSink<O, C>(
         vertx: Vertx,
         address: String,
-        task: Task<ConsumedMessage, O, C>,
-        provider: ContextProvider<C>): Sink, VertxConsumer<O, C>(vertx, address, task, provider) {
+        skript: Skript<ConsumedMessage, O, C>,
+        provider: ContextProvider<C>): Sink, VertxConsumer<O, C>(vertx, address, skript, provider) {
 
     override fun handleMessage(message: Message<Buffer>) {
         provider.provideContext()
-                .flatMap { task.run(ConsumedMessage(address, message.body().bytes), it) }
+                .flatMap { skript.run(ConsumedMessage(address, message.body().bytes), it) }
                 .map {
                     message.reply("success") }
                 .recover {
@@ -97,13 +97,13 @@ class VertxConsumeSink<O, C>(
 class VertxConsumeStream<O, C>(
         vertx: Vertx,
         address: String,
-        task: Task<ConsumedMessage, O, C>,
-        provider: ContextProvider<C>): Stream<O>, VertxConsumer<O, C>(vertx, address, task, provider) {
+        skript: Skript<ConsumedMessage, O, C>,
+        provider: ContextProvider<C>): Stream<O>, VertxConsumer<O, C>(vertx, address, skript, provider) {
 
 
     override fun handleMessage(message: Message<Buffer>) {
         provider.provideContext()
-                .flatMap { task.run(ConsumedMessage(address, message.body().bytes), it) }
+                .flatMap { skript.run(ConsumedMessage(address, message.body().bytes), it) }
                 .enqueue()
                 .map { message.reply("success") }
                 .recover {

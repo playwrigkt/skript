@@ -16,7 +16,7 @@ import dev.yn.playground.user.extensions.schema.dropUserSchema
 import dev.yn.playground.user.extensions.schema.initUserSchema
 import dev.yn.playground.user.models.UserError
 import dev.yn.playground.user.models.UserNameAndPassword
-import devyn.playground.sql.task.SQLTransactionTask
+import dev.yn.playground.sql.transaction.SQLTransactionSkript
 import io.kotlintest.Spec
 import io.kotlintest.matchers.fail
 import io.kotlintest.matchers.shouldBe
@@ -35,18 +35,18 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
 
     override fun interceptSpec(context: Spec, spec: () -> Unit) {
         awaitSucceededFuture(provider().runOnContext(
-                SQLTransactionTask.transaction<Unit, Unit, ApplicationContext<Unit>>(ChatRoomSchema.dropAllAction),
+                SQLTransactionSkript.transaction<Unit, Unit, ApplicationContext<Unit>>(ChatRoomSchema.dropAllAction),
                 Unit,
                 Unit))
         awaitSucceededFuture(provider().provideContext().flatMap { it.dropUserSchema() })
         awaitSucceededFuture(provider().provideContext().flatMap { it.initUserSchema() })
         awaitSucceededFuture(provider().runOnContext(
-                SQLTransactionTask.transaction<Unit, Unit, ApplicationContext<Unit>>(ChatRoomSchema.initAction),
+                SQLTransactionSkript.transaction<Unit, Unit, ApplicationContext<Unit>>(ChatRoomSchema.initAction),
                 Unit,
                 Unit))
         spec()
         awaitSucceededFuture(provider().runOnContext(
-                SQLTransactionTask.transaction<Unit, Unit, ApplicationContext<Unit>>(ChatRoomSchema.dropAllAction),
+                SQLTransactionSkript.transaction<Unit, Unit, ApplicationContext<Unit>>(ChatRoomSchema.dropAllAction),
                 Unit,
                 Unit))
         awaitSucceededFuture(provider().provideContext().flatMap { it.dropUserSchema() })

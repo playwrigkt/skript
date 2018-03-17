@@ -1,13 +1,13 @@
 package dev.yn.playground.user
 
-import dev.yn.playground.Task
+import dev.yn.playground.Skript
 import dev.yn.playground.auth.TokenAndInput
 import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.ex.*
 import dev.yn.playground.publisher.PublishCommand
 import dev.yn.playground.user.models.*
 import dev.yn.playground.user.sql.*
-import devyn.playground.sql.task.SQLTransactionTask
+import dev.yn.playground.sql.transaction.SQLTransactionSkript
 import org.funktionale.tries.Try
 import java.time.Instant
 import java.util.*
@@ -15,14 +15,14 @@ import java.util.*
 object UserTasks {
     private val createNewSessionKey: (String) -> UserSession = { UserSession(UUID.randomUUID().toString(), it, Instant.now().plusSeconds(3600)) }
 
-    private val publishUserCreateEvent: Task<UserProfile, UserProfile, ApplicationContext> =
-            Task.identity<UserProfile, ApplicationContext>()
+    private val PUBLISH_USER_CREATE_EVENT: Skript<UserProfile, UserProfile, ApplicationContext> =
+            Skript.identity<UserProfile, ApplicationContext>()
                     .serialize()
                     .publish { PublishCommand.Publish(userCreatedAddress, it) }
                     .deserialize(UserProfile::class.java)
 
-    private val publishUserLoginEvent: Task<UserSession, UserSession, ApplicationContext> =
-            Task.identity<UserSession, ApplicationContext>()
+    private val PUBLISH_USER_LOGIN_EVENT: Skript<UserSession, UserSession, ApplicationContext> =
+            Skript.identity<UserSession, ApplicationContext>()
                     .serialize()
                     .publish { PublishCommand.Publish(userLoginAddress, it) }
                     .deserialize(UserSession::class.java)
@@ -35,35 +35,35 @@ object UserTasks {
         }
     }
 
-    val unpreparedCreateTask: Task<UserProfileAndPassword, UserProfile, ApplicationContext> =
-            SQLTransactionTask.transaction(
-                    Task.identity<UserProfileAndPassword, ApplicationContext>()
+    val UNPREPARED_CREATE_SKRIPT: Skript<UserProfileAndPassword, UserProfile, ApplicationContext> =
+            SQLTransactionSkript.transaction(
+                    Skript.identity<UserProfileAndPassword, ApplicationContext>()
                             .update(InsertUserProfileMapping)
                             .update(InsertUserPasswordMapping)
-                            .andThen(publishUserCreateEvent))
+                            .andThen(PUBLISH_USER_CREATE_EVENT))
 
-    val unpreparedLoginTask: Task<UserNameAndPassword, UserSession, ApplicationContext> =
-            SQLTransactionTask.transaction(
-                    Task.identity<UserNameAndPassword, ApplicationContext>()
+    val UNPREPARED_LOGIN_SKRIPT: Skript<UserNameAndPassword, UserSession, ApplicationContext> =
+            SQLTransactionSkript.transaction(
+                    Skript.identity<UserNameAndPassword, ApplicationContext>()
                             .query(SelectUserIdForLogin)
                             .query(ValidatePasswordForUserId)
                             .query(EnsureNoSessionExists)
                             .map(createNewSessionKey)
                             .update(InsertSession)
-                            .andThen(publishUserLoginEvent))
+                            .andThen(PUBLISH_USER_LOGIN_EVENT))
 
 
-    val unpreparedGetTask: Task<TokenAndInput<String>, UserProfile, ApplicationContext> =
-            SQLTransactionTask.autoCommit(
+    val UNPREPARED_GET_SKRIPT: Skript<TokenAndInput<String>, UserProfile, ApplicationContext> =
+            SQLTransactionSkript.autoCommit(
                     validateSession<String>(onlyIfRequestedUserMatchesSessionUser)
                             .query(SelectUserProfileById))
 
-    private fun <T> validateSession(validateSession: (UserSession, T) -> Try<T>): Task<TokenAndInput<T>, T, ApplicationContext> =
-            Task.identity<TokenAndInput<T>, ApplicationContext>()
+    private fun <T> validateSession(validateSession: (UserSession, T) -> Try<T>): Skript<TokenAndInput<T>, T, ApplicationContext> =
+            Skript.identity<TokenAndInput<T>, ApplicationContext>()
                     .query(SelectSessionByKey(validateSession))
 
-    fun deleteAllUserActionChain(): Task<Unit, Unit, ApplicationContext> =
-            Task.identity<Unit, ApplicationContext>()
+    fun deleteAllUserActionChain(): Skript<Unit, Unit, ApplicationContext> =
+            Skript.identity<Unit, ApplicationContext>()
                     .deleteAll("user_relationship_request")
                     .deleteAll("user_password")
                     .deleteAll("user_session")

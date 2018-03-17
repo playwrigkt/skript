@@ -1,6 +1,6 @@
 package dev.yn.playground.user.sql
 
-import dev.yn.playground.Task
+import dev.yn.playground.Skript
 import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.ex.dropTableIfExists
 import dev.yn.playground.ex.exec
@@ -36,14 +36,14 @@ CREATE TABLE IF NOT EXISTS user_relationship_request (
     CONSTRAINT user_relationship_request_pk PRIMARY KEY (user_id_1, user_id_2)
 );"""
 
-    fun init() = Task.identity<Unit, ApplicationContext<Unit>>()
+    fun init() = Skript.identity<Unit, ApplicationContext<Unit>>()
             .exec(SQLMapping.exec("CREATE EXTENSION IF NOT EXISTS pgcrypto"))
             .exec(SQLMapping.exec(createUserProfileTable))
             .exec(SQLMapping.exec(createUserPasswordTable))
             .exec(SQLMapping.exec(createUserSessionTable))
             .exec(SQLMapping.exec(createUserRequestTable))
 
-    fun drop() = Task.identity<Unit, ApplicationContext<Unit>>()
+    fun drop() = Skript.identity<Unit, ApplicationContext<Unit>>()
             .dropTableIfExists("user_relationship_request")
             .dropTableIfExists("user_password")
             .dropTableIfExists("user_session")

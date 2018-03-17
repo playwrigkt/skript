@@ -1,6 +1,6 @@
 package dev.yn.playground.consumer.alpha
 
-import dev.yn.playground.Task
+import dev.yn.playground.Skript
 import dev.yn.playground.context.ContextProvider
 import dev.yn.playground.result.AsyncResult
 
@@ -9,6 +9,6 @@ interface ConsumerExecutorProvider {
 }
 
 interface ConsumerExecutor<C> {
-    fun <O> sink(task: Task<ConsumedMessage, O, C>): AsyncResult<Sink>
-    fun <O> stream(task: Task<ConsumedMessage, O, C>): AsyncResult<Stream<O>>
+    fun <O> sink(skript: Skript<ConsumedMessage, O, C>): AsyncResult<Sink>
+    fun <O> stream(skript: Skript<ConsumedMessage, O, C>): AsyncResult<Stream<O>>
 }
