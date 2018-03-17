@@ -1,7 +1,7 @@
 package dev.yn.playground.user
 
 import dev.yn.playground.common.ApplicationContextProvider
-import dev.yn.playground.task.result.AsyncResult
+import dev.yn.playground.result.AsyncResult
 import dev.yn.playground.user.context.GetUserContext
 import dev.yn.playground.user.models.*
 

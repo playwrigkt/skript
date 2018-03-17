@@ -8,8 +8,8 @@ import dev.yn.playground.chatrooom.models.ChatRoomUser
 import dev.yn.playground.chatrooom.sql.ChatRoomTransactions
 import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.common.ApplicationContextProvider
-import dev.yn.playground.task.Task
-import dev.yn.playground.task.result.AsyncResult
+import dev.yn.playground.Task
+import dev.yn.playground.result.AsyncResult
 import devyn.playground.sql.task.SQLTransactionTask
 
 class ChatRoomService(val provider: ApplicationContextProvider) {

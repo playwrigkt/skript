@@ -1,10 +1,10 @@
 package dev.yn.playground.serialize
 
-import dev.yn.playground.task.Task
-import dev.yn.playground.task.result.AsyncResult
+import dev.yn.playground.context.SerializeTaskContext
+import dev.yn.playground.Task
+import dev.yn.playground.result.AsyncResult
 
 sealed class SerializeTask<I, O>: Task<I, O, SerializeTaskContext<*>> {
-
     class Serialize<I>: SerializeTask<I, ByteArray>() {
         override fun run(i: I, context: SerializeTaskContext<*>): AsyncResult<ByteArray> {
             return context.getSerializeTaskExecutor()

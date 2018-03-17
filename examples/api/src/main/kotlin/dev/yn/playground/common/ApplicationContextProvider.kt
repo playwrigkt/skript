@@ -1,14 +1,14 @@
 package dev.yn.playground.common
 
-import dev.yn.playground.consumer.alpha.ContextProvider
-import dev.yn.playground.publisher.PublishTaskContext
-import dev.yn.playground.publisher.PublishTaskContextProvider
+import dev.yn.playground.context.ContextProvider
+import dev.yn.playground.context.PublishTaskContext
+import dev.yn.playground.context.PublishTaskContextProvider
 import dev.yn.playground.publisher.PublishTaskExecutor
-import dev.yn.playground.sql.context.SQLExecutor
-import dev.yn.playground.sql.context.SQLTaskContextProvider
-import dev.yn.playground.sql.context.SQLTaskContext
-import dev.yn.playground.task.Task
-import dev.yn.playground.task.result.AsyncResult
+import dev.yn.playground.sql.SQLExecutor
+import dev.yn.playground.context.SQLTaskContextProvider
+import dev.yn.playground.context.SQLTaskContext
+import dev.yn.playground.Task
+import dev.yn.playground.result.AsyncResult
 import dev.yn.playground.user.models.UserSession
 
 class ApplicationContextProvider(

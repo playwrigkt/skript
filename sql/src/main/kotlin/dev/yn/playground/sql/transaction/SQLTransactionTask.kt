@@ -1,8 +1,8 @@
 package devyn.playground.sql.task
 
-import dev.yn.playground.sql.context.SQLTaskContext
-import dev.yn.playground.task.Task
-import dev.yn.playground.task.result.AsyncResult
+import dev.yn.playground.context.SQLTaskContext
+import dev.yn.playground.Task
+import dev.yn.playground.result.AsyncResult
 
 
 sealed class SQLTransactionTask<I, O, C: SQLTaskContext<*>>: Task<I, O, C> {

@@ -1,27 +1,20 @@
 package dev.yn.playground.user
 
-import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.common.ApplicationContextProvider
-import dev.yn.playground.consumer.alpha.ConsumedMessage
 import dev.yn.playground.consumer.alpha.ConsumerExecutorProvider
-import dev.yn.playground.consumer.alpha.Stream
-import dev.yn.playground.publisher.PublishTaskContextProvider
+import dev.yn.playground.context.PublishTaskContextProvider
 import dev.yn.playground.publisher.PublishTaskExecutor
-import dev.yn.playground.sql.context.SQLExecutor
-import dev.yn.playground.sql.context.SQLTaskContextProvider
-import dev.yn.playground.task.Task
-import dev.yn.playground.user.models.UserProfile
-import dev.yn.playground.user.models.UserSession
-import dev.yn.playground.vertx.alpha.consumer.VertxConsumerExecutorProvider
-import dev.yn.playground.vertx.publisher.VertxPublishTaskContextProvider
-import dev.yn.playground.vertx.sql.VertxSQLTaskContextProvider
-import dev.yn.playground.vertx.task.VertxResult
+import dev.yn.playground.sql.SQLExecutor
+import dev.yn.playground.context.SQLTaskContextProvider
+import dev.yn.playground.consumer.alpha.VertxConsumerExecutorProvider
+import dev.yn.playground.publisher.VertxPublishTaskContextProvider
+import dev.yn.playground.sql.VertxSQLTaskContextProvider
+import dev.yn.playground.result.VertxResult
 import io.vertx.core.Future
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.jdbc.JDBCClient
 import io.vertx.ext.sql.SQLClient
-import org.funktionale.tries.Try
 
 class VertxUserServiceSpec: UserServiceSpec() {
     companion object {

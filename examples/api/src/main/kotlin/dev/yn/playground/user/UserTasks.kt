@@ -2,7 +2,7 @@ package dev.yn.playground.user
 
 import dev.yn.playground.auth.TokenAndInput
 import dev.yn.playground.common.ApplicationContext
-import dev.yn.playground.task.Task
+import dev.yn.playground.Task
 import dev.yn.playground.user.models.UserNameAndPassword
 import dev.yn.playground.user.models.UserProfile
 import dev.yn.playground.user.models.UserProfileAndPassword

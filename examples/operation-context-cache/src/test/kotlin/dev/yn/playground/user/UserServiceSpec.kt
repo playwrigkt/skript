@@ -5,12 +5,13 @@ import dev.yn.playground.common.ApplicationContextProvider
 import dev.yn.playground.consumer.alpha.ConsumedMessage
 import dev.yn.playground.consumer.alpha.ConsumerExecutorProvider
 import dev.yn.playground.consumer.alpha.Stream
-import dev.yn.playground.serialize.ex.deserialize
+import dev.yn.playground.ex.deserialize
 import dev.yn.playground.sql.SQLCommand
 import dev.yn.playground.sql.SQLError
 import dev.yn.playground.sql.SQLStatement
-import dev.yn.playground.task.Task
-import dev.yn.playground.task.result.Result
+import dev.yn.playground.Task
+import dev.yn.playground.result.AsyncResult
+import dev.yn.playground.result.Result
 import dev.yn.playground.user.extensions.schema.dropUserSchema
 import dev.yn.playground.user.extensions.schema.initUserSchema
 import dev.yn.playground.user.extensions.transaction.deleteAllUsers
@@ -205,7 +206,7 @@ abstract class UserServiceSpec : StringSpec() {
         }
     }
 
-    fun <T> awaitSucceededFuture(future: dev.yn.playground.task.result.AsyncResult<T>, result: T? = null, maxDuration: Long = 1000L): T? {
+    fun <T> awaitSucceededFuture(future: AsyncResult<T>, result: T? = null, maxDuration: Long = 1000L): T? {
         val start = System.currentTimeMillis()
         while(!future.isComplete() && System.currentTimeMillis() - start < maxDuration) {
             Thread.sleep(100)
@@ -217,7 +218,7 @@ abstract class UserServiceSpec : StringSpec() {
         return future.result()
     }
 
-    fun <T> awaitFailedFuture(future: dev.yn.playground.task.result.AsyncResult<T>, cause: Throwable? = null, maxDuration: Long = 1000L): Throwable? {
+    fun <T> awaitFailedFuture(future: AsyncResult<T>, cause: Throwable? = null, maxDuration: Long = 1000L): Throwable? {
         val start = System.currentTimeMillis()
         while(!future.isComplete() && System.currentTimeMillis() - start < maxDuration) {
             Thread.sleep(100)

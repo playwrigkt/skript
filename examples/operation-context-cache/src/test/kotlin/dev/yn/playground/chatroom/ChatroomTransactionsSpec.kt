@@ -9,6 +9,7 @@ import dev.yn.playground.chatrooom.sql.ChatRoomSchema
 import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.common.ApplicationContextProvider
 import dev.yn.playground.common.models.Reference
+import dev.yn.playground.result.AsyncResult
 import dev.yn.playground.user.models.UserError
 import dev.yn.playground.user.UserFixture
 import dev.yn.playground.user.UserService
@@ -176,7 +177,7 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
                     chatRoomWithUser3RemovedPermissions)
         }
     }
-    fun <T> awaitSucceededFuture(future: dev.yn.playground.task.result.AsyncResult<T>, result: T? = null, maxDuration: Long = 1000L): T? {
+    fun <T> awaitSucceededFuture(future: AsyncResult<T>, result: T? = null, maxDuration: Long = 1000L): T? {
         val start = System.currentTimeMillis()
         while(!future.isComplete() && System.currentTimeMillis() - start < maxDuration) {
             Thread.sleep(100)
@@ -188,7 +189,7 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
         return future.result()
     }
 
-    fun <T> awaitFailedFuture(future: dev.yn.playground.task.result.AsyncResult<T>, cause: Throwable? = null, maxDuration: Long = 1000L): Throwable? {
+    fun <T> awaitFailedFuture(future: AsyncResult<T>, cause: Throwable? = null, maxDuration: Long = 1000L): Throwable? {
         val start = System.currentTimeMillis()
         while(!future.isComplete() && System.currentTimeMillis() - start < maxDuration) {
             Thread.sleep(100)

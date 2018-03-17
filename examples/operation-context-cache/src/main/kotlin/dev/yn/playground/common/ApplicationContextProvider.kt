@@ -1,18 +1,18 @@
 package dev.yn.playground.common
 
-import dev.yn.playground.consumer.alpha.CacheContextProvider
-import dev.yn.playground.consumer.alpha.ContextProvider
-import dev.yn.playground.publisher.PublishTaskContext
-import dev.yn.playground.publisher.PublishTaskContextProvider
+import dev.yn.playground.context.CacheContextProvider
+import dev.yn.playground.context.ContextProvider
+import dev.yn.playground.context.PublishTaskContext
+import dev.yn.playground.context.PublishTaskContextProvider
 import dev.yn.playground.publisher.PublishTaskExecutor
-import dev.yn.playground.serialize.SerializeTaskContext
-import dev.yn.playground.serialize.SerializeTaskContextProvider
+import dev.yn.playground.context.SerializeTaskContext
+import dev.yn.playground.context.SerializeTaskContextProvider
 import dev.yn.playground.serialize.SerializeTaskExecutor
-import dev.yn.playground.sql.context.SQLExecutor
-import dev.yn.playground.sql.context.SQLTaskContextProvider
-import dev.yn.playground.sql.context.SQLTaskContext
-import dev.yn.playground.task.Task
-import dev.yn.playground.task.result.AsyncResult
+import dev.yn.playground.sql.SQLExecutor
+import dev.yn.playground.context.SQLTaskContextProvider
+import dev.yn.playground.context.SQLTaskContext
+import dev.yn.playground.Task
+import dev.yn.playground.result.AsyncResult
 
 class ApplicationContextProvider (
         val publishProvider: PublishTaskContextProvider<PublishTaskExecutor>,
@@ -79,10 +79,10 @@ interface OperationCache<R> {
 }
 
 class ApplicationContext<R>(
-                         val publishTaskExecutor: PublishTaskExecutor,
-                         val sqlExecutor: SQLExecutor,
-                         val serializeExecutor: SerializeTaskExecutor,
-                         val cache: R):
+        val publishTaskExecutor: PublishTaskExecutor,
+        val sqlExecutor: SQLExecutor,
+        val serializeExecutor: SerializeTaskExecutor,
+        val cache: R):
         PublishTaskContext<PublishTaskExecutor>,
         SQLTaskContext<SQLExecutor>,
         SerializeTaskContext<SerializeTaskExecutor>,

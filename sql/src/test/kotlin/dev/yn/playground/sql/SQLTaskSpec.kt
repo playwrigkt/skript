@@ -1,11 +1,10 @@
 package dev.yn.playground.sql
 
-import dev.yn.playground.sql.context.SQLExecutor
-import dev.yn.playground.sql.context.SQLTaskContext
-import dev.yn.playground.sql.ext.query
-import dev.yn.playground.sql.ext.update
-import dev.yn.playground.task.Task
-import dev.yn.playground.task.andThen
+import dev.yn.playground.context.SQLTaskContext
+import dev.yn.playground.ex.query
+import dev.yn.playground.ex.update
+import dev.yn.playground.Task
+import dev.yn.playground.andThen
 import devyn.playground.sql.task.SQLTransactionTask
 import io.kotlintest.mock.mock
 import io.kotlintest.specs.StringSpec
@@ -13,7 +12,6 @@ import org.funktionale.option.Option
 import org.funktionale.option.getOrElse
 import org.funktionale.tries.Try
 import java.time.Instant
-import java.util.*
 
 class SQLTaskSpec: StringSpec() {
     data class UserSession(val sessionKey: String, val userId: String, val expiration: Instant)

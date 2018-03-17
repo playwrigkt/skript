@@ -7,10 +7,10 @@ import dev.yn.playground.chatrooom.models.*
 import dev.yn.playground.chatrooom.sql.query.*
 import dev.yn.playground.chatrooom.sql.update.*
 import dev.yn.playground.common.ApplicationContext
-import dev.yn.playground.sql.ext.query
-import dev.yn.playground.sql.ext.update
-import dev.yn.playground.task.Task
-import dev.yn.playground.task.andThen
+import dev.yn.playground.ex.query
+import dev.yn.playground.ex.update
+import dev.yn.playground.Task
+import dev.yn.playground.andThen
 import dev.yn.playground.user.models.UserError
 import org.funktionale.option.firstOption
 import org.funktionale.option.getOrElse

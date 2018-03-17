@@ -4,8 +4,8 @@ import dev.yn.playground.auth.AuthSession
 import dev.yn.playground.auth.context.UserSessionCache
 import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.sql.*
-import dev.yn.playground.sql.ext.query
-import dev.yn.playground.task.Task
+import dev.yn.playground.ex.query
+import dev.yn.playground.Task
 import dev.yn.playground.user.models.UserError
 import dev.yn.playground.user.sql.UserSQL
 import org.funktionale.tries.Try

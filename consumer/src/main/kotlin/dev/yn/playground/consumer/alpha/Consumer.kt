@@ -1,7 +1,7 @@
 package dev.yn.playground.consumer.alpha
 
-import dev.yn.playground.task.result.AsyncResult
-import dev.yn.playground.task.result.Result
+import dev.yn.playground.result.AsyncResult
+import dev.yn.playground.result.Result
 
 data class ConsumedMessage(val source: String, val body: ByteArray)
 

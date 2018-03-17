@@ -1,6 +1,8 @@
 package dev.yn.playground.task
 
-import dev.yn.playground.task.result.AsyncResult
+import dev.yn.playground.Task
+import dev.yn.playground.andThen
+import dev.yn.playground.result.AsyncResult
 import io.kotlintest.matchers.shouldBe
 import io.kotlintest.specs.StringSpec
 import org.funktionale.either.Either

@@ -1,7 +1,8 @@
 package dev.yn.playground.publisher
 
-import dev.yn.playground.task.Task
-import dev.yn.playground.task.result.AsyncResult
+import dev.yn.playground.context.PublishTaskContext
+import dev.yn.playground.Task
+import dev.yn.playground.result.AsyncResult
 
 sealed class PublishTask<I, O>: Task<I, O, PublishTaskContext<*>> {
 

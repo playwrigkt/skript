@@ -1,9 +1,9 @@
 package dev.yn.playground.sql
 
-import dev.yn.playground.sql.context.SQLTaskContext
-import dev.yn.playground.task.Task
-import dev.yn.playground.task.andThen
-import dev.yn.playground.task.result.AsyncResult
+import dev.yn.playground.context.SQLTaskContext
+import dev.yn.playground.Task
+import dev.yn.playground.andThen
+import dev.yn.playground.result.AsyncResult
 import org.funktionale.tries.Try
 
 fun <I, O, O2, C: SQLTaskContext<*>> Task<I, O, C>.query(mapping: SQLMapping<O, O2, SQLCommand.Query, SQLResult.Query>): Task<I, O2, C> =

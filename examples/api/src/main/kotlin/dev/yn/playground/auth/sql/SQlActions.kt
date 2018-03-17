@@ -5,7 +5,7 @@ import dev.yn.playground.auth.SessionAndInput
 import dev.yn.playground.auth.TokenAndInput
 import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.sql.*
-import dev.yn.playground.task.Task
+import dev.yn.playground.Task
 import dev.yn.playground.user.models.UserError
 import dev.yn.playground.user.sql.UserSQL
 import org.funktionale.tries.Try

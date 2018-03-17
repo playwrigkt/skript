@@ -7,9 +7,9 @@ import dev.yn.playground.chatrooom.models.ChatRoomUser
 import dev.yn.playground.chatrooom.sql.query.*
 import dev.yn.playground.chatrooom.sql.update.*
 import dev.yn.playground.common.ApplicationContext
-import dev.yn.playground.sql.ext.query
-import dev.yn.playground.sql.ext.update
-import dev.yn.playground.task.Task
+import dev.yn.playground.ex.query
+import dev.yn.playground.ex.update
+import dev.yn.playground.Task
 import org.funktionale.tries.Try
 
 object ChatRoomTransactions {
