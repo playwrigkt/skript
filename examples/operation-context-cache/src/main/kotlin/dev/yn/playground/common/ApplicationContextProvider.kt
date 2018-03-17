@@ -1,18 +1,11 @@
 package dev.yn.playground.common
 
-import dev.yn.playground.context.CacheContextProvider
-import dev.yn.playground.context.ContextProvider
-import dev.yn.playground.context.PublishTaskContext
-import dev.yn.playground.context.PublishTaskContextProvider
+import dev.yn.playground.Task
+import dev.yn.playground.context.*
 import dev.yn.playground.publisher.PublishTaskExecutor
-import dev.yn.playground.context.SerializeTaskContext
-import dev.yn.playground.context.SerializeTaskContextProvider
+import dev.yn.playground.result.AsyncResult
 import dev.yn.playground.serialize.SerializeTaskExecutor
 import dev.yn.playground.sql.SQLExecutor
-import dev.yn.playground.context.SQLTaskContextProvider
-import dev.yn.playground.context.SQLTaskContext
-import dev.yn.playground.Task
-import dev.yn.playground.result.AsyncResult
 
 class ApplicationContextProvider (
         val publishProvider: PublishTaskContextProvider<PublishTaskExecutor>,

@@ -1,32 +1,31 @@
 package  dev.yn.playground.user
 
+import dev.yn.playground.Task
 import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.common.ApplicationContextProvider
 import dev.yn.playground.consumer.alpha.ConsumedMessage
 import dev.yn.playground.consumer.alpha.ConsumerExecutorProvider
 import dev.yn.playground.consumer.alpha.Stream
 import dev.yn.playground.ex.deserialize
+import dev.yn.playground.result.AsyncResult
+import dev.yn.playground.result.Result
 import dev.yn.playground.sql.SQLCommand
 import dev.yn.playground.sql.SQLError
 import dev.yn.playground.sql.SQLStatement
-import dev.yn.playground.Task
-import dev.yn.playground.result.AsyncResult
-import dev.yn.playground.result.Result
 import dev.yn.playground.user.extensions.schema.dropUserSchema
 import dev.yn.playground.user.extensions.schema.initUserSchema
 import dev.yn.playground.user.extensions.transaction.deleteAllUsers
 import dev.yn.playground.user.models.*
-import io.kotlintest.matchers.shouldBe
-import io.kotlintest.specs.StringSpec
-import java.util.*
 import dev.yn.playground.user.sql.EnsureNoSessionExists
 import dev.yn.playground.user.sql.UserSQL
 import dev.yn.playground.user.sql.ValidatePasswordForUserId
 import io.kotlintest.Spec
 import io.kotlintest.matchers.fail
+import io.kotlintest.matchers.shouldBe
 import io.kotlintest.matchers.shouldNotBe
+import io.kotlintest.specs.StringSpec
 import org.slf4j.LoggerFactory
-
+import java.util.*
 
 
 abstract class UserServiceSpec : StringSpec() {

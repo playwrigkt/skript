@@ -1,9 +1,9 @@
 package dev.yn.playground.ex
 
-import dev.yn.playground.sql.*
-import dev.yn.playground.context.SQLTaskContext
 import dev.yn.playground.Task
 import dev.yn.playground.andThen
+import dev.yn.playground.context.SQLTaskContext
+import dev.yn.playground.sql.*
 
 fun <C: SQLTaskContext<*>> Task<Unit, Unit, C>.dropTableIfExists(tableName: String) =
         this.andThen(SQLTask.exec(SQLMapping.Companion.exec("DROP TABLE IF EXISTS $tableName")))

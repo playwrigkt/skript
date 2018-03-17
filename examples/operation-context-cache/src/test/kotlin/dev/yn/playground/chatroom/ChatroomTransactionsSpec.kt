@@ -10,12 +10,12 @@ import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.common.ApplicationContextProvider
 import dev.yn.playground.common.models.Reference
 import dev.yn.playground.result.AsyncResult
-import dev.yn.playground.user.models.UserError
 import dev.yn.playground.user.UserFixture
 import dev.yn.playground.user.UserService
-import dev.yn.playground.user.models.UserNameAndPassword
 import dev.yn.playground.user.extensions.schema.dropUserSchema
 import dev.yn.playground.user.extensions.schema.initUserSchema
+import dev.yn.playground.user.models.UserError
+import dev.yn.playground.user.models.UserNameAndPassword
 import devyn.playground.sql.task.SQLTransactionTask
 import io.kotlintest.Spec
 import io.kotlintest.matchers.fail

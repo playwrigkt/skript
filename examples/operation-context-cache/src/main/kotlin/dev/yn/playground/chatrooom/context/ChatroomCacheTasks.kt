@@ -1,10 +1,10 @@
 package dev.yn.playground.chatrooom.context
 
+import dev.yn.playground.Task
 import dev.yn.playground.chatrooom.models.ChatroomId
 import dev.yn.playground.chatrooom.sql.query.GetChatRoom
 import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.ex.query
-import dev.yn.playground.Task
 
 object ChatroomCacheTasks {
     fun <I: ChatroomId> hydrateExistingChatroom(): Task<I, I, ApplicationContext<ChatroomOperationCache>> =

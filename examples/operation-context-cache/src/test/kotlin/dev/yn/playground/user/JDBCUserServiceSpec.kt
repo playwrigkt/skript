@@ -7,18 +7,13 @@ import com.rabbitmq.client.ConnectionFactory
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import dev.yn.playground.amqp.AMQPManager
-import dev.yn.playground.consumer.alpha.AMQPConsumerExecutorProvider
-import dev.yn.playground.context.AMQPPublishTaskContextProvider
 import dev.yn.playground.common.ApplicationContextProvider
+import dev.yn.playground.consumer.alpha.AMQPConsumerExecutorProvider
 import dev.yn.playground.consumer.alpha.ConsumerExecutorProvider
-import dev.yn.playground.context.JDBCDataSourceTaskContextProvider
-import dev.yn.playground.context.PublishTaskContextProvider
+import dev.yn.playground.context.*
 import dev.yn.playground.publisher.PublishTaskExecutor
-import dev.yn.playground.context.SerializeTaskContextProvider
 import dev.yn.playground.serialize.SerializeTaskExecutor
-import dev.yn.playground.serialize.JacksonSerializeTaskContextProvider
 import dev.yn.playground.sql.SQLExecutor
-import dev.yn.playground.context.SQLTaskContextProvider
 
 class JDBCUserServiceSpec: UserServiceSpec() {
     companion object {

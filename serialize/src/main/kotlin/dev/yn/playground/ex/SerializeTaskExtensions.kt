@@ -1,9 +1,9 @@
 package dev.yn.playground.ex
 
-import dev.yn.playground.serialize.SerializeTask
-import dev.yn.playground.context.SerializeTaskContext
 import dev.yn.playground.Task
 import dev.yn.playground.andThen
+import dev.yn.playground.context.SerializeTaskContext
+import dev.yn.playground.serialize.SerializeTask
 
 
 fun <I, O, C: SerializeTaskContext<*>> Task<I, O, C>.serialize(): Task<I, ByteArray, C> =

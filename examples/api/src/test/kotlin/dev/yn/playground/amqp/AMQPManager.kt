@@ -1,12 +1,11 @@
 package dev.yn.playground.amqp
 
-import dev.yn.playground.user.userCreatedAddress
-import dev.yn.playground.user.userLoginAddress
-
 import com.rabbitmq.client.AMQP
 import com.rabbitmq.client.BuiltinExchangeType
 import com.rabbitmq.client.Connection
 import com.rabbitmq.client.ConnectionFactory
+import dev.yn.playground.user.userCreatedAddress
+import dev.yn.playground.user.userLoginAddress
 
 object AMQPManager {
     val amqpExchange = "events.ex"

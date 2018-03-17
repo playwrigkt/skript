@@ -1,10 +1,10 @@
 package dev.yn.playground.user.sql
 
+import dev.yn.playground.Task
 import dev.yn.playground.common.ApplicationContext
-import dev.yn.playground.sql.*
 import dev.yn.playground.ex.dropTableIfExists
 import dev.yn.playground.ex.exec
-import dev.yn.playground.Task
+import dev.yn.playground.sql.SQLMapping
 
 object UserSchema {
 

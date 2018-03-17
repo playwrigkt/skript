@@ -1,7 +1,7 @@
 package dev.yn.playground.user
 
-import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.Task
+import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.user.context.GetUserContext
 import dev.yn.playground.user.models.UserNameAndPassword
 import dev.yn.playground.user.models.UserProfile

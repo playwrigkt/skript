@@ -1,7 +1,7 @@
 package dev.yn.playground.serialize
 
-import dev.yn.playground.context.SerializeTaskContext
 import dev.yn.playground.Task
+import dev.yn.playground.context.SerializeTaskContext
 import dev.yn.playground.result.AsyncResult
 
 sealed class SerializeTask<I, O>: Task<I, O, SerializeTaskContext<*>> {

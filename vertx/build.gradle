@@ -5,4 +5,5 @@ dependencies {
     compile project(':sql')
     compile project(':publisher')
     compile project(':consumer')
+    compile project(':serialize')
 }

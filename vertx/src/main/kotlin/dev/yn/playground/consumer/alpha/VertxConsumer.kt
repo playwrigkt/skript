@@ -1,7 +1,7 @@
 package dev.yn.playground.consumer.alpha
 
-import dev.yn.playground.context.ContextProvider
 import dev.yn.playground.Task
+import dev.yn.playground.context.ContextProvider
 import dev.yn.playground.result.AsyncResult
 import dev.yn.playground.result.CompletableResult
 import dev.yn.playground.result.Result
