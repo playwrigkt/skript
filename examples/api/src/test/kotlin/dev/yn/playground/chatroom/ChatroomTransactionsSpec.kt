@@ -7,7 +7,7 @@ import dev.yn.playground.chatrooom.models.ChatRoomPermissionKey
 import dev.yn.playground.chatrooom.models.ChatRoomPermissions
 import dev.yn.playground.chatrooom.models.ChatRoomUser
 import dev.yn.playground.chatrooom.sql.ChatRoomSchema
-import dev.yn.playground.chatrooom.sql.ChatRoomTransactions
+import dev.yn.playground.chatrooom.ChatRoomTasks
 import dev.yn.playground.chatrooom.sql.query.authorizeChatroomSelectStatement
 import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.common.ApplicationContextProvider
@@ -33,15 +33,15 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
     val LOG = LoggerFactory.getLogger(this.javaClass)
 
     companion object {
-        val createChatRoom: Task<TokenAndInput<ChatRoom>, ChatRoom, ApplicationContext> = SQLTransactionTask.transaction(ChatRoomTransactions.createChatRoomTransaction)
-        val getChatRoom: Task<TokenAndInput<String>, ChatRoom, ApplicationContext> = SQLTransactionTask.transaction(ChatRoomTransactions.getChatRoomTransaction)
-        val addUser: Task<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationContext> = SQLTransactionTask.transaction(ChatRoomTransactions.addUserTransaction)
-        val deleteUser: Task<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationContext> = SQLTransactionTask.transaction(ChatRoomTransactions.removeUserTransaction)
-        val addPublicPermissions: Task<TokenAndInput<ChatRoomPermissions>, ChatRoom, ApplicationContext> = SQLTransactionTask.transaction(ChatRoomTransactions.addPermissions)
-        val removePublicPermissions: Task<TokenAndInput<ChatRoomPermissions>, ChatRoom, ApplicationContext> = SQLTransactionTask.transaction(ChatRoomTransactions.removePermissions)
-        val updateChatRoom: Task<TokenAndInput<ChatRoom>, ChatRoom, ApplicationContext> = SQLTransactionTask.transaction(ChatRoomTransactions.updateChatRoomTransaction)
-        val addUserPermission: Task<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationContext> = SQLTransactionTask.transaction(ChatRoomTransactions.addUserPermissions)
-        val removeUserPermission: Task<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationContext> = SQLTransactionTask.transaction(ChatRoomTransactions.removeUserPermissions)
+        val createChatRoom: Task<TokenAndInput<ChatRoom>, ChatRoom, ApplicationContext> = SQLTransactionTask.transaction(ChatRoomTasks.createChatRoomTransaction)
+        val getChatRoom: Task<TokenAndInput<String>, ChatRoom, ApplicationContext> = SQLTransactionTask.transaction(ChatRoomTasks.getChatRoomTransaction)
+        val addUser: Task<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationContext> = SQLTransactionTask.transaction(ChatRoomTasks.addUserTransaction)
+        val deleteUser: Task<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationContext> = SQLTransactionTask.transaction(ChatRoomTasks.removeUserTransaction)
+        val addPublicPermissions: Task<TokenAndInput<ChatRoomPermissions>, ChatRoom, ApplicationContext> = SQLTransactionTask.transaction(ChatRoomTasks.addPermissions)
+        val removePublicPermissions: Task<TokenAndInput<ChatRoomPermissions>, ChatRoom, ApplicationContext> = SQLTransactionTask.transaction(ChatRoomTasks.removePermissions)
+        val updateChatRoom: Task<TokenAndInput<ChatRoom>, ChatRoom, ApplicationContext> = SQLTransactionTask.transaction(ChatRoomTasks.updateChatRoomTransaction)
+        val addUserPermission: Task<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationContext> = SQLTransactionTask.transaction(ChatRoomTasks.addUserPermissions)
+        val removeUserPermission: Task<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationContext> = SQLTransactionTask.transaction(ChatRoomTasks.removeUserPermissions)
     }
 
     abstract fun provider(): ApplicationContextProvider

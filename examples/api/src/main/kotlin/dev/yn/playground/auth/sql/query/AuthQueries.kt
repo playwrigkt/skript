@@ -1,29 +1,27 @@
-package dev.yn.playground.auth.sql
+package dev.yn.playground.auth.sql.query
 
-import dev.yn.playground.Task
 import dev.yn.playground.auth.AuthSession
 import dev.yn.playground.auth.SessionAndInput
 import dev.yn.playground.auth.TokenAndInput
-import dev.yn.playground.common.ApplicationContext
-import dev.yn.playground.sql.*
+import dev.yn.playground.sql.SQLCommand
+import dev.yn.playground.sql.SQLMapping
+import dev.yn.playground.sql.SQLResult
+import dev.yn.playground.sql.SQLStatement
 import dev.yn.playground.user.models.UserError
 import dev.yn.playground.user.sql.UserSQL
 import org.funktionale.tries.Try
 import java.time.Instant
 
-object AuthSQLActions {
-    fun <T> validateAction() =
-            Task.identity<TokenAndInput<T>, ApplicationContext>()
-                    .query(SelectSessionByKey())
-
+object AuthQueries {
     class SelectSessionByKey<T>: SQLMapping<TokenAndInput<T>, SessionAndInput<T>, SQLCommand.Query, SQLResult.Query> {
         override fun mapResult(i: TokenAndInput<T>, rs: SQLResult.Query): Try<SessionAndInput<T>> =
                 Try { rs.result.next() }
-                        .map {SessionAndInput(
-                                AuthSession.User(
-                                        it.getString("user_id"),
-                                        it.getInstant("expiration")),
-                                i.input)
+                        .map {
+                            SessionAndInput(
+                                    AuthSession.User(
+                                            it.getString("user_id"),
+                                            it.getInstant("expiration")),
+                                    i.input)
 
                         }
                         .rescue { Try.Failure(UserError.AuthenticationFailed) }

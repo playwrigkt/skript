@@ -1,4 +1,4 @@
-package dev.yn.playground.chatrooom.sql
+package dev.yn.playground.chatrooom
 import dev.yn.playground.Task
 import dev.yn.playground.auth.TokenAndInput
 import dev.yn.playground.chatrooom.models.ChatRoom
@@ -12,7 +12,7 @@ import dev.yn.playground.ex.query
 import dev.yn.playground.ex.update
 import org.funktionale.tries.Try
 
-object ChatRoomTransactions {
+object ChatRoomTasks {
     private val onlyIfHasUsers: (ChatRoom) -> Try<ChatRoom> = { if(it.users.isEmpty()) Try.Failure(ChatRoomError.NoUsers) else { Try.Success(it) } }
 
     val addUserTransaction: Task<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationContext> =
