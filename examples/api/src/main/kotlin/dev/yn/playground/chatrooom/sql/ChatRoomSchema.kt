@@ -1,7 +1,6 @@
 package dev.yn.playground.chatrooom.sql
 
 import dev.yn.playground.common.ApplicationContext
-import dev.yn.playground.sql.SQLTask
 import dev.yn.playground.sql.SQLMapping
 import dev.yn.playground.sql.ext.dropTableIfExists
 import dev.yn.playground.sql.ext.exec

@@ -1,15 +1,10 @@
 package dev.yn.playground.chatrooom.sql.query
 
 import dev.yn.playground.chatrooom.models.ChatRoom
-import dev.yn.playground.chatrooom.models.ChatRoomError
 import dev.yn.playground.chatrooom.models.ChatRoomUser
 import dev.yn.playground.common.models.Reference
 import dev.yn.playground.sql.*
 import dev.yn.playground.user.models.UserProfile
-import io.vertx.core.json.JsonArray
-import io.vertx.core.json.JsonObject
-import io.vertx.ext.sql.ResultSet
-import org.funktionale.collections.tail
 import org.funktionale.tries.Try
 
 

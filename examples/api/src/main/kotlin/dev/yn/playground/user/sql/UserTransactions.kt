@@ -1,10 +1,11 @@
 package dev.yn.playground.user.sql
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.KotlinModule
 import dev.yn.playground.auth.TokenAndInput
 import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.publisher.PublishCommand
-import dev.yn.playground.publisher.PublishTask
-import dev.yn.playground.sql.SQLTask
 import dev.yn.playground.sql.ext.deleteAll
 import dev.yn.playground.sql.ext.query
 import dev.yn.playground.sql.ext.update
@@ -16,14 +17,16 @@ import java.util.*
 import dev.yn.playground.publisher.ex.*
 import dev.yn.playground.user.userCreatedAddress
 import dev.yn.playground.user.userLoginAddress
-import io.vertx.core.json.JsonObject
 
 object UserTransactions {
+    val objectMapper = ObjectMapper().registerModule(KotlinModule()).registerModule(JavaTimeModule())
+
     private val createNewSessionKey: (String) -> UserSession = { UserSession(UUID.randomUUID().toString(), it, Instant.now().plusSeconds(3600)) }
     private val publishUserCreateEvent: (UserProfile) -> PublishCommand.Publish =
-            { PublishCommand.Publish(userCreatedAddress, JsonObject.mapFrom(it).encode().toByteArray())}
+            { PublishCommand.Publish(userCreatedAddress, objectMapper.writeValueAsBytes(it))}
     private val publishUserLoginEvent: (UserSession) -> PublishCommand.Publish =
-            { PublishCommand.Publish(userLoginAddress, JsonObject.mapFrom(it).encode().toByteArray())}
+            { PublishCommand.Publish(userLoginAddress, objectMapper.writeValueAsBytes(it))}
+
 
     val createUserActionChain: Task<UserProfileAndPassword, UserProfile, ApplicationContext> =
             Task.identity<UserProfileAndPassword, ApplicationContext>()

@@ -4,7 +4,6 @@ import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.common.ApplicationContextProvider
 import dev.yn.playground.consumer.alpha.ConsumerExecutor
 import dev.yn.playground.consumer.alpha.ConsumerExecutorProvider
-import dev.yn.playground.vertx.alpha.consumer.VertxConsumerExecutor
 
 val userCreatedAddress = "user.updated"
 val userLoginAddress = "user.login"

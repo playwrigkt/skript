@@ -6,6 +6,7 @@ import com.rabbitmq.client.Connection
 import com.rabbitmq.client.ConnectionFactory
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import dev.yn.playground.amqp.AMQPManager
 import dev.yn.playground.amqp.alpha.consumer.AMQPConsumerExecutorProvider
 import dev.yn.playground.amqp.publisher.AMQPPublishTaskContextProvider
 import dev.yn.playground.common.ApplicationContextProvider
@@ -18,42 +19,13 @@ import dev.yn.playground.sql.context.SQLTaskContextProvider
 
 class JDBCUserServiceSpec: UserServiceSpec() {
     companion object {
-        fun initAMQPResources(connection: Connection) {
-            val channel = connection.createChannel()
-            val exchange = channel.exchangeDeclare(amqpExchange, BuiltinExchangeType.TOPIC)
-            val loginQueue = channel.queueDeclare(userLoginAddress, true, false, false, emptyMap())
-            val createQueue = channel.queueDeclare(userCreatedAddress, true, false, false, emptyMap())
-            channel.queueBind(userLoginAddress, amqpExchange, userLoginAddress)
-            channel.queueBind(userCreatedAddress, amqpExchange, userCreatedAddress)
-            channel.close()
-        }
 
-        fun destroyAMQPResources(connection: Connection) {
-            val channel = connection.createChannel()
-            channel.queueDelete(userLoginAddress)
-            channel.queueDelete(userCreatedAddress)
-            channel.exchangeDelete(amqpExchange)
-            channel.close()
-        }
-
-
-        val amqpExchange = "events.ex"
-        val basicProperties: AMQP.BasicProperties = AMQP.BasicProperties()
         val amqpConnectionFactory: ConnectionFactory by lazy {
-            val factory = ConnectionFactory()
-            factory.username = "rabbitmq"
-            factory.password = "rabbitmq"
-            factory.host = "localhost"
-            factory.port = 5672
-            factory.virtualHost = "/"
-            factory
+            AMQPManager.connectionFactory()
         }
 
         val amqpConnection by lazy {
-            val connection = amqpConnectionFactory.newConnection()
-            destroyAMQPResources(connection)
-            initAMQPResources(connection)
-            connection
+            AMQPManager.cleanConnection(amqpConnectionFactory)
         }
 
         val hikariDSConfig: HikariConfig by lazy {
@@ -68,7 +40,7 @@ class JDBCUserServiceSpec: UserServiceSpec() {
         }
         val hikariDataSource by lazy { HikariDataSource(hikariDSConfig) }
         val sqlConnectionProvider by lazy { JDBCDataSourceTaskContextProvider(hikariDataSource) as SQLTaskContextProvider<SQLExecutor> }
-        val publishContextProvider by lazy { AMQPPublishTaskContextProvider(amqpExchange, amqpConnection, basicProperties) as PublishTaskContextProvider<PublishTaskExecutor> }
+        val publishContextProvider by lazy { AMQPPublishTaskContextProvider(AMQPManager.amqpExchange, amqpConnection, AMQPManager.basicProperties) as PublishTaskContextProvider<PublishTaskExecutor> }
 
         val provider: ApplicationContextProvider by lazy {
             ApplicationContextProvider(publishContextProvider, sqlConnectionProvider)

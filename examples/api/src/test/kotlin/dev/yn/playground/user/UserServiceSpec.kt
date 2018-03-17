@@ -1,5 +1,8 @@
 package  dev.yn.playground.user
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.KotlinModule
 import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.common.ApplicationContextProvider
 import dev.yn.playground.consumer.alpha.ConsumedMessage
@@ -38,30 +41,19 @@ abstract class UserServiceSpec : StringSpec() {
 
     val userService: UserService = UserService(provider())
 
+    val objectMapper = ObjectMapper().registerModule(KotlinModule()).registerModule(JavaTimeModule())
     fun loginConsumer(): Stream<UserSession> {
         return awaitSucceededFuture(
                 userLoginConsumer(consumerExecutorProvider(), provider())
                         .stream(Task.identity<ConsumedMessage, ApplicationContext>()
-                                .map { JsonObject(String(it.body)) }
-                                .mapTry { Try {
-                                    UserSession(
-                                            it.getString("sessionKey"),
-                                            it.getString("userId"),
-                                            it.getInstant("expiration")) } }))!!
+                                .mapTry { Try { objectMapper.readValue(it.body, UserSession::class.java) } }))!!
     }
 
     fun createConsumer(): Stream<UserProfile> {
         return awaitSucceededFuture(
                 dev.yn.playground.user.userCreateConsumer(consumerExecutorProvider(), provider())
                         .stream(Task.identity<ConsumedMessage, ApplicationContext>()
-                                .map { JsonObject(String(it.body)) }
-                                .mapTry { Try {
-                                    UserProfile(
-                                            it.getString("id"),
-                                            it.getString("name"),
-                                            it.getBoolean("allowPublicMessage")
-                                    )
-                                } }))!!
+                                .mapTry { Try { objectMapper.readValue(it.body, UserProfile::class.java) } }))!!
     }
     override fun interceptSpec(context: Spec, spec: () -> Unit) {
         awaitSucceededFuture(provider().provideContext().flatMap{ it.dropUserSchema() })

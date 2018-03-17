@@ -42,7 +42,7 @@ class VertxUserServiceSpec: UserServiceSpec() {
         val sqlConnectionProvider by lazy { VertxSQLTaskContextProvider(sqlClient) as SQLTaskContextProvider<SQLExecutor> }
         val publishContextProvider by lazy { VertxPublishTaskContextProvider(vertx) as PublishTaskContextProvider<PublishTaskExecutor> }
         val provider: ApplicationContextProvider by lazy {
-            ApplicationContextProvider(publishContextProvider, sqlConnectionProvider, vertx)
+            ApplicationContextProvider(publishContextProvider, sqlConnectionProvider)
         }
 
         val consumerExecutorProvider = VertxConsumerExecutorProvider(vertx)

@@ -10,13 +10,10 @@ import dev.yn.playground.sql.context.SQLTaskContext
 import dev.yn.playground.task.Task
 import dev.yn.playground.task.result.AsyncResult
 import dev.yn.playground.user.models.UserSession
-import dev.yn.playground.vertx.task.VertxTaskContext
-import io.vertx.core.Vertx
 
 class ApplicationContextProvider(
         val publishProvider: PublishTaskContextProvider<PublishTaskExecutor>,
-        val sqlProvider: SQLTaskContextProvider<SQLExecutor>,
-        val vertx: Vertx//TODO this should be a ConsumerContextProvider<ConsumerExecutor>
+        val sqlProvider: SQLTaskContextProvider<SQLExecutor>
 ): ContextProvider<ApplicationContext> {
 
     private fun getPublishExecutor(): AsyncResult<PublishTaskExecutor> {
@@ -29,7 +26,7 @@ class ApplicationContextProvider(
         return getConnection()
                 .flatMap { sqlExecutor ->
                     getPublishExecutor().map { publishExecutor ->
-                        ApplicationContext(vertx, publishExecutor, sqlExecutor)
+                        ApplicationContext(publishExecutor, sqlExecutor)
                     }
                 }
     }
@@ -40,11 +37,9 @@ class ApplicationContextProvider(
     }
 }
 
-class ApplicationContext(private val vertx: Vertx, val publishTaskExecutor: PublishTaskExecutor, val sqlExecutor: SQLExecutor, val session: UserSession? = null):
+class ApplicationContext(val publishTaskExecutor: PublishTaskExecutor, val sqlExecutor: SQLExecutor, val session: UserSession? = null):
         PublishTaskContext<PublishTaskExecutor>,
-        SQLTaskContext<SQLExecutor>,
-        VertxTaskContext {
-    override fun getVertx(): Vertx = vertx
+        SQLTaskContext<SQLExecutor> {
     override fun getPublishExecutor(): PublishTaskExecutor = publishTaskExecutor
     override fun getSQLExecutor(): SQLExecutor = sqlExecutor
 }

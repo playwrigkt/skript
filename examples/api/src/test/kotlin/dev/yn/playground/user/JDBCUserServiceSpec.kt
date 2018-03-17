@@ -1,31 +1,28 @@
 package dev.yn.playground.user
 
+import com.rabbitmq.client.ConnectionFactory
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import dev.yn.playground.common.ApplicationContext
+import dev.yn.playground.amqp.AMQPManager
+import dev.yn.playground.amqp.alpha.consumer.AMQPConsumerExecutorProvider
+import dev.yn.playground.amqp.publisher.AMQPPublishTaskContextProvider
 import dev.yn.playground.common.ApplicationContextProvider
-import dev.yn.playground.consumer.alpha.ConsumedMessage
 import dev.yn.playground.consumer.alpha.ConsumerExecutorProvider
-import dev.yn.playground.consumer.alpha.Stream
 import dev.yn.playground.coroutine.sql.JDBCDataSourceTaskContextProvider
 import dev.yn.playground.publisher.PublishTaskContextProvider
 import dev.yn.playground.publisher.PublishTaskExecutor
 import dev.yn.playground.sql.context.SQLExecutor
 import dev.yn.playground.sql.context.SQLTaskContextProvider
-import dev.yn.playground.task.Task
-import dev.yn.playground.user.models.UserProfile
-import dev.yn.playground.user.models.UserSession
-import dev.yn.playground.vertx.alpha.consumer.VertxConsumerExecutorProvider
-import dev.yn.playground.vertx.publisher.VertxPublishTaskContextProvider
-import dev.yn.playground.vertx.task.VertxResult
-import io.vertx.core.Future
-import io.vertx.core.Vertx
-import io.vertx.core.json.JsonObject
-import org.funktionale.tries.Try
 
 class JDBCUserServiceSpec: UserServiceSpec() {
     companion object {
-        val vertx by lazy { Vertx.vertx() }
+        val amqpConnectionFactory: ConnectionFactory by lazy {
+            AMQPManager.connectionFactory()
+        }
+
+        val amqpConnection by lazy {
+            AMQPManager.cleanConnection(amqpConnectionFactory)
+        }
 
         val hikariDSConfig: HikariConfig by lazy {
             val config = HikariConfig()
@@ -41,21 +38,19 @@ class JDBCUserServiceSpec: UserServiceSpec() {
         val hikariDataSource by lazy { HikariDataSource(hikariDSConfig) }
 
         val sqlConnectionProvider by lazy { JDBCDataSourceTaskContextProvider(hikariDataSource) as SQLTaskContextProvider<SQLExecutor> }
-        val publishContextProvider by lazy { VertxPublishTaskContextProvider(vertx) as PublishTaskContextProvider<PublishTaskExecutor> }
+        val publishContextProvider by lazy { AMQPPublishTaskContextProvider(AMQPManager.amqpExchange, amqpConnection, AMQPManager.basicProperties) as PublishTaskContextProvider<PublishTaskExecutor> }
         val provider: ApplicationContextProvider by lazy {
-            ApplicationContextProvider(publishContextProvider, sqlConnectionProvider, vertx)
+            ApplicationContextProvider(publishContextProvider, sqlConnectionProvider)
         }
 
-        val consumerExecutorProvider = VertxConsumerExecutorProvider(vertx)
+        val consumerExecutorProvider: ConsumerExecutorProvider = AMQPConsumerExecutorProvider(amqpConnection)
     }
 
     override fun provider(): ApplicationContextProvider = provider
     override fun consumerExecutorProvider(): ConsumerExecutorProvider = consumerExecutorProvider
     override fun closeResources() {
         hikariDataSource.close()
-        val future = Future.future<Void>()
-        vertx.close(future.completer())
-        awaitSucceededFuture(VertxResult(future))
+        amqpConnection.close()
     }
 
 
