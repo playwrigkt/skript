@@ -1,6 +1,7 @@
-package dev.yn.playground.chatrooom.context
+package dev.yn.playground.chatrooom.cache
 
 import dev.yn.playground.Task
+import dev.yn.playground.chatrooom.context.ChatroomOperationCache
 import dev.yn.playground.chatrooom.models.ChatroomId
 import dev.yn.playground.chatrooom.sql.query.GetChatRoom
 import dev.yn.playground.common.ApplicationContext
