@@ -5,10 +5,6 @@ import dev.yn.playground.result.CompletableResult
 import org.funktionale.either.Either
 import org.funktionale.tries.Try
 
-fun <I, O, O2, C: CP, CP> Task<I, O, C>.andThen(task: Task<O, O2, CP>): Task<I, O2, C> {
-    return this.flatMap(Task.Wrapped<O, O2, C, CP>(task))
-}
-
 interface Task<in I, O, C> {
     fun run(i: I, context: C): AsyncResult<O>
 

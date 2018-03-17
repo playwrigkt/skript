@@ -1,7 +1,7 @@
 package dev.yn.playground.sql
 
 import dev.yn.playground.Task
-import dev.yn.playground.andThen
+import dev.yn.playground.ex.andThen
 import dev.yn.playground.context.SQLTaskContext
 import dev.yn.playground.ex.query
 import dev.yn.playground.ex.update

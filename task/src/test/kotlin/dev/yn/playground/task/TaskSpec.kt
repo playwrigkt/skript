@@ -1,7 +1,7 @@
 package dev.yn.playground.task
 
 import dev.yn.playground.Task
-import dev.yn.playground.andThen
+import dev.yn.playground.ex.andThen
 import dev.yn.playground.result.AsyncResult
 import io.kotlintest.matchers.shouldBe
 import io.kotlintest.specs.StringSpec

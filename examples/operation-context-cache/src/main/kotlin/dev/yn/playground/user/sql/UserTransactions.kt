@@ -1,7 +1,7 @@
 package dev.yn.playground.user.sql
 
 import dev.yn.playground.Task
-import dev.yn.playground.andThen
+import dev.yn.playground.ex.andThen
 import dev.yn.playground.auth.sql.AuthSQLActions
 import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.ex.*

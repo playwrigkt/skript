@@ -3,9 +3,12 @@ package dev.yn.playground.chatroom
 import dev.yn.playground.common.ApplicationContextProvider
 import dev.yn.playground.context.PublishTaskContextProvider
 import dev.yn.playground.context.SQLTaskContextProvider
+import dev.yn.playground.context.SerializeTaskContextProvider
+import dev.yn.playground.context.VertxSerializeTaskContextProvider
 import dev.yn.playground.publisher.PublishTaskExecutor
 import dev.yn.playground.publisher.VertxPublishTaskContextProvider
 import dev.yn.playground.result.VertxResult
+import dev.yn.playground.serialize.SerializeTaskExecutor
 import dev.yn.playground.sql.SQLExecutor
 import dev.yn.playground.sql.VertxSQLTaskContextProvider
 import io.vertx.core.Future
@@ -33,8 +36,9 @@ class VertxChatroomTransactionSpec: ChatroomTransactionsSpec() {
         }
         val sqlConnectionProvider = VertxSQLTaskContextProvider(sqlClient) as SQLTaskContextProvider<SQLExecutor>
         val publishContextProvider = VertxPublishTaskContextProvider(vertx) as PublishTaskContextProvider<PublishTaskExecutor>
+        val serializeContextProvider = VertxSerializeTaskContextProvider() as SerializeTaskContextProvider<SerializeTaskExecutor>
         val provider: ApplicationContextProvider by lazy {
-            ApplicationContextProvider(publishContextProvider, sqlConnectionProvider)
+            ApplicationContextProvider(publishContextProvider, sqlConnectionProvider, serializeContextProvider)
         }
     }
 
