@@ -7,7 +7,7 @@ sealed class SerializeCommand<T> {
     data class Deserialize<T>(val bytes: ByteArray, val clazz: Class<T>): SerializeCommand<T>()
 }
 
-interface SerializeTaskExecutor {
+interface SerializeSkriptExecutor {
     fun <T> serialize(command: SerializeCommand.Serialize<T>): AsyncResult<ByteArray>
     fun <T> deserialize(command: SerializeCommand.Deserialize<T>): AsyncResult<T>
 }

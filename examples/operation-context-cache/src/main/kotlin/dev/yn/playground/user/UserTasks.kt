@@ -1,7 +1,7 @@
 package dev.yn.playground.user
 
 import dev.yn.playground.Skript
-import dev.yn.playground.auth.AuthTasks
+import dev.yn.playground.auth.AuthSkripts
 import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.ex.*
 import dev.yn.playground.publisher.PublishCommand
@@ -14,7 +14,7 @@ import org.funktionale.tries.Try
 import java.time.Instant
 import java.util.*
 
-object UserTasks {
+object UserSkripts {
     private val createNewSessionKey: (String) -> UserSession = { UserSession(UUID.randomUUID().toString(), it, Instant.now().plusSeconds(3600)) }
 
     private val PUBLISH_USER_CREATE_EVENT: Skript<UserProfile, UserProfile, ApplicationContext<Unit>> =
@@ -54,7 +54,7 @@ object UserTasks {
 
 
     val GET_USER_SKRIPT: Skript<String, UserProfile, ApplicationContext<GetUserContext>> =
-            SQLTransactionSkript.autoCommit( AuthTasks.validate<String, GetUserContext>()
+            SQLTransactionSkript.autoCommit( AuthSkripts.validate<String, GetUserContext>()
                     .andThen(AUTHORIZE_USER)
                     .query(SelectUserProfileById)
             )

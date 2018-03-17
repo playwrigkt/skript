@@ -3,7 +3,7 @@ package dev.yn.playground.chatrooom.sql.query
 import dev.yn.playground.Skript
 import dev.yn.playground.auth.SessionAndInput
 import dev.yn.playground.auth.TokenAndInput
-import dev.yn.playground.auth.AuthTasks
+import dev.yn.playground.auth.AuthSkripts
 import dev.yn.playground.chatrooom.models.ChatRoom
 import dev.yn.playground.chatrooom.models.ChatRoomPermissionKey
 import dev.yn.playground.chatrooom.models.ChatRoomPermissions
@@ -17,7 +17,7 @@ import dev.yn.playground.user.models.UserError
 import org.funktionale.tries.Try
 
 fun <T> authenticate(): Skript<TokenAndInput<T>, SessionAndInput<T>, ApplicationContext> {
-    return AuthTasks.validateAction()
+    return AuthSkripts.validateAction()
 }
 
 fun authorizeChatroomSelectStatement(chatRoomId: String, userId: String, permissionKey: String): SQLStatement.Parameterized {

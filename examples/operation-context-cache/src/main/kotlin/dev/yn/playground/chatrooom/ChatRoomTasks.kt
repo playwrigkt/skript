@@ -2,8 +2,8 @@ package dev.yn.playground.chatrooom
 import dev.yn.playground.Skript
 import dev.yn.playground.ex.andThen
 import dev.yn.playground.auth.context.UserSessionCache
-import dev.yn.playground.auth.AuthTasks
-import dev.yn.playground.chatrooom.cache.ChatroomCacheTasks
+import dev.yn.playground.auth.AuthSkripts
+import dev.yn.playground.chatrooom.cache.ChatroomCacheSkripts
 import dev.yn.playground.chatrooom.context.ChatroomOperationCache
 import dev.yn.playground.chatrooom.models.*
 import dev.yn.playground.chatrooom.sql.query.GetChatRoom
@@ -18,31 +18,31 @@ import org.funktionale.option.getOrElse
 import org.funktionale.option.orElse
 import org.funktionale.tries.Try
 
-object ChatRoomTasks {
+object ChatRoomSkripts {
     private val onlyIfHasUsers: (ChatRoom) -> Try<ChatRoom> = { if(it.users.isEmpty()) Try.Failure(ChatRoomError.NoUsers) else { Try.Success(it) } }
 
     val ADD_USER_SKRIPT: Skript<ChatRoomUser, ChatRoom, ApplicationContext<ChatroomOperationCache>> =
             SQLTransactionSkript.transaction(
-                    AuthTasks
+                    AuthSkripts
                             .validate<ChatRoomUser, ChatroomOperationCache>()
-                            .andThen(ChatroomCacheTasks.hydrateExistingChatroom<ChatRoomUser>())
+                            .andThen(ChatroomCacheSkripts.hydrateExistingChatroom<ChatRoomUser>())
                             .andThen(authorizeUser(ChatRoomPermissionKey.AddUser))
                             .update(InsertChatRoomUserPermissions)
                             .map { it.chatroom.id }
                             .query(GetChatRoom))
     val REMOVE_USER_SKRIPT: Skript<ChatRoomUser, ChatRoom, ApplicationContext<ChatroomOperationCache>> =
             SQLTransactionSkript.transaction(
-                    AuthTasks
+                    AuthSkripts
                             .validate<ChatRoomUser, ChatroomOperationCache>()
-                            .andThen(ChatroomCacheTasks.hydrateExistingChatroom<ChatRoomUser>())
+                            .andThen(ChatroomCacheSkripts.hydrateExistingChatroom<ChatRoomUser>())
                             .andThen(authorizeUser(ChatRoomPermissionKey.RemoveUser))
                             .update(DeleteChatRoomUserPermissions)
                             .map { it.chatroom.id }
                             .query(GetChatRoom))
     val ADD_USER_PERMISSIONS_SKRIPT: Skript<ChatRoomUser, ChatRoom, ApplicationContext<ChatroomOperationCache>> =
             SQLTransactionSkript.transaction(
-                    AuthTasks.validate<ChatRoomUser, ChatroomOperationCache>()
-                            .andThen(ChatroomCacheTasks.hydrateExistingChatroom<ChatRoomUser>())
+                    AuthSkripts.validate<ChatRoomUser, ChatroomOperationCache>()
+                            .andThen(ChatroomCacheSkripts.hydrateExistingChatroom<ChatRoomUser>())
                             .andThen(authorizeUser(ChatRoomPermissionKey.AddUserPermission))
                             .update(InsertChatRoomUserPermissions)
                             .map { it.chatroom.id }
@@ -50,8 +50,8 @@ object ChatRoomTasks {
 
     val REMOVE_USER_PERMISSIONS_SKRIPT: Skript<ChatRoomUser, ChatRoom, ApplicationContext<ChatroomOperationCache>> =
             SQLTransactionSkript.transaction(
-                    AuthTasks.validate<ChatRoomUser, ChatroomOperationCache>()
-                            .andThen(ChatroomCacheTasks.hydrateExistingChatroom<ChatRoomUser>())
+                    AuthSkripts.validate<ChatRoomUser, ChatroomOperationCache>()
+                            .andThen(ChatroomCacheSkripts.hydrateExistingChatroom<ChatRoomUser>())
                             .andThen(authorizeUser(ChatRoomPermissionKey.RemoveUserPermission))
                             .update(DeleteChatRoomUserPermissions)
                             .map { it.chatroom.id }
@@ -59,15 +59,15 @@ object ChatRoomTasks {
 
     val ADD_PUBLIC_PERMISSION_SKRIPT: Skript<ChatRoomPermissions, ChatRoom, ApplicationContext<ChatroomOperationCache>> =
             SQLTransactionSkript.transaction(
-                    AuthTasks.validate<ChatRoomPermissions, ChatroomOperationCache>()
-                            .andThen(ChatroomCacheTasks.hydrateExistingChatroom<ChatRoomPermissions>())
+                    AuthSkripts.validate<ChatRoomPermissions, ChatroomOperationCache>()
+                            .andThen(ChatroomCacheSkripts.hydrateExistingChatroom<ChatRoomPermissions>())
                             .andThen(authorizeUser(ChatRoomPermissionKey.AddPublicPermission))
                             .update(AddChatRoomPermissions)
                             .map { it.chatroom.id }
                             .query(GetChatRoom))
     val REMOVE_PUBLIC_PERMISSION_SKRIPT: Skript<ChatRoomPermissions, ChatRoom, ApplicationContext<ChatroomOperationCache>> =
-            SQLTransactionSkript.transaction(AuthTasks.validate<ChatRoomPermissions, ChatroomOperationCache>()
-                    .andThen(ChatroomCacheTasks.hydrateExistingChatroom<ChatRoomPermissions>())
+            SQLTransactionSkript.transaction(AuthSkripts.validate<ChatRoomPermissions, ChatroomOperationCache>()
+                    .andThen(ChatroomCacheSkripts.hydrateExistingChatroom<ChatRoomPermissions>())
                     .andThen(authorizeUser(ChatRoomPermissionKey.RemovePublicPermission))
                     .update(DeleteChatRoomPermissions)
                     .map { it.chatroom.id }
@@ -75,7 +75,7 @@ object ChatRoomTasks {
 
     val CREATE_CHAT_ROOM_SKRIPT: Skript<ChatRoom, ChatRoom, ApplicationContext<UserSessionCache>> =
             SQLTransactionSkript.transaction(
-                    AuthTasks.validate<ChatRoom, UserSessionCache>()
+                    AuthSkripts.validate<ChatRoom, UserSessionCache>()
                             .mapTry(onlyIfHasUsers)
                             .update(InsertChatRoom)
                             .update(InsertChatRoomUsers)
@@ -83,16 +83,16 @@ object ChatRoomTasks {
 
     val UPDATE_CHAT_ROOM_SKRIPT: Skript<ChatRoom, ChatRoom, ApplicationContext<ChatroomOperationCache>> =
             SQLTransactionSkript.transaction(
-                    AuthTasks.validate<ChatRoom, ChatroomOperationCache>()
-                            .andThen(ChatroomCacheTasks.hydrateExistingChatroom<ChatRoom>())
+                    AuthSkripts.validate<ChatRoom, ChatroomOperationCache>()
+                            .andThen(ChatroomCacheSkripts.hydrateExistingChatroom<ChatRoom>())
                             .andThen(authorizeUser(ChatRoomPermissionKey.Update))
                             .update(UpdateChatRoomFields)
                             .map { it.id }
                             .query(GetChatRoom))
     val GET_CHATROOM_SKRIPT: Skript<String, ChatRoom, ApplicationContext<ChatroomOperationCache>> =
             SQLTransactionSkript.transaction(
-                    AuthTasks.validate<String, ChatroomOperationCache>()
-                            .andThen(ChatroomCacheTasks.hydrateExistingChatroomById())
+                    AuthSkripts.validate<String, ChatroomOperationCache>()
+                            .andThen(ChatroomCacheSkripts.hydrateExistingChatroomById())
                             .andThen(authorizeUser(ChatRoomPermissionKey.Get))
                             .mapTryWithContext(this::loadUserFromCache))
 

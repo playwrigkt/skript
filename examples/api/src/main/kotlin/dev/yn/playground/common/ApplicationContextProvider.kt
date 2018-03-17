@@ -2,18 +2,18 @@ package dev.yn.playground.common
 
 import dev.yn.playground.Skript
 import dev.yn.playground.context.*
-import dev.yn.playground.publisher.PublishTaskExecutor
+import dev.yn.playground.publisher.PublishSkriptExecutor
 import dev.yn.playground.result.AsyncResult
-import dev.yn.playground.serialize.SerializeTaskExecutor
+import dev.yn.playground.serialize.SerializeSkriptExecutor
 import dev.yn.playground.sql.SQLExecutor
 
 class ApplicationContextProvider(
-        val publishProvider: PublishTaskContextProvider<PublishTaskExecutor>,
-        val sqlProvider: SQLTaskContextProvider<SQLExecutor>,
-        val serializeProvider: SerializeTaskContextProvider<SerializeTaskExecutor>
+        val publishProvider: PublishSkriptContextProvider<PublishSkriptExecutor>,
+        val sqlProvider: SQLSkriptContextProvider<SQLExecutor>,
+        val serializeProvider: SerializeSkriptContextProvider<SerializeSkriptExecutor>
 ): ContextProvider<ApplicationContext> {
 
-    private fun getPublishExecutor(): AsyncResult<PublishTaskExecutor> {
+    private fun getPublishExecutor(): AsyncResult<PublishSkriptExecutor> {
         return publishProvider.getPublishExecutor()
     }
 
@@ -23,7 +23,7 @@ class ApplicationContextProvider(
         return getConnection()
                 .flatMap { sqlExecutor ->
                     getPublishExecutor().flatMap { publishExecutor ->
-                        serializeProvider.getSerializeTaskExecutor().map { serializeExecutor ->
+                        serializeProvider.getSerializeSkriptExecutor().map { serializeExecutor ->
                             ApplicationContext(publishExecutor, sqlExecutor, serializeExecutor)
                         }
                     }
@@ -36,11 +36,11 @@ class ApplicationContextProvider(
     }
 }
 
-class ApplicationContext(val publishTaskExecutor: PublishTaskExecutor, val sqlExecutor: SQLExecutor, val serializeExecutor: SerializeTaskExecutor):
-        PublishTaskContext<PublishTaskExecutor>,
-        SQLTaskContext<SQLExecutor>,
-        SerializeTaskContext<SerializeTaskExecutor>{
-    override fun getPublishExecutor(): PublishTaskExecutor = publishTaskExecutor
-    override fun getSerializeTaskExecutor(): SerializeTaskExecutor = serializeExecutor
+class ApplicationContext(val publishSkriptExecutor: PublishSkriptExecutor, val sqlExecutor: SQLExecutor, val serializeExecutor: SerializeSkriptExecutor):
+        PublishSkriptContext<PublishSkriptExecutor>,
+        SQLSkriptContext<SQLExecutor>,
+        SerializeSkriptContext<SerializeSkriptExecutor>{
+    override fun getPublishExecutor(): PublishSkriptExecutor = publishSkriptExecutor
+    override fun getSerializeSkriptExecutor(): SerializeSkriptExecutor = serializeExecutor
     override fun getSQLExecutor(): SQLExecutor = sqlExecutor
 }

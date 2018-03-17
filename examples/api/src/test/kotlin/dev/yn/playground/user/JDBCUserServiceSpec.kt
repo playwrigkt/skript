@@ -8,8 +8,8 @@ import dev.yn.playground.common.ApplicationContextProvider
 import dev.yn.playground.consumer.alpha.AMQPConsumerExecutorProvider
 import dev.yn.playground.consumer.alpha.ConsumerExecutorProvider
 import dev.yn.playground.context.*
-import dev.yn.playground.publisher.PublishTaskExecutor
-import dev.yn.playground.serialize.SerializeTaskExecutor
+import dev.yn.playground.publisher.PublishSkriptExecutor
+import dev.yn.playground.serialize.SerializeSkriptExecutor
 import dev.yn.playground.sql.SQLExecutor
 
 class JDBCUserServiceSpec: UserServiceSpec() {
@@ -35,9 +35,9 @@ class JDBCUserServiceSpec: UserServiceSpec() {
 
         val hikariDataSource by lazy { HikariDataSource(hikariDSConfig) }
 
-        val sqlConnectionProvider by lazy { JDBCDataSourceTaskContextProvider(hikariDataSource) as SQLTaskContextProvider<SQLExecutor> }
-        val publishContextProvider by lazy { AMQPPublishTaskContextProvider(AMQPManager.amqpExchange, amqpConnection, AMQPManager.basicProperties) as PublishTaskContextProvider<PublishTaskExecutor> }
-        val serializeContextProvider = JacksonSerializeTaskContextProvider() as SerializeTaskContextProvider<SerializeTaskExecutor>
+        val sqlConnectionProvider by lazy { JDBCDataSourceSkriptContextProvider(hikariDataSource) as SQLSkriptContextProvider<SQLExecutor> }
+        val publishContextProvider by lazy { AMQPPublishSkriptContextProvider(AMQPManager.amqpExchange, amqpConnection, AMQPManager.basicProperties) as PublishSkriptContextProvider<PublishSkriptExecutor> }
+        val serializeContextProvider = JacksonSerializeSkriptContextProvider() as SerializeSkriptContextProvider<SerializeSkriptExecutor>
 
         val provider: ApplicationContextProvider by lazy {
             ApplicationContextProvider(publishContextProvider, sqlConnectionProvider, serializeContextProvider)

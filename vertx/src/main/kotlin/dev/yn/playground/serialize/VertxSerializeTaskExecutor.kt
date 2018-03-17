@@ -7,7 +7,7 @@ import io.vertx.core.buffer.Buffer
 import io.vertx.core.json.Json
 import org.funktionale.tries.Try
 
-class VertxSerializeTaskExecutor(val objectMapper: ObjectMapper): SerializeTaskExecutor {
+class VertxSerializeSkriptExecutor(val objectMapper: ObjectMapper): SerializeSkriptExecutor {
     init {
         Json.mapper = objectMapper
     }

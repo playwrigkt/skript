@@ -48,7 +48,7 @@ interface Skript<in I, O, C> {
         }
     }
     /**
-     * A link that contains two tasks that have been chained together.  A chain is essentially a single linked list of tasks.
+     * A link that contains two skripts that have been chained together.  A chain is essentially a single linked list of skripts.
      */
     data class SkriptLink<I, J, O, C>(val head: Skript<I, J, C>, val tail: Skript<J, O, C>): Skript<I, O, C> {
         override fun run(i: I, context: C): AsyncResult<O> {

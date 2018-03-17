@@ -9,25 +9,25 @@ import org.funktionale.either.Either
 class SkriptSpec : StringSpec() {
     init {
         "a skript can have no context" {
-            val task = Skript.map<Int, String, Unit> { it.toString() }
-            task.run(10, Unit) shouldBe AsyncResult.succeeded("10")
+            val skript = Skript.map<Int, String, Unit> { it.toString() }
+            skript.run(10, Unit) shouldBe AsyncResult.succeeded("10")
         }
 
         "a skript can be chained" {
-            val task = Skript
+            val skript = Skript
                     .map<Int, String, Unit> { it.toString() }
                     .map { it.toLong() * 2 }
-            task.run(10, Unit) shouldBe AsyncResult.succeeded(20L)
+            skript.run(10, Unit) shouldBe AsyncResult.succeeded(20L)
         }
 
         "a skript context can provide properties" {
             data class Config(val appName: String)
             data class ConfigContext(val config: Config)
 
-            val task =
+            val skript =
                     Skript.map<Int, String, ConfigContext>{ it.toString() }
                             .mapWithContext { i, c -> "Application ${c.config.appName} received $i" }
-            task.run(10, ConfigContext(Config("Example"))) shouldBe AsyncResult.succeeded("Application Example received 10")
+            skript.run(10, ConfigContext(Config("Example"))) shouldBe AsyncResult.succeeded("Application Example received 10")
         }
 
         "A skript can branch based on the result of a skript" {
@@ -41,12 +41,12 @@ class SkriptSpec : StringSpec() {
                 }
             }
 
-            val task = Skript.branch(rightIfGreaterThanTen)
+            val skript = Skript.branch(rightIfGreaterThanTen)
                     .left(double)
                     .right(half)
 
-            task.run(5, Unit) shouldBe AsyncResult.succeeded(10)
-            task.run(16, Unit) shouldBe AsyncResult.succeeded(8)
+            skript.run(5, Unit) shouldBe AsyncResult.succeeded(10)
+            skript.run(16, Unit) shouldBe AsyncResult.succeeded(8)
         }
 
         "A skript can transform and branch based on the result of a skript" {
@@ -62,12 +62,12 @@ class SkriptSpec : StringSpec() {
                 }
             }
 
-            val task = Skript.branch(rightIfGreaterThanTen)
+            val skript = Skript.branch(rightIfGreaterThanTen)
                     .left(double.andThen(toLong()))
                     .right(stringLength.andThen(toLong()))
 
-            task.run(5, Unit) shouldBe AsyncResult.succeeded(10L)
-            task.run(16, Unit) shouldBe AsyncResult.succeeded(2L)
+            skript.run(5, Unit) shouldBe AsyncResult.succeeded(10L)
+            skript.run(16, Unit) shouldBe AsyncResult.succeeded(2L)
         }
     }
 }

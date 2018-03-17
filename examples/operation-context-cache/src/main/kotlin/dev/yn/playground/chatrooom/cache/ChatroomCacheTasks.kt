@@ -7,7 +7,7 @@ import dev.yn.playground.chatrooom.sql.query.GetChatRoom
 import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.ex.query
 
-object ChatroomCacheTasks {
+object ChatroomCacheSkripts {
     fun <I: ChatroomId> hydrateExistingChatroom(): Skript<I, I, ApplicationContext<ChatroomOperationCache>> =
             Skript.updateContext(
                     Skript.identity<I, ApplicationContext<ChatroomOperationCache>>()

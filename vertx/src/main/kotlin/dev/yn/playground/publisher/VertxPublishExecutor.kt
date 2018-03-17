@@ -5,7 +5,7 @@ import io.vertx.core.buffer.Buffer
 import io.vertx.core.eventbus.EventBus
 import org.funktionale.tries.Try
 
-class VertxPublishExecutor(val eventBus: EventBus): PublishTaskExecutor {
+class VertxPublishExecutor(val eventBus: EventBus): PublishSkriptExecutor {
     override fun publish(command: PublishCommand.Publish): AsyncResult<Unit> {
         val publishResult = Try { eventBus.publish(command.target, Buffer.buffer(command.body)) }
         return when(publishResult) {

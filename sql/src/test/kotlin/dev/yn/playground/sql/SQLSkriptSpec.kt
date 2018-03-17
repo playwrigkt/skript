@@ -2,7 +2,7 @@ package dev.yn.playground.sql
 
 import dev.yn.playground.Skript
 import dev.yn.playground.ex.andThen
-import dev.yn.playground.context.SQLTaskContext
+import dev.yn.playground.context.SQLSkriptContext
 import dev.yn.playground.ex.query
 import dev.yn.playground.ex.update
 import dev.yn.playground.sql.transaction.SQLTransactionSkript
@@ -19,7 +19,7 @@ class SQLSkriptSpec : StringSpec() {
 
 
     data class ApplicationContext<R>(val sqlExecutor: SQLExecutor, val cache: R):
-            SQLTaskContext<SQLExecutor>,
+            SQLSkriptContext<SQLExecutor>,
             OperationCache<R> {
         override fun getOperationCache(): R = cache
 

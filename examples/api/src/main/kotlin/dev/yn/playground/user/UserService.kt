@@ -10,11 +10,11 @@ import dev.yn.playground.user.models.UserSession
 
 class UserService(val provider: ApplicationContextProvider) {
     fun createUser(userProfile: UserProfileAndPassword): AsyncResult<UserProfile> =
-            provider.runOnContext(UserTasks.UNPREPARED_CREATE_SKRIPT, userProfile)
+            provider.runOnContext(UserSkripts.UNPREPARED_CREATE_SKRIPT, userProfile)
 
     fun loginUser(userNameAndPassword: UserNameAndPassword): AsyncResult<UserSession> =
-            provider.runOnContext(UserTasks.UNPREPARED_LOGIN_SKRIPT, userNameAndPassword)
+            provider.runOnContext(UserSkripts.UNPREPARED_LOGIN_SKRIPT, userNameAndPassword)
 
     fun getUser(userId: String, token: String): AsyncResult<UserProfile> =
-            provider.runOnContext(UserTasks.UNPREPARED_GET_SKRIPT, TokenAndInput(token, userId))
+            provider.runOnContext(UserSkripts.UNPREPARED_GET_SKRIPT, TokenAndInput(token, userId))
 }

@@ -7,7 +7,7 @@ import dev.yn.playground.chatrooom.models.ChatRoomPermissionKey
 import dev.yn.playground.chatrooom.models.ChatRoomPermissions
 import dev.yn.playground.chatrooom.models.ChatRoomUser
 import dev.yn.playground.chatrooom.sql.ChatRoomSchema
-import dev.yn.playground.chatrooom.ChatRoomTasks
+import dev.yn.playground.chatrooom.ChatRoomSkripts
 import dev.yn.playground.chatrooom.sql.query.authorizeChatroomSelectStatement
 import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.common.ApplicationContextProvider
@@ -33,15 +33,15 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
     val LOG = LoggerFactory.getLogger(this.javaClass)
 
     companion object {
-        val CREATE_CHAT_ROOM: Skript<TokenAndInput<ChatRoom>, ChatRoom, ApplicationContext> = SQLTransactionSkript.transaction(ChatRoomTasks.CREATE_CHAT_ROOM_TRANSACTION)
-        val GET_CHAT_ROOM: Skript<TokenAndInput<String>, ChatRoom, ApplicationContext> = SQLTransactionSkript.transaction(ChatRoomTasks.GET_CHAT_ROOM_TRANSACTION)
-        val ADD_USER: Skript<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationContext> = SQLTransactionSkript.transaction(ChatRoomTasks.ADD_USER_TRANSACTION)
-        val DELETE_USER: Skript<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationContext> = SQLTransactionSkript.transaction(ChatRoomTasks.REMOVE_USER_TRANSACTION)
-        val ADD_PUBLIC_PERMISSIONS: Skript<TokenAndInput<ChatRoomPermissions>, ChatRoom, ApplicationContext> = SQLTransactionSkript.transaction(ChatRoomTasks.ADD_PERMISSIONS)
-        val REMOVE_PUBLIC_PERMISSIONS: Skript<TokenAndInput<ChatRoomPermissions>, ChatRoom, ApplicationContext> = SQLTransactionSkript.transaction(ChatRoomTasks.REMOVE_PERMISSIONS)
-        val UPDATE_CHAT_ROOM: Skript<TokenAndInput<ChatRoom>, ChatRoom, ApplicationContext> = SQLTransactionSkript.transaction(ChatRoomTasks.UPDATE_CHAT_ROOM_TRANSACTION)
-        val ADD_USER_PERMISSION: Skript<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationContext> = SQLTransactionSkript.transaction(ChatRoomTasks.ADD_USER_PERMISSIONS)
-        val REMOVE_USER_PERMISSION: Skript<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationContext> = SQLTransactionSkript.transaction(ChatRoomTasks.REMOVE_USER_PERMISSIONS)
+        val CREATE_CHAT_ROOM: Skript<TokenAndInput<ChatRoom>, ChatRoom, ApplicationContext> = SQLTransactionSkript.transaction(ChatRoomSkripts.CREATE_CHAT_ROOM_TRANSACTION)
+        val GET_CHAT_ROOM: Skript<TokenAndInput<String>, ChatRoom, ApplicationContext> = SQLTransactionSkript.transaction(ChatRoomSkripts.GET_CHAT_ROOM_TRANSACTION)
+        val ADD_USER: Skript<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationContext> = SQLTransactionSkript.transaction(ChatRoomSkripts.ADD_USER_TRANSACTION)
+        val DELETE_USER: Skript<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationContext> = SQLTransactionSkript.transaction(ChatRoomSkripts.REMOVE_USER_TRANSACTION)
+        val ADD_PUBLIC_PERMISSIONS: Skript<TokenAndInput<ChatRoomPermissions>, ChatRoom, ApplicationContext> = SQLTransactionSkript.transaction(ChatRoomSkripts.ADD_PERMISSIONS)
+        val REMOVE_PUBLIC_PERMISSIONS: Skript<TokenAndInput<ChatRoomPermissions>, ChatRoom, ApplicationContext> = SQLTransactionSkript.transaction(ChatRoomSkripts.REMOVE_PERMISSIONS)
+        val UPDATE_CHAT_ROOM: Skript<TokenAndInput<ChatRoom>, ChatRoom, ApplicationContext> = SQLTransactionSkript.transaction(ChatRoomSkripts.UPDATE_CHAT_ROOM_TRANSACTION)
+        val ADD_USER_PERMISSION: Skript<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationContext> = SQLTransactionSkript.transaction(ChatRoomSkripts.ADD_USER_PERMISSIONS)
+        val REMOVE_USER_PERMISSION: Skript<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationContext> = SQLTransactionSkript.transaction(ChatRoomSkripts.REMOVE_USER_PERMISSIONS)
     }
 
     abstract fun provider(): ApplicationContextProvider

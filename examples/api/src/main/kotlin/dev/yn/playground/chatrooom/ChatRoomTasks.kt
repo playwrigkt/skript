@@ -12,7 +12,7 @@ import dev.yn.playground.ex.query
 import dev.yn.playground.ex.update
 import org.funktionale.tries.Try
 
-object ChatRoomTasks {
+object ChatRoomSkripts {
     private val onlyIfHasUsers: (ChatRoom) -> Try<ChatRoom> = { if(it.users.isEmpty()) Try.Failure(ChatRoomError.NoUsers) else { Try.Success(it) } }
 
     val ADD_USER_TRANSACTION: Skript<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationContext> =

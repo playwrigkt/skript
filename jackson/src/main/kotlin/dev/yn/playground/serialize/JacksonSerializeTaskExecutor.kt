@@ -5,7 +5,7 @@ import dev.yn.playground.result.AsyncResult
 import dev.yn.playground.result.toAsyncResult
 import org.funktionale.tries.Try
 
-class JacksonSerializeTaskExecutor(val mapper: ObjectMapper): SerializeTaskExecutor {
+class JacksonSerializeSkriptExecutor(val mapper: ObjectMapper): SerializeSkriptExecutor {
 
     
     override fun <T> serialize(command: SerializeCommand.Serialize<T>): AsyncResult<ByteArray> {

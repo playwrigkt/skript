@@ -6,7 +6,7 @@ import dev.yn.playground.auth.sql.query.AuthQueries
 import dev.yn.playground.common.ApplicationContext
 import dev.yn.playground.ex.query
 
-object AuthTasks {
+object AuthSkripts {
     fun <T, R: UserSessionCache> validate(): Skript<T, T, ApplicationContext<R>> =
             Skript.updateContext(
                     Skript.identity<T, ApplicationContext<R>>()

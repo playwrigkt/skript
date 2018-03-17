@@ -9,8 +9,8 @@ import com.zaxxer.hikari.HikariDataSource
 import dev.yn.playground.amqp.AMQPManager
 import dev.yn.playground.common.ApplicationContextProvider
 import dev.yn.playground.context.*
-import dev.yn.playground.publisher.PublishTaskExecutor
-import dev.yn.playground.serialize.SerializeTaskExecutor
+import dev.yn.playground.publisher.PublishSkriptExecutor
+import dev.yn.playground.serialize.SerializeSkriptExecutor
 import dev.yn.playground.sql.SQLExecutor
 import dev.yn.playground.user.JDBCUserServiceSpec
 
@@ -38,9 +38,9 @@ class JDBCChatroomTransactionSpec: ChatroomTransactionsSpec() {
         }
 
         val hikariDataSource = HikariDataSource(hikariDSConfig)
-        val sqlConnectionProvider = JDBCDataSourceTaskContextProvider(hikariDataSource) as SQLTaskContextProvider<SQLExecutor>
-        val publishContextProvider by lazy { AMQPPublishTaskContextProvider(AMQPManager.amqpExchange, JDBCUserServiceSpec.amqpConnection, AMQPManager.basicProperties) as PublishTaskContextProvider<PublishTaskExecutor> }
-        val serializeContextProvider = JacksonSerializeTaskContextProvider(objectMapper) as SerializeTaskContextProvider<SerializeTaskExecutor>
+        val sqlConnectionProvider = JDBCDataSourceSkriptContextProvider(hikariDataSource) as SQLSkriptContextProvider<SQLExecutor>
+        val publishContextProvider by lazy { AMQPPublishSkriptContextProvider(AMQPManager.amqpExchange, JDBCUserServiceSpec.amqpConnection, AMQPManager.basicProperties) as PublishSkriptContextProvider<PublishSkriptExecutor> }
+        val serializeContextProvider = JacksonSerializeSkriptContextProvider(objectMapper) as SerializeSkriptContextProvider<SerializeSkriptExecutor>
 
         val provider: ApplicationContextProvider by lazy {
             ApplicationContextProvider(publishContextProvider, sqlConnectionProvider, serializeContextProvider)

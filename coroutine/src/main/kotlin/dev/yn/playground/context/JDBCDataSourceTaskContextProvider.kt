@@ -6,7 +6,7 @@ import dev.yn.playground.sql.CoroutineJDBCExecutor
 import kotlinx.coroutines.experimental.launch
 import javax.sql.DataSource
 
-data class JDBCDataSourceTaskContextProvider(val dataSource: DataSource): SQLTaskContextProvider<CoroutineJDBCExecutor> {
+data class JDBCDataSourceSkriptContextProvider(val dataSource: DataSource): SQLSkriptContextProvider<CoroutineJDBCExecutor> {
     override fun getConnection(): AsyncResult<CoroutineJDBCExecutor> {
         val result = CompletableResult<CoroutineJDBCExecutor>()
         launch {

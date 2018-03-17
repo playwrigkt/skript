@@ -4,9 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import dev.yn.playground.result.AsyncResult
-import dev.yn.playground.serialize.VertxSerializeTaskExecutor
+import dev.yn.playground.serialize.VertxSerializeSkriptExecutor
 
-class VertxSerializeTaskContextProvider(val objectMapper: ObjectMapper? = null): SerializeTaskContextProvider<VertxSerializeTaskExecutor> {
+class VertxSerializeSkriptContextProvider(val objectMapper: ObjectMapper? = null): SerializeSkriptContextProvider<VertxSerializeSkriptExecutor> {
     companion object {
         val defaultObjectMapper by lazy {
             ObjectMapper()
@@ -15,8 +15,8 @@ class VertxSerializeTaskContextProvider(val objectMapper: ObjectMapper? = null):
         }
     }
 
-    override fun getSerializeTaskExecutor(): AsyncResult<VertxSerializeTaskExecutor> {
-        return AsyncResult.succeeded(VertxSerializeTaskExecutor(objectMapper?: defaultObjectMapper))
+    override fun getSerializeSkriptExecutor(): AsyncResult<VertxSerializeSkriptExecutor> {
+        return AsyncResult.succeeded(VertxSerializeSkriptExecutor(objectMapper?: defaultObjectMapper))
     }
 
 }

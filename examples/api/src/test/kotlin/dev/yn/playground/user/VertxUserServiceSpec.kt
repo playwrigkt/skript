@@ -3,16 +3,16 @@ package dev.yn.playground.user
 import dev.yn.playground.common.ApplicationContextProvider
 import dev.yn.playground.consumer.alpha.ConsumerExecutorProvider
 import dev.yn.playground.consumer.alpha.VertxConsumerExecutorProvider
-import dev.yn.playground.context.PublishTaskContextProvider
-import dev.yn.playground.context.SQLTaskContextProvider
-import dev.yn.playground.context.SerializeTaskContextProvider
-import dev.yn.playground.context.VertxSerializeTaskContextProvider
-import dev.yn.playground.publisher.PublishTaskExecutor
-import dev.yn.playground.publisher.VertxPublishTaskContextProvider
+import dev.yn.playground.context.PublishSkriptContextProvider
+import dev.yn.playground.context.SQLSkriptContextProvider
+import dev.yn.playground.context.SerializeSkriptContextProvider
+import dev.yn.playground.context.VertxSerializeSkriptContextProvider
+import dev.yn.playground.publisher.PublishSkriptExecutor
+import dev.yn.playground.publisher.VertxPublishSkriptContextProvider
 import dev.yn.playground.result.VertxResult
-import dev.yn.playground.serialize.SerializeTaskExecutor
+import dev.yn.playground.serialize.SerializeSkriptExecutor
 import dev.yn.playground.sql.SQLExecutor
-import dev.yn.playground.sql.VertxSQLTaskContextProvider
+import dev.yn.playground.sql.VertxSQLSkriptContextProvider
 import io.vertx.core.Future
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
@@ -35,9 +35,9 @@ class VertxUserServiceSpec: UserServiceSpec() {
             JDBCClient.createShared(vertx, hikariConfig, "test_ds")
         }
 
-        val sqlConnectionProvider by lazy { VertxSQLTaskContextProvider(sqlClient) as SQLTaskContextProvider<SQLExecutor> }
-        val publishContextProvider by lazy { VertxPublishTaskContextProvider(vertx) as PublishTaskContextProvider<PublishTaskExecutor> }
-        val serializeContextProvider = VertxSerializeTaskContextProvider() as SerializeTaskContextProvider<SerializeTaskExecutor>
+        val sqlConnectionProvider by lazy { VertxSQLSkriptContextProvider(sqlClient) as SQLSkriptContextProvider<SQLExecutor> }
+        val publishContextProvider by lazy { VertxPublishSkriptContextProvider(vertx) as PublishSkriptContextProvider<PublishSkriptExecutor> }
+        val serializeContextProvider = VertxSerializeSkriptContextProvider() as SerializeSkriptContextProvider<SerializeSkriptExecutor>
         val provider: ApplicationContextProvider by lazy {
             ApplicationContextProvider(publishContextProvider, sqlConnectionProvider, serializeContextProvider)
         }

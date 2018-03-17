@@ -12,7 +12,7 @@ import org.funktionale.tries.Try
 import java.time.Instant
 import java.util.*
 
-object UserTasks {
+object UserSkripts {
     private val createNewSessionKey: (String) -> UserSession = { UserSession(UUID.randomUUID().toString(), it, Instant.now().plusSeconds(3600)) }
 
     private val PUBLISH_USER_CREATE_EVENT: Skript<UserProfile, UserProfile, ApplicationContext> =
