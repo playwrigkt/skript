@@ -36,7 +36,8 @@ class JDBCChatroomTransactionSpec: ChatroomTransactionsSpec() {
         val serializeVenue = JacksonSerializeVenue()
         val provider: ApplicationVenue by lazy {
             ApplicationVenue(publishVenue, sqlConnectionProvider, serializeVenue)
-        } }
+        }
+    }
 
     override fun provider(): ApplicationVenue = JDBCChatroomTransactionSpec.provider
 

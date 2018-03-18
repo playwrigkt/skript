@@ -6,7 +6,7 @@ import playwright.skript.user.models.UserNameAndPassword
 import playwright.skript.user.models.UserProfile
 import playwright.skript.user.models.UserProfileAndPassword
 import playwright.skript.user.models.UserSession
-import playwright.skript.user.props.GetUserProps
+import playwright.skript.user.props.GetUserStageProps
 
 class UserService(val provider: ApplicationVenue) {
     fun createUser(userProfile: UserProfileAndPassword): AsyncResult<UserProfile> =
@@ -16,5 +16,5 @@ class UserService(val provider: ApplicationVenue) {
             provider.runOnStage(UserSkripts.LOGIN_USER_SKRIPT, userNameAndPassword, Unit)
 
     fun getUser(userId: String, token: String): AsyncResult<UserProfile> =
-            provider.runOnStage(UserSkripts.GET_USER_SKRIPT, userId, GetUserProps(token))
+            provider.runOnStage(UserSkripts.GET_USER_SKRIPT, userId, GetUserStageProps(token))
 }

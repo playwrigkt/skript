@@ -3,6 +3,7 @@ buildscript {
   ext.kotlin_coroutine_version = '0.22.4'
   ext.docker_plugin_version = '3.0.3'
   ext.vertxVersion = '3.4.2'
+  ext.dokka_version = "0.9.16"
 
   repositories {
     mavenCentral()
@@ -11,6 +12,7 @@ buildscript {
 
   dependencies {
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    classpath "org.jetbrains.dokka:dokka-gradle-plugin:${dokka_version}"
   }
 }
 
@@ -18,6 +20,7 @@ allprojects {
 
   apply plugin:'java'
   apply plugin: 'kotlin'
+  apply plugin: 'org.jetbrains.dokka'
 
   group = "dev.yn.util"
   version = "0.0.1"
@@ -60,5 +63,21 @@ allprojects {
 
     testCompile 'io.kotlintest:kotlintest:2.0.0'
     testCompile 'org.slf4j:slf4j-simple:1.7.25'
+  }
+
+  dokka {
+    outputFormat = 'html'
+    outputDirectory = "$buildDir/javadoc"
+
+//    linkMapping {
+//      dir = "src/main/kotlin"
+//      url = "https://github.com/dgoetsch/skript/tree/master/${project.name}/src/main/kotlin"
+//      suffix = "#L"
+//    }
+  }
+
+  task dokkaJavadoc(type: org.jetbrains.dokka.gradle.DokkaTask) {
+    outputFormat = "javadoc"
+    outputDirectory = "$buildDir/dokkaJavadoc"
   }
 }

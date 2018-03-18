@@ -9,7 +9,7 @@ import playwright.skript.ex.*
 import playwright.skript.performer.PublishCommand
 import playwright.skript.sql.transaction.SQLTransactionSkript
 import playwright.skript.user.models.*
-import playwright.skript.user.props.GetUserProps
+import playwright.skript.user.props.GetUserStageProps
 import playwright.skript.user.sql.*
 import java.time.Instant
 import java.util.*
@@ -29,7 +29,7 @@ object UserSkripts {
                     .publish { PublishCommand.Publish(userLoginAddress, it) }
                     .deserialize(UserSession::class.java)
 
-    private val AUTHORIZE_USER: Skript<String, String, ApplicationStage<GetUserProps>> =
+    private val AUTHORIZE_USER: Skript<String, String, ApplicationStage<GetUserStageProps>> =
             Skript.mapTryWithStage { userId, stage ->
                 stage.getStageProps().getUserSession()
                         .filter { it.userId == userId }
@@ -53,8 +53,8 @@ object UserSkripts {
                     .andThen(PUBLISH_USER_LOGIN_EVENT))
 
 
-    val GET_USER_SKRIPT: Skript<String, UserProfile, ApplicationStage<GetUserProps>> =
-            SQLTransactionSkript.autoCommit( AuthSkripts.validate<String, GetUserProps>()
+    val GET_USER_SKRIPT: Skript<String, UserProfile, ApplicationStage<GetUserStageProps>> =
+            SQLTransactionSkript.autoCommit( AuthSkripts.validate<String, GetUserStageProps>()
                     .andThen(AUTHORIZE_USER)
                     .query(SelectUserProfileById)
             )

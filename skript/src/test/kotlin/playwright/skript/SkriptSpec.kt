@@ -52,7 +52,7 @@ class SkriptSpec : StringSpec() {
         "A skript can transform and branch based on the result of a skript" {
             val double: Skript<Double, Double, Unit> = Skript.map { it * 2 }
             val stringLength = Skript.map<String, Int, Unit> { it.length }
-            fun toLong(): Skript<Number, Long, Unit> = Skript.map { it.toLong() }
+            val toLong: Skript<Number, Long, Unit> = Skript.map { it.toLong() }
 
             val rightIfGreaterThanTen = Skript.map<Int, Either<Double, String>, Unit> {
                 if(it > 10) {
@@ -63,8 +63,8 @@ class SkriptSpec : StringSpec() {
             }
 
             val skript = Skript.branch(rightIfGreaterThanTen)
-                    .left(double.andThen(toLong()))
-                    .right(stringLength.andThen(toLong()))
+                    .left(double.andThen(toLong))
+                    .right(stringLength.andThen(toLong))
 
             skript.run(5, Unit) shouldBe AsyncResult.succeeded(10L)
             skript.run(16, Unit) shouldBe AsyncResult.succeeded(2L)
