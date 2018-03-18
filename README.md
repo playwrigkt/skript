@@ -2,6 +2,9 @@
 
 This project allows users to implement application logic independently of technology
 
+This project is in an early stage of development and may change drastically in
+order to provider cleaner and more powerful interfaces.
+
 ## Project Goals
 
 * Concise - Provide a clear, DSL-like API for executing Asynchronous Operations
