@@ -2,7 +2,7 @@ package playwright.skript.auth
 
 import playwright.skript.Skript
 import playwright.skript.common.ApplicationStage
-import playwright.skript.sql.query
+import playwright.skript.ex.query
 
 object AuthSkripts {
     fun <T> validateAction() =

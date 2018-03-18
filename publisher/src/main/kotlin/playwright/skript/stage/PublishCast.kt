@@ -2,6 +2,6 @@ package playwright.skript.stage
 
 import playwright.skript.performer.PublishPerformer
 
-interface PublishStage {
+interface PublishCast {
     fun getPublishPerformer(): PublishPerformer
 }

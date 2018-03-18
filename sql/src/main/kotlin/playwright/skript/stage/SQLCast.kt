@@ -2,6 +2,6 @@ package playwright.skript.stage
 
 import playwright.skript.performer.SQLPerformer
 
-interface SQLStage {
+interface SQLCast {
     fun getSQLPerformer(): SQLPerformer
 }

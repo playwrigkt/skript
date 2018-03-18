@@ -11,7 +11,7 @@ import playwright.skript.ex.query
 import playwright.skript.ex.update
 import playwright.skript.performer.SQLPerformer
 import playwright.skript.sql.transaction.SQLTransactionSkript
-import playwright.skript.stage.SQLStage
+import playwright.skript.stage.SQLCast
 import java.time.Instant
 
 class SQLSkriptSpec : StringSpec() {
@@ -20,7 +20,7 @@ class SQLSkriptSpec : StringSpec() {
 
 
     data class ApplicationStage<R>(val sqlPerformer: SQLPerformer, val cache: R):
-            SQLStage,
+            SQLCast,
             OperationCache<R> {
         override fun getOperationCache(): R = cache
 
@@ -135,15 +135,15 @@ class SQLSkriptSpec : StringSpec() {
         "Do a thing" {
             val performer = mock<SQLPerformer>()
             val sessionKey = "TEST_SESSION_KEY"
-            val stage = ApplicationStage<UpdateUserProfileStage>(performer, UpdateUserProfileStage(sessionKey))
+            ApplicationStage<UpdateUserProfileStage>(performer, UpdateUserProfileStage(sessionKey))
 
-            val udpateUser: SQLTransactionSkript<UserProfile, UserProfile, ApplicationStage<UpdateUserProfileStage>> =
-                    SQLTransactionSkript.transaction(
-                                validateSession<UserProfile, UpdateUserProfileStage>()
-                                    .andThen(authenticateUpdateUserProfile)
-                                    .andThen(addExistingUserToStage<UpdateUserProfileStage>())
-                                    .andThen(failIfProfileNotCached<UpdateUserProfileStage>())
-                                    .update(UpdateUserProfile))
+
+            SQLTransactionSkript.transaction(
+                        validateSession<UserProfile, UpdateUserProfileStage>()
+                            .andThen(authenticateUpdateUserProfile)
+                            .andThen(addExistingUserToStage<UpdateUserProfileStage>())
+                            .andThen(failIfProfileNotCached<UpdateUserProfileStage>())
+                            .update(UpdateUserProfile))
 
 
         }

@@ -2,6 +2,6 @@ package playwright.skript.stage
 
 import playwright.skript.performer.SerializePerformer
 
-interface SerializeStage {
+interface SerializeCast {
     fun getSerializePerformer(): SerializePerformer
 }

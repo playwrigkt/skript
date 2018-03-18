@@ -5,9 +5,9 @@ import playwright.skript.performer.PublishPerformer
 import playwright.skript.performer.SQLPerformer
 import playwright.skript.performer.SerializePerformer
 import playwright.skript.result.AsyncResult
-import playwright.skript.stage.PublishStage
-import playwright.skript.stage.SQLStage
-import playwright.skript.stage.SerializeStage
+import playwright.skript.stage.PublishCast
+import playwright.skript.stage.SQLCast
+import playwright.skript.stage.SerializeCast
 import playwright.skript.venue.Venue
 
 class ApplicationVenue(
@@ -35,9 +35,9 @@ class ApplicationStage(
         private val publishPerformer: PublishPerformer,
         private val sqlPerformer: SQLPerformer,
         private val serializePerformer: SerializePerformer):
-        PublishStage,
-        SQLStage,
-        SerializeStage {
+        PublishCast,
+        SQLCast,
+        SerializeCast {
     override fun getPublishPerformer(): PublishPerformer = publishPerformer
     override fun getSerializePerformer(): SerializePerformer = serializePerformer
     override fun getSQLPerformer(): SQLPerformer = sqlPerformer
