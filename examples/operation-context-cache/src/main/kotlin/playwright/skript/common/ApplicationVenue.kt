@@ -11,9 +11,9 @@ import playwright.skript.stage.SerializeStage
 import playwright.skript.venue.Venue
 
 class ApplicationVenue (
-        val publishVenue: Venue<out PublishPerformer>,
-        val sqlVenue: Venue<out SQLPerformer>,
-        val serializeVenue: Venue<out SerializePerformer>
+        val publishVenue: Venue<PublishPerformer>,
+        val sqlVenue: Venue<SQLPerformer>,
+        val serializeVenue: Venue<SerializePerformer>
 ): Venue<ApplicationStage<Unit>> {
 
     override fun provideStage(): AsyncResult<ApplicationStage<Unit>> = provideStage(Unit)

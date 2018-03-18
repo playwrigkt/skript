@@ -1,4 +1,4 @@
-package playwright.skript.stage
+package playwright.skript.venue
 
 import com.rabbitmq.client.AMQP
 import com.rabbitmq.client.Connection

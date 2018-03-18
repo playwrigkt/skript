@@ -11,9 +11,9 @@ import playwright.skript.stage.SerializeStage
 import playwright.skript.venue.Venue
 
 class ApplicationVenue(
-        val publishProvider: Venue<out PublishPerformer>,
-        val sqlProvider: Venue<out SQLPerformer>,
-        val serializeProvider: Venue<out SerializePerformer>
+        val publishProvider: Venue<PublishPerformer>,
+        val sqlProvider: Venue<SQLPerformer>,
+        val serializeProvider: Venue<SerializePerformer>
 ): Venue<ApplicationStage> {
     override fun provideStage(): AsyncResult<ApplicationStage> {
         return sqlProvider.provideStage().flatMap { sqlPerformer ->

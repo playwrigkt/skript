@@ -7,7 +7,7 @@ import playwright.skript.performer.SerializePerformer
 import playwright.skript.performer.VertxSerializePerformer
 import playwright.skript.result.AsyncResult
 
-class VertxSerializeVenue(val objectMapper: ObjectMapper? = null): Venue<SerializePerformer> {
+class VertxSerializeVenue(val objectMapper: ObjectMapper? = null): Venue<VertxSerializePerformer> {
     companion object {
         val defaultObjectMapper by lazy {
             ObjectMapper()
@@ -16,6 +16,6 @@ class VertxSerializeVenue(val objectMapper: ObjectMapper? = null): Venue<Seriali
         }
     }
 
-    override fun provideStage(): AsyncResult<SerializePerformer> =
+    override fun provideStage(): AsyncResult<VertxSerializePerformer> =
             AsyncResult.succeeded(VertxSerializePerformer(objectMapper ?: defaultObjectMapper))
 }

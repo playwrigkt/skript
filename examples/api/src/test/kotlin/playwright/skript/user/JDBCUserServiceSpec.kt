@@ -5,7 +5,7 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import playwright.skript.amqp.AMQPManager
 import playwright.skript.common.ApplicationVenue
-import playwright.skript.stage.AMQPPublishVenue
+import playwright.skript.venue.AMQPPublishVenue
 import playwright.skript.venue.JDBCDataSourceVenue
 import playwright.skript.venue.JacksonSerializeVenue
 
