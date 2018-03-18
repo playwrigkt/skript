@@ -7,11 +7,11 @@ import playwright.skript.result.CompletableResult
 import javax.sql.DataSource
 
 data class JDBCDataSourceVenue(val dataSource: DataSource): Venue<CoroutineJDBCPerformer> {
-    override fun provideStage(): AsyncResult<playwright.skript.performer.CoroutineJDBCPerformer> {
-        val result = CompletableResult<playwright.skript.performer.CoroutineJDBCPerformer>()
+    override fun provideStage(): AsyncResult<CoroutineJDBCPerformer> {
+        val result = CompletableResult<CoroutineJDBCPerformer>()
         launch {
             try {
-                result.succeed(playwright.skript.performer.CoroutineJDBCPerformer(dataSource.connection))
+                result.succeed(CoroutineJDBCPerformer(dataSource.connection))
             } catch(e: Throwable) {
                 result.fail(e)
             }

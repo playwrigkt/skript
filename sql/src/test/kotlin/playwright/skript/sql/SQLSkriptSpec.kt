@@ -20,7 +20,7 @@ class SQLSkriptSpec : StringSpec() {
 
 
     data class ApplicationStage<R>(val sqlPerformer: SQLPerformer, val cache: R):
-            SQLStage<SQLPerformer>,
+            SQLStage,
             OperationCache<R> {
         override fun getOperationCache(): R = cache
 
@@ -33,20 +33,20 @@ class SQLSkriptSpec : StringSpec() {
         fun getOperationCache(): R
     }
 
-    interface UserSessionContext {
+    interface UserSessionStage {
         fun getUserSessionKey(): String
         fun setUserSession(userSession: UserSession)
         fun getUserSession(): Option<UserSession>
     }
 
-    interface ExistingUserProfileContext {
+    interface ExistingUserProfileStage {
         fun getExistingProfile(): Option<UserProfile>
         fun useProfile(profile: UserProfile)
     }
 
-    data class UpdateUserProfileContext(val sessionKey: String,
+    data class UpdateUserProfileStage(val sessionKey: String,
                                         var session: Option<UserSession> = Option.None,
-                                        var existing: Option<UserProfile> = Option.None): UserSessionContext, ExistingUserProfileContext {
+                                        var existing: Option<UserProfile> = Option.None): UserSessionStage, ExistingUserProfileStage {
         override fun getUserSessionKey(): String = this.sessionKey
 
         override fun setUserSession(userSession: UserSession) {
@@ -99,50 +99,50 @@ class SQLSkriptSpec : StringSpec() {
         }
     }
 
-    val onlyIfSessionUserIdMathcesRequested = { update: UserProfile, context: ApplicationStage<UpdateUserProfileContext> ->
-        context.getOperationCache().getUserSession()
+    val onlyIfSessionUserIdMathcesRequested = { update: UserProfile, stage: ApplicationStage<UpdateUserProfileStage> ->
+        stage.getOperationCache().getUserSession()
                 .map { it.userId }
                 .filter { update.id == it }
                 .map { Try.Success(update) }
                 .getOrElse { Try.Failure<UserProfile>(IllegalArgumentException("not authorized")) }
     }
 
-    val authenticateUpdateUserProfile = Skript.mapTryWithContext(onlyIfSessionUserIdMathcesRequested)
+    val authenticateUpdateUserProfile = Skript.mapTryWithStage(onlyIfSessionUserIdMathcesRequested)
 
-    fun <R: ExistingUserProfileContext> addExistingUserToContext() =
-            Skript.updateContext(Skript.identity<UserProfile, ApplicationStage<R>>()
+    fun <R: ExistingUserProfileStage> addExistingUserToStage() =
+            Skript.updateStage(Skript.identity<UserProfile, ApplicationStage<R>>()
                     .map { it.id }
                     .query(SelectUserProfileById)
-                    .mapWithContext { existing, context ->
-                        context.getOperationCache().useProfile(existing)
+                    .mapWithStage { existing, stage ->
+                        stage.getOperationCache().useProfile(existing)
                     })
 
-    fun <R: ExistingUserProfileContext> failIfProfileNotCached() = Skript.mapTryWithContext<UserProfile, UserProfile, ApplicationStage<R>> {
-        i, context ->
-        context.getOperationCache().getExistingProfile()
+    fun <R: ExistingUserProfileStage> failIfProfileNotCached() = Skript.mapTryWithStage<UserProfile, UserProfile, ApplicationStage<R>> {
+        i, stage ->
+        stage.getOperationCache().getExistingProfile()
                 .map { Try.Success(i) }
                 .getOrElse { Try.Failure<UserProfile>(IllegalArgumentException("No such user")) }
     }
 
-    fun <I, R: UserSessionContext> validateSession(): Skript<I, I, ApplicationStage<R>> =
-            Skript.updateContext(Skript.identity<I, ApplicationStage<R>>()
-                            .mapWithContext { _, c -> c.cache.getUserSessionKey()}
+    fun <I, R: UserSessionStage> validateSession(): Skript<I, I, ApplicationStage<R>> =
+            Skript.updateStage(Skript.identity<I, ApplicationStage<R>>()
+                            .mapWithStage { _, c -> c.cache.getUserSessionKey()}
                             .query(SelectSessionByKey)
-                            .mapWithContext { session, c -> c.cache.setUserSession(session) })
+                            .mapWithStage { session, c -> c.cache.setUserSession(session) })
 
 
     init {
         "Do a thing" {
             val performer = mock<SQLPerformer>()
             val sessionKey = "TEST_SESSION_KEY"
-            val context = ApplicationStage<UpdateUserProfileContext>(performer, UpdateUserProfileContext(sessionKey))
+            val stage = ApplicationStage<UpdateUserProfileStage>(performer, UpdateUserProfileStage(sessionKey))
 
-            val udpateUser: SQLTransactionSkript<UserProfile, UserProfile, ApplicationStage<UpdateUserProfileContext>> =
+            val udpateUser: SQLTransactionSkript<UserProfile, UserProfile, ApplicationStage<UpdateUserProfileStage>> =
                     SQLTransactionSkript.transaction(
-                                validateSession<UserProfile, UpdateUserProfileContext>()
+                                validateSession<UserProfile, UpdateUserProfileStage>()
                                     .andThen(authenticateUpdateUserProfile)
-                                    .andThen(addExistingUserToContext<UpdateUserProfileContext>())
-                                    .andThen(failIfProfileNotCached<UpdateUserProfileContext>())
+                                    .andThen(addExistingUserToStage<UpdateUserProfileStage>())
+                                    .andThen(failIfProfileNotCached<UpdateUserProfileStage>())
                                     .update(UpdateUserProfile))
 
 

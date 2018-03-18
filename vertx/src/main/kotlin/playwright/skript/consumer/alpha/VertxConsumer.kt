@@ -11,32 +11,32 @@ import playwright.skript.result.Result
 import playwright.skript.venue.Venue
 import java.util.concurrent.LinkedBlockingQueue
 
-class VertxConsumerStage(val vertx: Vertx): playwright.skript.consumer.alpha.ConsumerStage {
-    override fun <C> buildPerformer(target: String, venue: Venue<C>): playwright.skript.consumer.alpha.ConsumerPerformer<C> {
+class VertxConsumerStage(val vertx: Vertx): ConsumerStage {
+    override fun <Stage> buildPerformer(target: String, venue: Venue<Stage>): ConsumerPerformer<Stage> {
         return VertxConsumerPerformer(target, vertx, venue)
     }
-
 }
-class VertxConsumerPerformer<C>(
+
+class VertxConsumerPerformer<Stage>(
         val address: String,
         val vertx: Vertx,
-        val provider: Venue<C>): playwright.skript.consumer.alpha.ConsumerPerformer<C> {
+        val provider: Venue<Stage>): ConsumerPerformer<Stage> {
 
-    override fun <O> stream(skript: Skript<playwright.skript.consumer.alpha.ConsumedMessage, O, C>): AsyncResult<playwright.skript.consumer.alpha.Stream<O>> {
+    override fun <O> stream(skript: Skript<ConsumedMessage, O, Stage>): AsyncResult<Stream<O>> {
         return AsyncResult.succeeded(VertxConsumeStream(vertx, address, skript, provider))
     }
 
 
-    override fun <O> sink(skript: Skript<playwright.skript.consumer.alpha.ConsumedMessage, O, C>): AsyncResult<playwright.skript.consumer.alpha.Sink> {
+    override fun <O> sink(skript: Skript<ConsumedMessage, O, Stage>): AsyncResult<Sink> {
         return AsyncResult.succeeded(VertxConsumeSink(vertx, address, skript, provider))
     }
 }
 
-abstract class VertxConsumer<O, C>(
+abstract class VertxConsumer<O, Stage>(
         val vertx: Vertx,
         val address: String,
-        val skript: Skript<playwright.skript.consumer.alpha.ConsumedMessage, O, C>,
-        val provider: Venue<C>): playwright.skript.consumer.alpha.Consumer {
+        val skript: Skript<ConsumedMessage, O, Stage>,
+        val provider: Venue<Stage>): Consumer {
     private val result: CompletableResult<Unit> = CompletableResult()
     private val verticle: AbstractVerticle
 
@@ -76,15 +76,15 @@ abstract class VertxConsumer<O, C>(
     override fun result(): AsyncResult<Unit> = result
 }
 
-class VertxConsumeSink<O, C>(
+class VertxConsumeSink<O, Stage>(
         vertx: Vertx,
         address: String,
-        skript: Skript<playwright.skript.consumer.alpha.ConsumedMessage, O, C>,
-        provider: Venue<C>): playwright.skript.consumer.alpha.Sink, VertxConsumer<O, C>(vertx, address, skript, provider) {
+        skript: Skript<ConsumedMessage, O, Stage>,
+        provider: Venue<Stage>): Sink, VertxConsumer<O, Stage>(vertx, address, skript, provider) {
 
     override fun handleMessage(message: Message<Buffer>) {
         provider.provideStage()
-                .flatMap { skript.run(playwright.skript.consumer.alpha.ConsumedMessage(address, message.body().bytes), it) }
+                .flatMap { skript.run(ConsumedMessage(address, message.body().bytes), it) }
                 .map {
                     message.reply("success") }
                 .recover {
@@ -94,16 +94,16 @@ class VertxConsumeSink<O, C>(
     }
 }
 
-class VertxConsumeStream<O, C>(
+class VertxConsumeStream<O, Stage>(
         vertx: Vertx,
         address: String,
-        skript: Skript<playwright.skript.consumer.alpha.ConsumedMessage, O, C>,
-        provider: Venue<C>): playwright.skript.consumer.alpha.Stream<O>, VertxConsumer<O, C>(vertx, address, skript, provider) {
+        skript: Skript<ConsumedMessage, O, Stage>,
+        provider: Venue<Stage>): Stream<O>, VertxConsumer<O, Stage>(vertx, address, skript, provider) {
 
 
     override fun handleMessage(message: Message<Buffer>) {
         provider.provideStage()
-                .flatMap { skript.run(playwright.skript.consumer.alpha.ConsumedMessage(address, message.body().bytes), it) }
+                .flatMap { skript.run(ConsumedMessage(address, message.body().bytes), it) }
                 .enqueue()
                 .map { message.reply("success") }
                 .recover {

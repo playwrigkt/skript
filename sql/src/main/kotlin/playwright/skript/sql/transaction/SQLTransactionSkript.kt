@@ -5,25 +5,25 @@ import playwright.skript.result.AsyncResult
 import playwright.skript.stage.SQLStage
 
 
-sealed class SQLTransactionSkript<I, O, Stage: SQLStage<*>>: Skript<I, O, Stage> {
+sealed class SQLTransactionSkript<I, O, Stage: SQLStage>: Skript<I, O, Stage> {
     abstract fun <J> mapInsideTransaction(skript: Skript<O, J, Stage>): SQLTransactionSkript<I, J, Stage>
 
     abstract val transaction: Skript<I, O, Stage>
     companion object {
-        fun <I, O, Stage: SQLStage<*>> transaction(skript: Skript<I, O, Stage>): SQLTransactionSkript<I, O, Stage> =
+        fun <I, O, Stage: SQLStage> transaction(skript: Skript<I, O, Stage>): SQLTransactionSkript<I, O, Stage> =
                 when(skript) {
                     is SQLTransactionSkript -> transaction(skript.transaction)
                     else -> TransactionalSQLTransactionSkript(skript)
                 }
 
-        fun <I, O, Stage: SQLStage<*>> autoCommit(skript: Skript<I, O, Stage>): SQLTransactionSkript<I, O, Stage> =
+        fun <I, O, Stage: SQLStage> autoCommit(skript: Skript<I, O, Stage>): SQLTransactionSkript<I, O, Stage> =
                 when(skript) {
                     is SQLTransactionSkript -> autoCommit(skript.transaction)
                     else -> AutoCommitSQlTransactionSkript(skript)
                 }
     }
 
-    data class AutoCommitSQlTransactionSkript<I, O, Stage: SQLStage<*>>(override val transaction: Skript<I, O, Stage>) : SQLTransactionSkript<I, O, Stage>() {
+    data class AutoCommitSQlTransactionSkript<I, O, Stage: SQLStage>(override val transaction: Skript<I, O, Stage>) : SQLTransactionSkript<I, O, Stage>() {
 
         override fun <J> mapInsideTransaction(skript: Skript<O, J, Stage>): SQLTransactionSkript<I, J, Stage> =
                 when(skript) {
@@ -39,7 +39,7 @@ sealed class SQLTransactionSkript<I, O, Stage: SQLStage<*>>: Skript<I, O, Stage>
                         .recover(stage.getSQLPerformer().closeOnFailure())
     }
 
-    data class TransactionalSQLTransactionSkript<I, O, Stage: SQLStage<*>>(override val transaction: Skript<I, O, Stage>) : SQLTransactionSkript<I, O, Stage>() {
+    data class TransactionalSQLTransactionSkript<I, O, Stage: SQLStage>(override val transaction: Skript<I, O, Stage>) : SQLTransactionSkript<I, O, Stage>() {
         override fun <J> mapInsideTransaction(skript: Skript<O, J, Stage>): SQLTransactionSkript<I, J, Stage> =
                 when(skript) {
                     is SQLTransactionSkript -> this.mapInsideTransaction(skript.transaction)

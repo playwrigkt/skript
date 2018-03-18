@@ -94,7 +94,7 @@ object ChatRoomSkripts {
                     AuthSkripts.validate<String, ChatroomOperationProps>()
                             .andThen(ChatroomPropsSkripts.hydrateExistingChatroomById())
                             .andThen(authorizeUser(ChatRoomPermissionKey.Get))
-                            .mapTryWithContext(this::loadUserFromCache))
+                            .mapTryWithStage(this::loadUserFromCache))
 
 
 
@@ -104,12 +104,12 @@ object ChatRoomSkripts {
 
 
 
-    private fun <I> authorizeUser(chatRoomPermission: ChatRoomPermissionKey): Skript<I, I, ApplicationStage<ChatroomOperationProps>> = Skript.mapTryWithContext { i, context ->
-        context.getStageProps().getChatroom()
+    private fun <I> authorizeUser(chatRoomPermission: ChatRoomPermissionKey): Skript<I, I, ApplicationStage<ChatroomOperationProps>> = Skript.mapTryWithStage { i, stage ->
+        stage.getStageProps().getChatroom()
                 .filter { it.publicPermissions.contains(chatRoomPermission.key) }
-                .orElse { context.getStageProps()
+                .orElse { stage.getStageProps()
                         .getChatroom()
-                        .flatMap { chatRoom -> context.getStageProps()
+                        .flatMap { chatRoom -> stage.getStageProps()
                                 .getUserSession()
                                 .flatMap { session -> chatRoom.users
                                         .firstOption {
@@ -123,8 +123,8 @@ object ChatRoomSkripts {
                 .getOrElse { Try.Failure<I>(UserError.AuthorizationFailed) }
     }
 
-    private fun loadUserFromCache(id: String, context: ApplicationStage<ChatroomOperationProps>): Try<ChatRoom> {
-        return context.getStageProps().getChatroom()
+    private fun loadUserFromCache(id: String, stage: ApplicationStage<ChatroomOperationProps>): Try<ChatRoom> {
+        return stage.getStageProps().getChatroom()
                 .map { Try.Success(it) }
                 .getOrElse { Try.Failure<ChatRoom>(ChatRoomError.NotFound(id)) }
     }

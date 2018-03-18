@@ -5,13 +5,9 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import playwright.skript.amqp.AMQPManager
 import playwright.skript.common.ApplicationVenue
-import playwright.skript.performer.PublishPerformer
-import playwright.skript.performer.SQLPerformer
-import playwright.skript.performer.SerializePerformer
 import playwright.skript.stage.AMQPPublishVenue
 import playwright.skript.venue.JDBCDataSourceVenue
 import playwright.skript.venue.JacksonSerializeVenue
-import playwright.skript.venue.Venue
 
 class JDBCUserServiceSpec: UserServiceSpec() {
     companion object {
@@ -36,9 +32,9 @@ class JDBCUserServiceSpec: UserServiceSpec() {
 
         val hikariDataSource by lazy { HikariDataSource(hikariDSConfig) }
 
-        val sqlConnectionProvider by lazy { JDBCDataSourceVenue(hikariDataSource) as Venue<SQLPerformer> }
-        val publishVenue by lazy { AMQPPublishVenue(AMQPManager.amqpExchange, amqpConnection, AMQPManager.basicProperties) as Venue<PublishPerformer> }
-        val serializeVenue = JacksonSerializeVenue() as Venue<SerializePerformer>
+        val sqlConnectionProvider by lazy { JDBCDataSourceVenue(hikariDataSource) }
+        val publishVenue by lazy { AMQPPublishVenue(AMQPManager.amqpExchange, amqpConnection, AMQPManager.basicProperties) }
+        val serializeVenue = JacksonSerializeVenue()
 
         val provider: ApplicationVenue by lazy {
             ApplicationVenue(publishVenue, sqlConnectionProvider, serializeVenue)

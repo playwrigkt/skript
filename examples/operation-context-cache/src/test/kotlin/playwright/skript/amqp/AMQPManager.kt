@@ -30,9 +30,9 @@ object AMQPManager {
 
     fun initAMQPResources(connection: Connection) {
         val channel = connection.createChannel()
-        val exchange = channel.exchangeDeclare(amqpExchange, BuiltinExchangeType.TOPIC)
-        val loginQueue = channel.queueDeclare(userLoginAddress, true, false, false, emptyMap())
-        val createQueue = channel.queueDeclare(userCreatedAddress, true, false, false, emptyMap())
+        channel.exchangeDeclare(amqpExchange, BuiltinExchangeType.TOPIC)
+        channel.queueDeclare(userLoginAddress, true, false, false, emptyMap())
+        channel.queueDeclare(userCreatedAddress, true, false, false, emptyMap())
         channel.queueBind(userLoginAddress, amqpExchange, userLoginAddress)
         channel.queueBind(userCreatedAddress, amqpExchange, userCreatedAddress)
         channel.close()

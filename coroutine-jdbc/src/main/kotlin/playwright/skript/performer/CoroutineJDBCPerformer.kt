@@ -13,7 +13,7 @@ import java.time.Instant
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
 
-class CoroutineJDBCPerformer(val connection: Connection): playwright.skript.performer.SQLPerformer() {
+class CoroutineJDBCPerformer(val connection: Connection): SQLPerformer() {
     override fun query(query: SQLCommand.Query): AsyncResult<SQLResult.Query> {
         val statement = query.statement
         return runAsync { Try { when (statement) {
@@ -24,7 +24,7 @@ class CoroutineJDBCPerformer(val connection: Connection): playwright.skript.perf
                 statement.params.forEachIndexed { idx, value -> preparedStatement.setObject(idx + 1, value) }
                 preparedStatement.executeQuery()
             } } }
-                .map { SQLResult.Query(playwright.skript.performer.CoroutineJDBCPerformer.JDBCIterator(it)) } }
+                .map { SQLResult.Query(CoroutineJDBCPerformer.JDBCIterator(it)) } }
     }
 
     override fun update(update: SQLCommand.Update): AsyncResult<SQLResult.Update> {
@@ -98,21 +98,21 @@ class CoroutineJDBCPerformer(val connection: Connection): playwright.skript.perf
 
     private class JDBCSQLRow(val row: Map<String, Any>): SQLRow {
         companion object {
-            fun of(row: ResultSet): playwright.skript.performer.CoroutineJDBCPerformer.JDBCSQLRow {
-                val row = (1..row.metaData.columnCount)
-                        .map {
-                            row.metaData.getColumnName(it) to when(row.metaData.getColumnType(it)) {
-                                Types.BOOLEAN -> row.getBoolean(it)
-                                Types.VARCHAR, Types.NVARCHAR, Types.LONGVARCHAR, Types.LONGNVARCHAR, Types.NCHAR, Types.CHAR -> row.getString(it)
-                                Types.INTEGER -> row.getInt(it)
-                                Types.BIGINT -> row.getLong(it)
-                                Types.TIME -> row.getTime(it)
-                                Types.TIMESTAMP, Types.TIMESTAMP_WITH_TIMEZONE -> row.getTimestamp(it)
-                                Types.DATE -> row.getDate(it)
-                                else -> row.getObject(it)
-                            } }
-                        .toMap()
-                return playwright.skript.performer.CoroutineJDBCPerformer.JDBCSQLRow(row)
+            fun of(row: ResultSet): CoroutineJDBCPerformer.JDBCSQLRow {
+                return CoroutineJDBCPerformer.JDBCSQLRow(
+                        (1..row.metaData.columnCount)
+                                .map {
+                                    row.metaData.getColumnName(it) to when(row.metaData.getColumnType(it)) {
+                                        Types.BOOLEAN -> row.getBoolean(it)
+                                        Types.VARCHAR, Types.NVARCHAR, Types.LONGVARCHAR, Types.LONGNVARCHAR, Types.NCHAR, Types.CHAR -> row.getString(it)
+                                        Types.INTEGER -> row.getInt(it)
+                                        Types.BIGINT -> row.getLong(it)
+                                        Types.TIME -> row.getTime(it)
+                                        Types.TIMESTAMP, Types.TIMESTAMP_WITH_TIMEZONE -> row.getTimestamp(it)
+                                        Types.DATE -> row.getDate(it)
+                                        else -> row.getObject(it)
+                                    } }
+                                .toMap())
             }
         }
 
@@ -157,20 +157,20 @@ class CoroutineJDBCPerformer(val connection: Connection): playwright.skript.perf
         }
     }
 
-    private class JDBCIterator(val rs: ResultSet): Iterator<playwright.skript.performer.CoroutineJDBCPerformer.JDBCSQLRow> {
-        val queue = LinkedBlockingQueue<playwright.skript.performer.CoroutineJDBCPerformer.JDBCSQLRow>()
+    private class JDBCIterator(val rs: ResultSet): Iterator<CoroutineJDBCPerformer.JDBCSQLRow> {
+        val queue = LinkedBlockingQueue<CoroutineJDBCPerformer.JDBCSQLRow>()
         override fun hasNext(): Boolean {
             if(queue.isNotEmpty()) {
                 return true
             } else if(rs.next()) {
-                queue.offer(playwright.skript.performer.CoroutineJDBCPerformer.JDBCSQLRow.Companion.of(rs))
+                queue.offer(JDBCSQLRow.of(rs))
                 return true
             } else {
                 return false
             }
         }
 
-        override fun next(): playwright.skript.performer.CoroutineJDBCPerformer.JDBCSQLRow {
+        override fun next(): CoroutineJDBCPerformer.JDBCSQLRow {
             return Optional.of(hasNext())
                     .filter { it }
                     .flatMap { Optional.of(queue.poll()) }

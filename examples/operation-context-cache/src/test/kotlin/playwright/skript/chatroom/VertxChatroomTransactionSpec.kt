@@ -6,11 +6,7 @@ import io.vertx.core.json.JsonObject
 import io.vertx.ext.jdbc.JDBCClient
 import io.vertx.ext.sql.SQLClient
 import playwright.skript.common.ApplicationVenue
-import playwright.skript.performer.PublishPerformer
-import playwright.skript.performer.SQLPerformer
-import playwright.skript.performer.SerializePerformer
 import playwright.skript.result.VertxResult
-import playwright.skript.venue.Venue
 import playwright.skript.venue.VertxPublishVenue
 import playwright.skript.venue.VertxSQLVenue
 import playwright.skript.venue.VertxSerializeVenue
@@ -32,9 +28,9 @@ class VertxChatroomTransactionSpec: ChatroomTransactionsSpec() {
         val sqlClient: SQLClient by lazy {
             JDBCClient.createShared(vertx, hikariConfig, "test_ds")
         }
-        val sqlVenue = VertxSQLVenue(sqlClient) as Venue<SQLPerformer>
-        val publishVenue = VertxPublishVenue(vertx) as Venue<PublishPerformer>
-        val serializeVenue = VertxSerializeVenue() as Venue<SerializePerformer>
+        val sqlVenue = VertxSQLVenue(sqlClient)
+        val publishVenue = VertxPublishVenue(vertx)
+        val serializeVenue = VertxSerializeVenue()
 
         val provider: ApplicationVenue by lazy {
             ApplicationVenue(publishVenue, sqlVenue, serializeVenue)

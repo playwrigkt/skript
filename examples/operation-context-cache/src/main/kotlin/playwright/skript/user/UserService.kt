@@ -10,11 +10,11 @@ import playwright.skript.user.props.GetUserProps
 
 class UserService(val provider: ApplicationVenue) {
     fun createUser(userProfile: UserProfileAndPassword): AsyncResult<UserProfile> =
-            provider.runOnContext(UserSkripts.CREATE_USER_SKRIPT, userProfile, Unit)
+            provider.runOnStage(UserSkripts.CREATE_USER_SKRIPT, userProfile, Unit)
 
     fun loginUser(userNameAndPassword: UserNameAndPassword): AsyncResult<UserSession> =
-            provider.runOnContext(UserSkripts.LOGIN_USER_SKRIPT, userNameAndPassword, Unit)
+            provider.runOnStage(UserSkripts.LOGIN_USER_SKRIPT, userNameAndPassword, Unit)
 
     fun getUser(userId: String, token: String): AsyncResult<UserProfile> =
-            provider.runOnContext(UserSkripts.GET_USER_SKRIPT, userId, GetUserProps(token))
+            provider.runOnStage(UserSkripts.GET_USER_SKRIPT, userId, GetUserProps(token))
 }

@@ -43,16 +43,16 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
     abstract fun closeResources()
 
     override fun interceptSpec(context: Spec, spec: () -> Unit) {
-        awaitSucceededFuture(provider().runOnContext(
+        awaitSucceededFuture(provider().runOnStage(
                 SQLTransactionSkript.transaction(playwright.skript.chatrooom.sql.ChatRoomSchema.dropAllAction),
                 Unit))
         awaitSucceededFuture(provider().provideStage().flatMap { it.dropUserSchema() })
         awaitSucceededFuture(provider().provideStage().flatMap { it.initUserSchema() })
-        awaitSucceededFuture(provider().runOnContext(
+        awaitSucceededFuture(provider().runOnStage(
                 SQLTransactionSkript.transaction(playwright.skript.chatrooom.sql.ChatRoomSchema.initAction),
                 Unit))
         spec()
-        awaitSucceededFuture(provider().runOnContext(
+        awaitSucceededFuture(provider().runOnStage(
                 SQLTransactionSkript.transaction<Unit, Unit, ApplicationStage>(playwright.skript.chatrooom.sql.ChatRoomSchema.dropAllAction),
                 Unit))
         awaitSucceededFuture(provider().provideStage().flatMap { it.dropUserSchema() })
@@ -89,8 +89,8 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
                     setOf(playwright.skript.chatrooom.models.ChatRoomPermissionKey.Get.key)
             )
 
-            awaitSucceededFuture(provider().runOnContext(CREATE_CHAT_ROOM, playwright.skript.auth.TokenAndInput(session.sessionKey, chatRoom)), chatRoom)
-            awaitSucceededFuture(provider().runOnContext(GET_CHAT_ROOM, playwright.skript.auth.TokenAndInput(session.sessionKey, chatRoomId)), chatRoom)
+            awaitSucceededFuture(provider().runOnStage(CREATE_CHAT_ROOM, playwright.skript.auth.TokenAndInput(session.sessionKey, chatRoom)), chatRoom)
+            awaitSucceededFuture(provider().runOnStage(GET_CHAT_ROOM, playwright.skript.auth.TokenAndInput(session.sessionKey, chatRoomId)), chatRoom)
 
             val user3 = UserFixture.generateUser(3)
             awaitSucceededFuture(userService.createUser(user3), user3.userProfile)
@@ -101,7 +101,7 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
                     playwright.skript.chatrooom.models.ChatRoomPermissionKey.AddUserPermission.key,
                     playwright.skript.chatrooom.models.ChatRoomPermissionKey.RemoveUserPermission.key))))
             awaitSucceededFuture(
-                    provider().runOnContext(
+                    provider().runOnStage(
                             ADD_USER,
                             playwright.skript.auth.TokenAndInput(
                                     session.sessionKey,
@@ -116,13 +116,13 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
                     chatRoomWithNewUser)
             val chatRoomAfterDeleteUser = chatRoomWithNewUser.copy(users = chatRoomWithNewUser.users.filterNot { it.user.id == user2.userProfile.id }.toSet())
             awaitSucceededFuture(
-                    provider().runOnContext(
+                    provider().runOnStage(
                             DELETE_USER,
                             playwright.skript.auth.TokenAndInput(session.sessionKey, playwright.skript.chatrooom.models.ChatRoomUser(Reference.Empty(user2.userProfile.id), Reference.Empty(chatRoomId), setOf(playwright.skript.chatrooom.models.ChatRoomPermissionKey.Update.key)))),
                     chatRoomAfterDeleteUser)
 
             awaitSucceededFuture(
-                    provider().runOnContext(
+                    provider().runOnStage(
                             ADD_PUBLIC_PERMISSIONS,
                             playwright.skript.auth.TokenAndInput(session.sessionKey, playwright.skript.chatrooom.models.ChatRoomPermissions(Reference.Empty(chatRoomId), setOf(playwright.skript.chatrooom.models.ChatRoomPermissionKey.AddUser.key)))),
                     chatRoomAfterDeleteUser.copy(publicPermissions = chatRoomAfterDeleteUser.publicPermissions.plus(playwright.skript.chatrooom.models.ChatRoomPermissionKey.AddUser.key)))
@@ -130,14 +130,14 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
             val nonPublicChatroom = chatRoomAfterDeleteUser.copy(publicPermissions = emptySet())
 
             awaitSucceededFuture(
-                    provider().runOnContext(
+                    provider().runOnStage(
                             REMOVE_PUBLIC_PERMISSIONS,
                             playwright.skript.auth.TokenAndInput(session.sessionKey, playwright.skript.chatrooom.models.ChatRoomPermissions(Reference.Empty(chatRoomId), setOf(playwright.skript.chatrooom.models.ChatRoomPermissionKey.Get.key, playwright.skript.chatrooom.models.ChatRoomPermissionKey.AddUser.key)))),
                     nonPublicChatroom)
 
             val updatedChatroom = nonPublicChatroom.copy(name = "upname", description = "chatscription")
             awaitSucceededFuture(
-                    provider().runOnContext(
+                    provider().runOnStage(
                             UPDATE_CHAT_ROOM,
                             playwright.skript.auth.TokenAndInput(session.sessionKey, updatedChatroom)),
                     updatedChatroom
@@ -155,7 +155,7 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
                     }.toSet())
 
             awaitFailedFuture(
-                    provider().runOnContext(
+                    provider().runOnStage(
                             ADD_USER_PERMISSION,
                             playwright.skript.auth.TokenAndInput(
                                     session.sessionKey,
@@ -168,7 +168,7 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
                             UserError.AuthorizationFailed))
 
             awaitSucceededFuture(
-                    provider().runOnContext(
+                    provider().runOnStage(
                             ADD_USER_PERMISSION,
                             playwright.skript.auth.TokenAndInput(
                                     session2.sessionKey,
@@ -190,7 +190,7 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
                             }.toSet())
 
             awaitSucceededFuture(
-                    provider().runOnContext(
+                    provider().runOnStage(
                             REMOVE_USER_PERMISSION,
                             playwright.skript.auth.TokenAndInput(
                                     session.sessionKey,

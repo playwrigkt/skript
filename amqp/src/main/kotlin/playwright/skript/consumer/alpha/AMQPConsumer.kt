@@ -10,18 +10,18 @@ import playwright.skript.result.toAsyncResult
 import playwright.skript.venue.Venue
 import java.util.concurrent.LinkedBlockingQueue
 
-class AMQPConsumerStage(val amqpConnection: Connection): playwright.skript.consumer.alpha.ConsumerStage {
-    override fun <C> buildPerformer(target: String, venue: Venue<C>): playwright.skript.consumer.alpha.ConsumerPerformer<C> {
-        return playwright.skript.consumer.alpha.AMQPConsumerPerformer(amqpConnection, venue, target)
+class AMQPConsumerStage(val amqpConnection: Connection): ConsumerStage {
+    override fun <Stage> buildPerformer(target: String, venue: Venue<Stage>): playwright.skript.consumer.alpha.ConsumerPerformer<Stage> {
+        return AMQPConsumerPerformer(amqpConnection, venue, target)
     }
 }
 
-class AMQPConsumerPerformer<C>(
+class AMQPConsumerPerformer<Stage>(
         val amqpConnection: Connection,
-        val venue: Venue<C>,
-        val queue: String): playwright.skript.consumer.alpha.ConsumerPerformer<C> {
+        val venue: Venue<Stage>,
+        val queue: String): ConsumerPerformer<Stage> {
 
-    override fun <O> sink(skript: Skript<playwright.skript.consumer.alpha.ConsumedMessage, O, C>): AsyncResult<playwright.skript.consumer.alpha.Sink> {
+    override fun <O> sink(skript: Skript<ConsumedMessage, O, Stage>): AsyncResult<playwright.skript.consumer.alpha.Sink> {
         return Try {
             playwright.skript.consumer.alpha.AMQPSink(amqpConnection.createChannel(), queue, skript, venue)
         }
@@ -29,7 +29,7 @@ class AMQPConsumerPerformer<C>(
                 .map { it as playwright.skript.consumer.alpha.Sink }
     }
 
-    override fun <O> stream(skript: Skript<playwright.skript.consumer.alpha.ConsumedMessage, O, C>): AsyncResult<playwright.skript.consumer.alpha.Stream<O>> {
+    override fun <O> stream(skript: Skript<ConsumedMessage, O, Stage>): AsyncResult<playwright.skript.consumer.alpha.Stream<O>> {
         val result = Try {
             val stream = playwright.skript.consumer.alpha.AMQPStream(
                     amqpConnection.createChannel(),
@@ -44,11 +44,11 @@ class AMQPConsumerPerformer<C>(
     }
 }
 
-abstract class AMQPConsumer<O, C>(
+abstract class AMQPConsumer<O, Stage>(
         val channel: Channel,
         val queue: String,
-        val skript: Skript<playwright.skript.consumer.alpha.ConsumedMessage, O, C>,
-        val provider: Venue<C>): playwright.skript.consumer.alpha.Consumer {
+        val skript: Skript<ConsumedMessage, O, Stage>,
+        val provider: Venue<Stage>): Consumer {
     private val result = CompletableResult<Unit>()
     private val consumerTag: String
 
@@ -85,14 +85,14 @@ abstract class AMQPConsumer<O, C>(
         return result
     }
 }
-class AMQPSink<O, C>(
+class AMQPSink<O, Stage>(
         channel: Channel,
         queue: String,
-        skript: Skript<playwright.skript.consumer.alpha.ConsumedMessage, O, C>,
-        provider: Venue<C>): playwright.skript.consumer.alpha.Sink, playwright.skript.consumer.alpha.AMQPConsumer<O, C>(channel, queue, skript, provider) {
+        skript: Skript<ConsumedMessage, O, Stage>,
+        provider: Venue<Stage>): Sink, AMQPConsumer<O, Stage>(channel, queue, skript, provider) {
     override fun handleMessage(consumerTag: String, envelope: Envelope, properties: BasicProperties, body: ByteArray) {
         provider.provideStage()
-                .flatMap { context -> skript.run(playwright.skript.consumer.alpha.ConsumedMessage(envelope.routingKey, body), context) }
+                .flatMap { stage -> skript.run(ConsumedMessage(envelope.routingKey, body), stage) }
                 .map { channel.basicAck(envelope.deliveryTag, false) }
                 .recover {
                     Try {
@@ -103,14 +103,14 @@ class AMQPSink<O, C>(
 
 }
 
-class AMQPStream<O, C>(
+class AMQPStream<O, Stage>(
         channel: Channel,
         queue: String,
-        skript: Skript<playwright.skript.consumer.alpha.ConsumedMessage, O, C>,
-        provider: Venue<C>): playwright.skript.consumer.alpha.Stream<O>, playwright.skript.consumer.alpha.AMQPConsumer<O, C>(channel, queue, skript, provider) {
+        skript: Skript<ConsumedMessage, O, Stage>,
+        provider: Venue<Stage>): Stream<O>, AMQPConsumer<O, Stage>(channel, queue, skript, provider) {
     override fun handleMessage(consumerTag: String, envelope: Envelope, properties: BasicProperties, body: ByteArray) {
         provider.provideStage()
-                .flatMap { context -> skript.run(playwright.skript.consumer.alpha.ConsumedMessage(envelope.routingKey, body), context) }
+                .flatMap { stage -> skript.run(ConsumedMessage(envelope.routingKey, body), stage) }
                 .enqueue()
                 .map { channel.basicAck(envelope.deliveryTag, false) }
                 .recover {

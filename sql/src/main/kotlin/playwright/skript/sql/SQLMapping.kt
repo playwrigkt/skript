@@ -7,7 +7,6 @@ sealed class SQLResult {
     data class Query(val result: Iterator<SQLRow>): SQLResult()
     data class Update(val count: Int): SQLResult()
     object Void: SQLResult()
-    class Generic<T>(val result: T): SQLResult()
 }
 
 interface SQLRow {
@@ -64,7 +63,7 @@ interface SQLMapping<I, O, C: SQLCommand, R: SQLResult> {
 
         fun exec(command: String): SQLMapping<Unit, Unit, SQLCommand.Exec, SQLResult.Void> = exec<Unit, Unit>(
                 { SQLCommand.Exec(SQLStatement.Simple(command)) },
-                { unit, result -> Try.Success(unit) })
+                { unit, _ -> Try.Success(unit) })
 
     }
 }

@@ -8,10 +8,10 @@ import playwright.skript.ex.query
 
 object AuthSkripts {
     fun <T, R: UserSessionProps> validate(): Skript<T, T, ApplicationStage<R>> =
-            Skript.updateContext(
+            Skript.updateStage(
                     Skript.identity<T, ApplicationStage<R>>()
-                            .mapWithContext { i, c -> c.getStageProps().getUserSessionKey() }
+                            .mapWithStage { _, stage -> stage.getStageProps().getUserSessionKey() }
                             .query(AuthQueries.SelectSessionByKey)
-                            .mapWithContext { session, c -> c.getStageProps().setUserSession(session) })
+                            .mapWithStage { session, stage -> stage.getStageProps().setUserSession(session) })
 
 }

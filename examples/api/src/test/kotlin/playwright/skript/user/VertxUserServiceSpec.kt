@@ -7,11 +7,7 @@ import io.vertx.ext.jdbc.JDBCClient
 import io.vertx.ext.sql.SQLClient
 import playwright.skript.common.ApplicationVenue
 import playwright.skript.consumer.alpha.VertxConsumerStage
-import playwright.skript.performer.PublishPerformer
-import playwright.skript.performer.SQLPerformer
-import playwright.skript.performer.SerializePerformer
 import playwright.skript.result.VertxResult
-import playwright.skript.venue.Venue
 import playwright.skript.venue.VertxPublishVenue
 import playwright.skript.venue.VertxSQLVenue
 import playwright.skript.venue.VertxSerializeVenue
@@ -32,9 +28,9 @@ class VertxUserServiceSpec: UserServiceSpec() {
             JDBCClient.createShared(vertx, hikariConfig, "test_ds")
         }
 
-        val sqlConnectionProvider by lazy { VertxSQLVenue(sqlClient) as Venue<SQLPerformer> }
-        val publishVenue by lazy { VertxPublishVenue(vertx) as Venue<PublishPerformer> }
-        val serializeVenue = VertxSerializeVenue() as Venue<SerializePerformer>
+        val sqlConnectionProvider by lazy { VertxSQLVenue(sqlClient) }
+        val publishVenue by lazy { VertxPublishVenue(vertx)  }
+        val serializeVenue = VertxSerializeVenue()
         val provider: ApplicationVenue by lazy {
             ApplicationVenue(publishVenue, sqlConnectionProvider, serializeVenue)
         }

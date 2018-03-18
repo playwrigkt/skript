@@ -11,5 +11,5 @@ interface Consumer {
     fun result(): AsyncResult<Unit>
 }
 
-interface Stream<T>: playwright.skript.consumer.alpha.Consumer, Iterator<Result<T>>
-interface Sink: playwright.skript.consumer.alpha.Consumer
+interface Stream<T>: Consumer, Iterator<Result<T>>
+interface Sink: Consumer

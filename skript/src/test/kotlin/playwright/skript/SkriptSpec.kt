@@ -8,7 +8,7 @@ import playwright.skript.result.AsyncResult
 
 class SkriptSpec : StringSpec() {
     init {
-        "a skript can have no context" {
+        "a skript can have no stage" {
             val skript = Skript.map<Int, String, Unit> { it.toString() }
             skript.run(10, Unit) shouldBe AsyncResult.succeeded("10")
         }
@@ -20,14 +20,14 @@ class SkriptSpec : StringSpec() {
             skript.run(10, Unit) shouldBe AsyncResult.succeeded(20L)
         }
 
-        "a skript context can provide properties" {
+        "a skript stage can provide properties" {
             data class Config(val appName: String)
-            data class ConfigContext(val config: Config)
+            data class ConfigStage(val config: Config)
 
             val skript =
-                    Skript.map<Int, String, ConfigContext>{ it.toString() }
-                            .mapWithContext { i, c -> "Application ${c.config.appName} received $i" }
-            skript.run(10, ConfigContext(Config("Example"))) shouldBe AsyncResult.succeeded("Application Example received 10")
+                    Skript.map<Int, String, ConfigStage>{ it.toString() }
+                            .mapWithStage { i, c -> "Application ${c.config.appName} received $i" }
+            skript.run(10, ConfigStage(Config("Example"))) shouldBe AsyncResult.succeeded("Application Example received 10")
         }
 
         "A skript can branch based on the result of a skript" {

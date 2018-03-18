@@ -37,10 +37,10 @@ object ChatRoomSchema {
         PRIMARY KEY (chatroom_id, user_id))""".trimIndent()
 
     val initAction = Skript.identity<Unit, ApplicationStage>()
-            .exec(SQLMapping.Companion.exec(playwright.skript.chatrooom.sql.ChatRoomSchema.createChatRoomTable))
-            .exec(SQLMapping.Companion.exec(playwright.skript.chatrooom.sql.ChatRoomSchema.createChatRoomPermissionTable))
-            .exec(SQLMapping.Companion.exec(playwright.skript.chatrooom.sql.ChatRoomSchema.createChatRoomUserPermissionTable))
-            .exec(SQLMapping.Companion.exec(playwright.skript.chatrooom.sql.ChatRoomSchema.createBannedUserTable))
+            .exec(SQLMapping.exec(playwright.skript.chatrooom.sql.ChatRoomSchema.createChatRoomTable))
+            .exec(SQLMapping.exec(playwright.skript.chatrooom.sql.ChatRoomSchema.createChatRoomPermissionTable))
+            .exec(SQLMapping.exec(playwright.skript.chatrooom.sql.ChatRoomSchema.createChatRoomUserPermissionTable))
+            .exec(SQLMapping.exec(playwright.skript.chatrooom.sql.ChatRoomSchema.createBannedUserTable))
 
     val dropAllAction = Skript.identity<Unit, ApplicationStage>()
             .dropTableIfExists("chatroom_user_banned")

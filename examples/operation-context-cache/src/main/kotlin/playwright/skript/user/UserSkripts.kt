@@ -30,8 +30,8 @@ object UserSkripts {
                     .deserialize(UserSession::class.java)
 
     private val AUTHORIZE_USER: Skript<String, String, ApplicationStage<GetUserProps>> =
-            Skript.mapTryWithContext { userId, context ->
-                context.getStageProps().getUserSession()
+            Skript.mapTryWithStage { userId, stage ->
+                stage.getStageProps().getUserSession()
                         .filter { it.userId == userId }
                         .map { Try.Success(userId) }
                         .getOrElse { Try.Failure<String>(UserError.AuthorizationFailed) }

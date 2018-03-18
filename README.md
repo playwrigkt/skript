@@ -14,7 +14,7 @@ This project allows users to implement application logic independently of techno
 ## Core Concepts
 
 * Skript: A skript is a list of one or more sequential actions that are executed in a non blocking manner. Everything is a skript.
-* Context: Each skript has a context, a context has application resources such as database connections and application configuration properties
+* Stage: Each skript has a stage, a stage has application resources such as database connections and application configuration properties
 
 ## What is a skript?
 
@@ -39,11 +39,11 @@ skript.run(30, Unit) shouldBe AsyncResult.succeeded("30")
 This example doesn't do much that we don't get out of the box with most programming languages, so it isn't really showing off what Skripts really can do. However, its a good place to start
 examining exactly what a skript is.
 
-In the first line, we create a `map` skript, which simply executes a synchronous function (we'll get to asynchronous soon).  The skript has three type parameters: `<Input, Output, Context>`, input and output are pretty self explanatory and we'll get to context later.
+In the first line, we create a `map` skript, which simply executes a synchronous function (we'll get to asynchronous soon).  The skript has three type parameters: `<Input, Output, Stage>`, input and output are pretty self explanatory and we'll get to stage later.
 This skript is essentially a function that takes in type Int and returns an asynchronous result with a String in it. Since the map skript is implemented synchronously the result is immediately available,
 but this is not always the case with skripts.
 
-The second and third lines run the skript.  For now, ignore the `Unit` value being passed in (we'll get to Context later).
+The second and third lines run the skript.  For now, ignore the `Unit` value being passed in (we'll get to Stage later).
 
 ### Composing skripts
 
@@ -132,29 +132,29 @@ While this example implements trivial logic it explained several key concepts: s
 
 The next sections will explore how to use these features to implement more meaningful interfaces.
 
-## Skript Context
+## Skript Stage
 
-The skript context is used to inject non static Application resources into a skript.  For example, a database connection or runtime configuration.  The context is the main abstraction
+The skript stage is used to inject non static Application resources into a skript.  For example, a database connection or runtime configuration.  The stage is the main abstraction
 for technical implementation.  Lets start by looking at a concrete example.
 
 ### SQLSkript
 
-A `SQLSkript` is given its connection through the context object.  A SQLSkript is defined as having a context
+A `SQLSkript` is given its connection through the stage object.  A SQLSkript is defined as having a stage
 that can provide a SQLConnection:
 
 ```
-sealed class SQLSkript<IN, OUT, C: SQLSkriptContext<*>>: Skript<IN, OUT, C>
+sealed class SQLSkript<IN, OUT, C: SQLSkriptStage<*>>: Skript<IN, OUT, C>
 ```
 
-A SQLSkriptContext provides a method that returns a `SQLPerformer`, there is no need to get into how that is
+A SQLSkriptStage provides a method that returns a `SQLPerformer`, there is no need to get into how that is
 implemented here, suffice to say an application will use an implementation of SQLPerformer in order to provide
 SQL functionality at runtime, without interfering with the skript impelementation.
 
 
-An application that needs a SQL connection might have a context implemented like this:
+An application that needs a SQL connection might have a stage implemented like this:
 
 ```
-data class ApplicationContext(val sqlPerformer: SQLPerformer): SQLSkriptContext<SQLPerformer> {
+data class ApplicationStage(val sqlPerformer: SQLPerformer): SQLSkriptStage<SQLPerformer> {
     override fun getSQLPerformer(): SQLPerformer {
         return sqlPerformer
     }
@@ -173,14 +173,14 @@ data class UserProfile(val id: String, val name: String, val allowPublicMessage:
 As part of our application, we will probably expose a skript like this:
 
 ```
-val getUserProfileByIdSkript: Skript<String, UserProfile, ApplicationContext>
+val getUserProfileByIdSkript: Skript<String, UserProfile, ApplicationStage>
 ```
 
 This skript will handle getting the user.  The underlying implementation could be swapped out in the future,
 but for now we decide to implement as a simple SQL Query:
 
 ```
-val getUserProfileByIdSkript: Skript<String, UserProfile, ApplicationContext> = SQLSkript.query<String, UserProfile, ApplicationContext>(SelectUserProfileById)
+val getUserProfileByIdSkript: Skript<String, UserProfile, ApplicationStage> = SQLSkript.query<String, UserProfile, ApplicationStage>(SelectUserProfileById)
 
 object SelectUserProfileById: SQLQueryMapping<String, UserProfile> {
   val selectUser = "SELECT id, user_name, allow_public_message FROM user_profile where id = ?"
@@ -223,7 +223,7 @@ object SelectUserProfileById: SQLQueryMapping<String, UserProfile> {
 Putting it all together, and running the skript:
 
 ```
-val context: ApplicationContext = ...
+val stage: ApplicationStage = ...
 
 data class UserProfile(val id: String, val name: String, val allowPublicMessage: Boolean)
 
@@ -240,9 +240,9 @@ object SelectUserProfileById: SQLQueryMapping<String, UserProfile> {
                                 it.getBoolean("allow_public_message")) }
 
 }
-val getUserById = SQLSkript.query<String, UserProfile, ApplicationContext>(SelectUserProfileById)
+val getUserById = SQLSkript.query<String, UserProfile, ApplicationStage>(SelectUserProfileById)
 
-val result: AsyncResult<UserProfile> = getUserById.run("id1234", context)
+val result: AsyncResult<UserProfile> = getUserById.run("id1234", stage)
 ```
 
 This code doesn't provide any actual sql implementation, and it doesn't provide any sort of runtime objects.

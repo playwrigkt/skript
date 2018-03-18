@@ -34,18 +34,18 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
     abstract fun closeResources()
 
     override fun interceptSpec(context: Spec, spec: () -> Unit) {
-        awaitSucceededFuture(provider().runOnContext(
+        awaitSucceededFuture(provider().runOnStage(
                 SQLTransactionSkript.transaction<Unit, Unit, ApplicationStage<Unit>>(ChatRoomSchema.dropAllAction),
                 Unit,
                 Unit))
         awaitSucceededFuture(provider().provideStage().flatMap { it.dropUserSchema() })
         awaitSucceededFuture(provider().provideStage().flatMap { it.initUserSchema() })
-        awaitSucceededFuture(provider().runOnContext(
+        awaitSucceededFuture(provider().runOnStage(
                 SQLTransactionSkript.transaction<Unit, Unit, ApplicationStage<Unit>>(ChatRoomSchema.initAction),
                 Unit,
                 Unit))
         spec()
-        awaitSucceededFuture(provider().runOnContext(
+        awaitSucceededFuture(provider().runOnStage(
                 SQLTransactionSkript.transaction<Unit, Unit, ApplicationStage<Unit>>(ChatRoomSchema.dropAllAction),
                 Unit,
                 Unit))

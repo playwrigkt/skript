@@ -9,11 +9,11 @@ import playwright.skript.user.models.UserSession
 
 class UserService(val provider: ApplicationVenue) {
     fun createUser(userProfile: UserProfileAndPassword): AsyncResult<UserProfile> =
-            provider.runOnContext(UserSkripts.UNPREPARED_CREATE_SKRIPT, userProfile)
+            provider.runOnStage(UserSkripts.UNPREPARED_CREATE_SKRIPT, userProfile)
 
     fun loginUser(userNameAndPassword: UserNameAndPassword): AsyncResult<UserSession> =
-            provider.runOnContext(UserSkripts.UNPREPARED_LOGIN_SKRIPT, userNameAndPassword)
+            provider.runOnStage(UserSkripts.UNPREPARED_LOGIN_SKRIPT, userNameAndPassword)
 
     fun getUser(userId: String, token: String): AsyncResult<UserProfile> =
-            provider.runOnContext(UserSkripts.UNPREPARED_GET_SKRIPT, playwright.skript.auth.TokenAndInput(token, userId))
+            provider.runOnStage(UserSkripts.UNPREPARED_GET_SKRIPT, playwright.skript.auth.TokenAndInput(token, userId))
 }

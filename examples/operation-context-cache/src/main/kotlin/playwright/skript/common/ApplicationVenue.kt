@@ -11,14 +11,14 @@ import playwright.skript.stage.SerializeStage
 import playwright.skript.venue.Venue
 
 class ApplicationVenue (
-        val publishVenue: Venue<PublishPerformer>,
-        val sqlVenue: Venue<SQLPerformer>,
-        val serializeVenue: Venue<SerializePerformer>
+        val publishVenue: Venue<out PublishPerformer>,
+        val sqlVenue: Venue<out SQLPerformer>,
+        val serializeVenue: Venue<out SerializePerformer>
 ): Venue<ApplicationStage<Unit>> {
 
-    override fun provideStage(): AsyncResult<ApplicationStage<Unit>> = provideContext(Unit)
+    override fun provideStage(): AsyncResult<ApplicationStage<Unit>> = provideStage(Unit)
 
-    fun <R> provideContext(r: R): AsyncResult<ApplicationStage<R>> {
+    fun <R> provideStage(r: R): AsyncResult<ApplicationStage<R>> {
         return sqlVenue.provideStage().flatMap { sqlPerformer ->
                     publishVenue.provideStage().flatMap { publishPerformer ->
                         serializeVenue.provideStage().map { serializePerformer ->
@@ -28,8 +28,8 @@ class ApplicationVenue (
                 }
     }
 
-    fun <I, O, R> runOnContext(skript: Skript<I, O, ApplicationStage<R>>, i: I, r: R): AsyncResult<O> {
-        return provideContext(r)
+    fun <I, O, R> runOnStage(skript: Skript<I, O, ApplicationStage<R>>, i: I, r: R): AsyncResult<O> {
+        return provideStage(r)
                 .flatMap { skript.run(i, it) }
     }
 }
@@ -44,9 +44,9 @@ class ApplicationStage<R>(
         private val sqlPerformer: SQLPerformer,
         private val serializePerformer: SerializePerformer,
         private val cache: R):
-        PublishStage<PublishPerformer>,
-        SQLStage<SQLPerformer>,
-        SerializeStage<SerializePerformer>,
+        PublishStage,
+        SQLStage,
+        SerializeStage,
         StageProps<R>
 {
     override fun getSerializePerformer(): SerializePerformer = serializePerformer
