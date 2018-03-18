@@ -146,17 +146,17 @@ that can provide a SQLConnection:
 sealed class SQLSkript<IN, OUT, C: SQLSkriptContext<*>>: Skript<IN, OUT, C>
 ```
 
-A SQLSkriptContext provides a method that returns a `SQLExecutor`, there is no need to get into how that is
-implemented here, suffice to say an application will use an implementation of SQLExecutor in order to provide
+A SQLSkriptContext provides a method that returns a `SQLPerformer`, there is no need to get into how that is
+implemented here, suffice to say an application will use an implementation of SQLPerformer in order to provide
 SQL functionality at runtime, without interfering with the skript impelementation.
 
 
 An application that needs a SQL connection might have a context implemented like this:
 
 ```
-data class ApplicationContext(val sqlExecutor: SQLExecutor): SQLSkriptContext<SQLExecutor> {
-    override fun getSQLExecutor(): SQLExecutor {
-        return sqlExecutor
+data class ApplicationContext(val sqlPerformer: SQLPerformer): SQLSkriptContext<SQLPerformer> {
+    override fun getSQLPerformer(): SQLPerformer {
+        return sqlPerformer
     }
 }
 ```
