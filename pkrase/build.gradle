@@ -5,8 +5,8 @@ dependencies {
     compile project(':sql')
     compile project(':serialize')
 
-    testCompile project(':vertx')
+    /*testCompile project(':vertx')
     testCompile project(':coroutine-jdbc')
     testCompile project(':amqp')
-    testCompile project(':jackson')
+    testCompile project(':jackson')*/
 }

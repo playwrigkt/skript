@@ -515,7 +515,7 @@ val hikariDSConfig: HikariConfig by lazy {
 }
 
 val hikariDataSource = HikariDataSource(hikariDSConfig)
-val sqlConnectionProvider = playwright.skript.venue.JDBCDataSourceVenue(hikariDataSource)
+val sqlConnectionProvider = playwrigkt.skript.venue.JDBCDataSourceVenue(hikariDataSource)
 val publishVenue by lazy { AMQPPublishVenue(AMQPManager.amqpExchange, JDBCUserServiceSpec.amqpConnection, AMQPManager.basicProperties) }
 val serializeVenue = JacksonSerializeVenue()
 val provider: ApplicationVenue by lazy {
