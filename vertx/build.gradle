@@ -3,7 +3,7 @@ dependencies {
     compile "io.vertx:vertx-jdbc-client:$vertxVersion"
 
     compile project(':sql')
-    compile project(':publisher')
-    compile project(':consumer')
+    compile project(':queue')
+    compile project(':http')
     compile project(':serialize')
 }
