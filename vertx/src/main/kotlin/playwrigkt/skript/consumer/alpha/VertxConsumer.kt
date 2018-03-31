@@ -4,6 +4,9 @@ import io.vertx.core.AbstractVerticle
 import io.vertx.core.Vertx
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.eventbus.Message
+import playwright.skript.consumer.alpha.QueueConsumerProduction
+import playwright.skript.consumer.alpha.QueueConsumerTroupe
+import playwright.skript.consumer.alpha.QueueMessage
 import playwrigkt.skript.Skript
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.CompletableResult
@@ -11,23 +14,23 @@ import playwrigkt.skript.result.Result
 import playwrigkt.skript.venue.Venue
 import java.util.concurrent.LinkedBlockingQueue
 
-class VertxConsumerStage(val vertx: Vertx): ConsumerStage<String, ConsumedMessage> {
-    override fun <Stage> buildPerformer(target: String, venue: Venue<Stage>): VertxConsumerPerformer<Stage> {
-        return VertxConsumerPerformer(target, vertx, venue)
+class VertxConsumerTroupe(val vertx: Vertx): QueueConsumerTroupe {
+    override fun <Stage> production(target: String, venue: Venue<Stage>): VertxConsumerProduction<Stage> {
+        return VertxConsumerProduction(target, vertx, venue)
     }
 }
 
-class VertxConsumerPerformer<Stage>(
+class VertxConsumerProduction<Stage>(
         val address: String,
         val vertx: Vertx,
-        val provider: Venue<Stage>): ConsumerPerformer<Stage, ConsumedMessage> {
+        val provider: Venue<Stage>): QueueConsumerProduction<Stage> {
 
-    override fun <O> stream(skript: Skript<ConsumedMessage, O, Stage>): AsyncResult<Stream<O>> {
+    override fun <O> stream(skript: Skript<QueueMessage, O, Stage>): AsyncResult<Stream<O>> {
         return AsyncResult.succeeded(VertxConsumeStream(vertx, address, skript, provider))
     }
 
 
-    override fun <O> sink(skript: Skript<ConsumedMessage, O, Stage>): AsyncResult<Sink> {
+    override fun <O> sink(skript: Skript<QueueMessage, O, Stage>): AsyncResult<Sink> {
         return AsyncResult.succeeded(VertxConsumeSink(vertx, address, skript, provider))
     }
 }
@@ -35,7 +38,7 @@ class VertxConsumerPerformer<Stage>(
 abstract class VertxConsumer<O, Stage>(
         val vertx: Vertx,
         val address: String,
-        val skript: Skript<ConsumedMessage, O, Stage>,
+        val skript: Skript<QueueMessage, O, Stage>,
         val provider: Venue<Stage>): Consumer {
     private val result: CompletableResult<Unit> = CompletableResult()
     private val verticle: AbstractVerticle
@@ -79,12 +82,12 @@ abstract class VertxConsumer<O, Stage>(
 class VertxConsumeSink<O, Stage>(
         vertx: Vertx,
         address: String,
-        skript: Skript<ConsumedMessage, O, Stage>,
+        skript: Skript<QueueMessage, O, Stage>,
         provider: Venue<Stage>): Sink, VertxConsumer<O, Stage>(vertx, address, skript, provider) {
 
     override fun handleMessage(message: Message<Buffer>) {
         provider.provideStage()
-                .flatMap { skript.run(ConsumedMessage(address, message.body().bytes), it) }
+                .flatMap { skript.run(QueueMessage(address, message.body().bytes), it) }
                 .map {
                     message.reply("success") }
                 .recover {
@@ -97,13 +100,13 @@ class VertxConsumeSink<O, Stage>(
 class VertxConsumeStream<O, Stage>(
         vertx: Vertx,
         address: String,
-        skript: Skript<ConsumedMessage, O, Stage>,
+        skript: Skript<QueueMessage, O, Stage>,
         provider: Venue<Stage>): Stream<O>, VertxConsumer<O, Stage>(vertx, address, skript, provider) {
 
 
     override fun handleMessage(message: Message<Buffer>) {
         provider.provideStage()
-                .flatMap { skript.run(ConsumedMessage(address, message.body().bytes), it) }
+                .flatMap { skript.run(QueueMessage(address, message.body().bytes), it) }
                 .enqueue()
                 .map { message.reply("success") }
                 .recover {

@@ -11,7 +11,7 @@ import playwrigkt.skript.ex.query
 import playwrigkt.skript.ex.update
 import playwrigkt.skript.performer.SQLPerformer
 import playwrigkt.skript.sql.transaction.SQLTransactionSkript
-import playwrigkt.skript.stage.SQLCast
+import playwrigkt.skript.stage.SQLStage
 import java.time.Instant
 
 class SQLSkriptSpec : StringSpec() {
@@ -20,7 +20,7 @@ class SQLSkriptSpec : StringSpec() {
 
 
     data class ApplicationStage<R>(val sqlPerformer: SQLPerformer, val cache: R):
-            SQLCast,
+            SQLStage,
             OperationCache<R> {
         override fun getOperationCache(): R = cache
 

@@ -2,6 +2,9 @@ package playwrigkt.skript.consumer.alpha
 
 import com.rabbitmq.client.*
 import org.funktionale.tries.Try
+import playwright.skript.consumer.alpha.QueueConsumerProduction
+import playwright.skript.consumer.alpha.QueueConsumerTroupe
+import playwright.skript.consumer.alpha.QueueMessage
 import playwrigkt.skript.Skript
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.CompletableResult
@@ -10,18 +13,18 @@ import playwrigkt.skript.result.toAsyncResult
 import playwrigkt.skript.venue.Venue
 import java.util.concurrent.LinkedBlockingQueue
 
-class AMQPConsumerStage(val amqpConnection: Connection): ConsumerStage<String, ConsumedMessage> {
-    override fun <Stage> buildPerformer(target: String, venue: Venue<Stage>): ConsumerPerformer<Stage, ConsumedMessage> {
-        return AMQPConsumerPerformer(amqpConnection, venue, target)
+class AMQPConsumerTroupe(val amqpConnection: Connection): QueueConsumerTroupe {
+    override fun <Stage> production(target: String, venue: Venue<Stage>): AMQPConsumerProduction<Stage> {
+        return AMQPConsumerProduction(amqpConnection, venue, target)
     }
 }
 
-class AMQPConsumerPerformer<Stage>(
+class AMQPConsumerProduction<Stage>(
         val amqpConnection: Connection,
         val venue: Venue<Stage>,
-        val queue: String): ConsumerPerformer<Stage, ConsumedMessage> {
+        val queue: String): QueueConsumerProduction<Stage> {
 
-    override fun <O> sink(skript: Skript<ConsumedMessage, O, Stage>): AsyncResult<Sink> {
+    override fun <O> sink(skript: Skript<QueueMessage, O, Stage>): AsyncResult<Sink> {
         return Try {
             AMQPSink(amqpConnection.createChannel(), queue, skript, venue)
         }
@@ -29,7 +32,7 @@ class AMQPConsumerPerformer<Stage>(
                 .map { it as Sink }
     }
 
-    override fun <O> stream(skript: Skript<ConsumedMessage, O, Stage>): AsyncResult<Stream<O>> {
+    override fun <O> stream(skript: Skript<QueueMessage, O, Stage>): AsyncResult<Stream<O>> {
         val result = Try {
             val stream = AMQPStream(
                     amqpConnection.createChannel(),
@@ -47,7 +50,7 @@ class AMQPConsumerPerformer<Stage>(
 abstract class AMQPConsumer<O, Stage>(
         val channel: Channel,
         val queue: String,
-        val skript: Skript<ConsumedMessage, O, Stage>,
+        val skript: Skript<QueueMessage, O, Stage>,
         val provider: Venue<Stage>): Consumer {
     private val result = CompletableResult<Unit>()
     private val consumerTag: String
@@ -88,11 +91,11 @@ abstract class AMQPConsumer<O, Stage>(
 class AMQPSink<O, Stage>(
         channel: Channel,
         queue: String,
-        skript: Skript<ConsumedMessage, O, Stage>,
+        skript: Skript<QueueMessage, O, Stage>,
         provider: Venue<Stage>): Sink, AMQPConsumer<O, Stage>(channel, queue, skript, provider) {
     override fun handleMessage(consumerTag: String, envelope: Envelope, properties: BasicProperties, body: ByteArray) {
         provider.provideStage()
-                .flatMap { stage -> skript.run(ConsumedMessage(envelope.routingKey, body), stage) }
+                .flatMap { stage -> skript.run(QueueMessage(envelope.routingKey, body), stage) }
                 .map { channel.basicAck(envelope.deliveryTag, false) }
                 .recover {
                     Try {
@@ -106,11 +109,11 @@ class AMQPSink<O, Stage>(
 class AMQPStream<O, Stage>(
         channel: Channel,
         queue: String,
-        skript: Skript<ConsumedMessage, O, Stage>,
+        skript: Skript<QueueMessage, O, Stage>,
         provider: Venue<Stage>): Stream<O>, AMQPConsumer<O, Stage>(channel, queue, skript, provider) {
     override fun handleMessage(consumerTag: String, envelope: Envelope, properties: BasicProperties, body: ByteArray) {
         provider.provideStage()
-                .flatMap { stage -> skript.run(ConsumedMessage(envelope.routingKey, body), stage) }
+                .flatMap { stage -> skript.run(QueueMessage(envelope.routingKey, body), stage) }
                 .enqueue()
                 .map { channel.basicAck(envelope.deliveryTag, false) }
                 .recover {

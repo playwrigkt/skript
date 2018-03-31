@@ -2,6 +2,6 @@ package playwrigkt.skript.stage
 
 import playwrigkt.skript.performer.SerializePerformer
 
-interface SerializeCast {
+interface SerializeStage {
     fun getSerializePerformer(): SerializePerformer
 }

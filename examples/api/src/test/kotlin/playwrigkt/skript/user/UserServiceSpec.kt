@@ -6,10 +6,11 @@ import io.kotlintest.matchers.shouldBe
 import io.kotlintest.matchers.shouldNotBe
 import io.kotlintest.specs.StringSpec
 import org.slf4j.LoggerFactory
+import playwright.skript.consumer.alpha.QueueConsumerTroupe
+import playwright.skript.consumer.alpha.QueueMessage
 import playwrigkt.skript.Skript
 import playwrigkt.skript.common.ApplicationStage
 import playwrigkt.skript.common.ApplicationVenue
-import playwrigkt.skript.consumer.alpha.ConsumedMessage
 import playwrigkt.skript.ex.deserialize
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.Result
@@ -31,7 +32,7 @@ abstract class UserServiceSpec : StringSpec() {
     val LOG = LoggerFactory.getLogger(this.javaClass)
 
     abstract fun provider(): ApplicationVenue
-    abstract fun consumerPerformerProvider(): playwrigkt.skript.consumer.alpha.ConsumerStage<String, ConsumedMessage>
+    abstract fun consumerPerformerProvider(): QueueConsumerTroupe
     abstract fun closeResources()
 
     val userService: UserService = UserService(provider())
@@ -39,7 +40,7 @@ abstract class UserServiceSpec : StringSpec() {
     fun loginConsumer(): playwrigkt.skript.consumer.alpha.Stream<UserSession> {
         return awaitSucceededFuture(
                 userLoginConsumer(consumerPerformerProvider(), provider())
-                        .stream(Skript.identity<playwrigkt.skript.consumer.alpha.ConsumedMessage, ApplicationStage>()
+                        .stream(Skript.identity<QueueMessage, ApplicationStage>()
                                 .map { it.body }
                                 .deserialize(UserSession::class.java)))!!
     }
@@ -47,7 +48,7 @@ abstract class UserServiceSpec : StringSpec() {
     fun createConsumer(): playwrigkt.skript.consumer.alpha.Stream<UserProfile> {
         return awaitSucceededFuture(
                 playwrigkt.skript.user.userCreateConsumer(consumerPerformerProvider(), provider())
-                        .stream(Skript.identity<playwrigkt.skript.consumer.alpha.ConsumedMessage, ApplicationStage>()
+                        .stream(Skript.identity<QueueMessage, ApplicationStage>()
                                 .map { it.body }
                                 .deserialize(UserProfile::class.java)))!!
     }

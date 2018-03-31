@@ -5,8 +5,8 @@ import playwrigkt.skript.consumer.alpha.*
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.venue.Venue
 
-abstract class HttpConsumerPerformer<STAGE>(
-        val venue: Venue<STAGE>): ConsumerPerformer<STAGE, HttpRequest> {
+abstract class HttpConsumerProduction<STAGE>(
+        val venue: Venue<STAGE>): ConsumerProduction<STAGE, HttpRequest> {
     override fun <O> sink(skript: Skript<HttpRequest, O, STAGE>): AsyncResult<Sink> {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }

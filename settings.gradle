@@ -1,2 +1,2 @@
-include 'skript', 'serialize', 'sql', 'publisher', 'consumer', 'http', 'jackson', 'coroutine-jdbc', 'vertx', 'amqp', 'examples:api', 'examples:operation-context-cache', 'pkrase'
-rootProject.name = "vertx-sql-composer"
+include 'skript', 'serialize', 'sql', 'publisher', 'consumer', 'http', 'queue', 'jackson', 'coroutine-jdbc', 'vertx', 'amqp', 'examples:api', 'examples:operation-context-cache', 'pkrase'
+rootProject.name = "skript"

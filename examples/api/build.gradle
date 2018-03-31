@@ -1,7 +1,7 @@
 
 dependencies {
     compile project(':publisher')
-    compile project(':consumer')
+    compile project(':queue')
     compile project(':sql')
     compile project(':serialize')
 

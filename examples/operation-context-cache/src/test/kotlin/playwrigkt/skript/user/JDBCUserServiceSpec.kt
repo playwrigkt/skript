@@ -6,10 +6,9 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.rabbitmq.client.ConnectionFactory
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import playwright.skript.consumer.alpha.QueueConsumerTroupe
 import playwrigkt.skript.amqp.AMQPManager
 import playwrigkt.skript.common.ApplicationVenue
-import playwrigkt.skript.consumer.alpha.ConsumedMessage
-import playwrigkt.skript.venue.AMQPPublishVenue
 import playwrigkt.skript.venue.JacksonSerializeVenue
 
 class JDBCUserServiceSpec: UserServiceSpec() {
@@ -42,14 +41,14 @@ class JDBCUserServiceSpec: UserServiceSpec() {
         val provider: ApplicationVenue by lazy {
             ApplicationVenue(publishVenue, sqlConnectionProvider, serializeVenue)
         }
-        val CONSUMER_STAGE: playwrigkt.skript.consumer.alpha.ConsumerStage<String, ConsumedMessage> = playwrigkt.skript.consumer.alpha.AMQPConsumerStage(amqpConnection)
+        val CONSUMER_TROUPE: QueueConsumerTroupe = playwrigkt.skript.consumer.alpha.AMQPConsumerTroupe(amqpConnection)
     }
 
 
 
     override fun provider(): ApplicationVenue = provider
 
-    override fun consumerPerformerProvider(): playwrigkt.skript.consumer.alpha.ConsumerStage<String, ConsumedMessage> = CONSUMER_STAGE
+    override fun consumerPerformerProvider(): QueueConsumerTroupe = CONSUMER_TROUPE
 
     override fun closeResources() {
         hikariDataSource.close()

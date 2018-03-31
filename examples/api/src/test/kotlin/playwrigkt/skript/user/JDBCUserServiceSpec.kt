@@ -3,11 +3,10 @@ package playwrigkt.skript.user
 import com.rabbitmq.client.ConnectionFactory
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import playwright.skript.consumer.alpha.QueueConsumerTroupe
 import playwrigkt.skript.amqp.AMQPManager
 import playwrigkt.skript.common.ApplicationVenue
-import playwrigkt.skript.consumer.alpha.ConsumedMessage
-import playwrigkt.skript.venue.AMQPPublishVenue
-import playwrigkt.skript.venue.JDBCDataSourceVenue
+import playwrigkt.skript.consumer.alpha.AMQPConsumerTroupe
 import playwrigkt.skript.venue.JacksonSerializeVenue
 
 class JDBCUserServiceSpec: UserServiceSpec() {
@@ -41,11 +40,11 @@ class JDBCUserServiceSpec: UserServiceSpec() {
             ApplicationVenue(publishVenue, sqlConnectionProvider, serializeVenue)
         }
 
-        val CONSUMER_STAGE: playwrigkt.skript.consumer.alpha.ConsumerStage<String, ConsumedMessage> = playwrigkt.skript.consumer.alpha.AMQPConsumerStage(amqpConnection)
+        val CONSUMER_TROUPE: QueueConsumerTroupe = AMQPConsumerTroupe(amqpConnection)
     }
 
     override fun provider(): ApplicationVenue = provider
-    override fun consumerPerformerProvider(): playwrigkt.skript.consumer.alpha.ConsumerStage<String, ConsumedMessage> = CONSUMER_STAGE
+    override fun consumerPerformerProvider(): QueueConsumerTroupe = CONSUMER_TROUPE
     override fun closeResources() {
         hikariDataSource.close()
         amqpConnection.close()

@@ -5,10 +5,9 @@ import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.jdbc.JDBCClient
 import io.vertx.ext.sql.SQLClient
+import playwright.skript.consumer.alpha.QueueConsumerTroupe
 import playwrigkt.skript.common.ApplicationVenue
-import playwrigkt.skript.consumer.alpha.ConsumedMessage
-import playwrigkt.skript.consumer.alpha.ConsumerStage
-import playwrigkt.skript.consumer.alpha.VertxConsumerStage
+import playwrigkt.skript.consumer.alpha.VertxConsumerTroupe
 import playwrigkt.skript.result.VertxResult
 import playwrigkt.skript.venue.VertxPublishVenue
 import playwrigkt.skript.venue.VertxSQLVenue
@@ -37,11 +36,11 @@ class VertxUserServiceSpec: UserServiceSpec() {
             ApplicationVenue(publishVenue, sqlConnectionProvider, serializeVenue)
         }
 
-        val consumerPerformerProvider = VertxConsumerStage(vertx)
+        val consumerPerformerProvider = VertxConsumerTroupe(vertx)
     }
 
     override fun provider(): ApplicationVenue = VertxUserServiceSpec.provider
-    override fun consumerPerformerProvider(): ConsumerStage<String, ConsumedMessage> = consumerPerformerProvider
+    override fun consumerPerformerProvider(): QueueConsumerTroupe = consumerPerformerProvider
     override fun closeResources() {
         val clientF = Future.future<Void>()
         sqlClient.close(clientF.completer())

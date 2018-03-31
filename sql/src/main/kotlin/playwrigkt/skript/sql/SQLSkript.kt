@@ -2,11 +2,10 @@ package playwrigkt.skript.sql
 
 import org.funktionale.tries.Try
 import playwrigkt.skript.Skript
-import playwrigkt.skript.ex.andThen
 import playwrigkt.skript.result.AsyncResult
-import playwrigkt.skript.stage.SQLCast
+import playwrigkt.skript.stage.SQLStage
 
-sealed class SQLSkript<IN, OUT>: Skript<IN, OUT, SQLCast> {
+sealed class SQLSkript<IN, OUT>: Skript<IN, OUT, SQLStage> {
 
     companion object {
         fun <IN, OUT> query(mapping: SQLMapping<IN, OUT, SQLCommand.Query, SQLResult.Query>): SQLSkript<IN, OUT> = Query(mapping)
@@ -17,7 +16,7 @@ sealed class SQLSkript<IN, OUT>: Skript<IN, OUT, SQLCast> {
     abstract val mapping: SQLMapping<IN, OUT, *, *>
 
     private data class Query<IN, OUT>(override val mapping: SQLMapping<IN, OUT, SQLCommand.Query, SQLResult.Query>): SQLSkript<IN, OUT>() {
-        override fun run(i: IN, stage: SQLCast): AsyncResult<OUT> {
+        override fun run(i: IN, stage: SQLStage): AsyncResult<OUT> {
             val sqlCommand = mapping.toSql(i)
             return stage.getSQLPerformer().query(sqlCommand)
                     .map { mapping.mapResult(i, it) }
@@ -27,7 +26,7 @@ sealed class SQLSkript<IN, OUT>: Skript<IN, OUT, SQLCast> {
     }
 
     private data class Update<IN, OUT>(override val mapping: SQLMapping<IN, OUT, SQLCommand.Update, SQLResult.Update>): SQLSkript<IN, OUT>() {
-        override fun run(i: IN, stage: SQLCast): AsyncResult<OUT> {
+        override fun run(i: IN, stage: SQLStage): AsyncResult<OUT> {
             val sqlCommand = mapping.toSql(i)
             return stage.getSQLPerformer().update(sqlCommand)
                     .map { mapping.mapResult(i, it) }
@@ -37,7 +36,7 @@ sealed class SQLSkript<IN, OUT>: Skript<IN, OUT, SQLCast> {
     }
 
     private data class Exec<IN, OUT>(override val mapping: SQLMapping<IN, OUT, SQLCommand.Exec, SQLResult.Void>): SQLSkript<IN, OUT>() {
-        override fun run(i: IN, stage: SQLCast): AsyncResult<OUT> {
+        override fun run(i: IN, stage: SQLStage): AsyncResult<OUT> {
             val sqlCommand = mapping.toSql(i)
             return stage.getSQLPerformer().exec(sqlCommand)
                     .map { mapping.mapResult(i, it) }

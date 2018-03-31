@@ -3,8 +3,6 @@ package playwrigkt.skript.consumer.alpha
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.Result
 
-data class ConsumedMessage(val source: String, val body: ByteArray)
-
 interface Consumer {
     fun isRunning(): Boolean
     fun stop(): AsyncResult<Unit>

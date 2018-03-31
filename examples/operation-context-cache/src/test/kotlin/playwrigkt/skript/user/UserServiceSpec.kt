@@ -6,11 +6,11 @@ import io.kotlintest.matchers.shouldBe
 import io.kotlintest.matchers.shouldNotBe
 import io.kotlintest.specs.StringSpec
 import org.slf4j.LoggerFactory
+import playwright.skript.consumer.alpha.QueueConsumerTroupe
+import playwright.skript.consumer.alpha.QueueMessage
 import playwrigkt.skript.Skript
 import playwrigkt.skript.common.ApplicationStage
 import playwrigkt.skript.common.ApplicationVenue
-import playwrigkt.skript.consumer.alpha.ConsumedMessage
-import playwrigkt.skript.consumer.alpha.ConsumerStage
 import playwrigkt.skript.consumer.alpha.Stream
 import playwrigkt.skript.ex.deserialize
 import playwrigkt.skript.result.AsyncResult
@@ -40,7 +40,7 @@ abstract class UserServiceSpec : StringSpec() {
     fun loginConsumer(): Stream<UserSession> {
         return awaitSucceededFuture(
                 userLoginConsumer(consumerPerformerProvider(), provider())
-                        .stream(Skript.identity<ConsumedMessage, ApplicationStage<Unit>>()
+                        .stream(Skript.identity<QueueMessage, ApplicationStage<Unit>>()
                                 .map { it.body }
                                 .deserialize(UserSession::class.java)))!!
     }
@@ -48,11 +48,11 @@ abstract class UserServiceSpec : StringSpec() {
     fun createConsumer(): Stream<UserProfile> {
         return awaitSucceededFuture(
                 userCreateConsumer(consumerPerformerProvider(), provider())
-                        .stream(Skript.identity<playwrigkt.skript.consumer.alpha.ConsumedMessage, ApplicationStage<Unit>>()
+                        .stream(Skript.identity<QueueMessage, ApplicationStage<Unit>>()
                                 .map { it.body }
                                 .deserialize(UserProfile::class.java)))!!
     }
-    abstract fun consumerPerformerProvider(): ConsumerStage<String, ConsumedMessage>
+    abstract fun consumerPerformerProvider(): QueueConsumerTroupe
     override fun interceptSpec(context: Spec, spec: () -> Unit) {
         awaitSucceededFuture(provider().provideStage().flatMap{ it.dropUserSchema() })
         awaitSucceededFuture(provider().provideStage().flatMap{ it.initUserSchema() })
