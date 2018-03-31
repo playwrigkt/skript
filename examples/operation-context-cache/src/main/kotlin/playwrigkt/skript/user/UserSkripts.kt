@@ -2,11 +2,11 @@ package playwrigkt.skript.user
 
 import org.funktionale.option.getOrElse
 import org.funktionale.tries.Try
+import playwright.skript.consumer.alpha.QueueMessage
 import playwrigkt.skript.Skript
 import playwrigkt.skript.auth.AuthSkripts
 import playwrigkt.skript.common.ApplicationStage
 import playwrigkt.skript.ex.*
-import playwrigkt.skript.performer.PublishCommand
 import playwrigkt.skript.sql.transaction.SQLTransactionSkript
 import playwrigkt.skript.user.models.*
 import playwrigkt.skript.user.props.GetUserStageProps
@@ -20,13 +20,13 @@ object UserSkripts {
     private val PUBLISH_USER_CREATE_EVENT: Skript<UserProfile, UserProfile, ApplicationStage<Unit>> =
             Skript.identity<UserProfile, ApplicationStage<Unit>>()
                     .serialize()
-                    .publish { PublishCommand.Publish(userCreatedAddress, it) }
+                    .publish { QueueMessage(userCreatedAddress, it) }
                     .deserialize(UserProfile::class.java)
 
     private val PUBLISH_USER_LOGIN_EVENT: Skript<UserSession, UserSession, ApplicationStage<Unit>> =
             Skript.identity<UserSession, ApplicationStage<Unit>>()
                     .serialize()
-                    .publish { PublishCommand.Publish(userLoginAddress, it) }
+                    .publish { QueueMessage(userLoginAddress, it) }
                     .deserialize(UserSession::class.java)
 
     private val AUTHORIZE_USER: Skript<String, String, ApplicationStage<GetUserStageProps>> =

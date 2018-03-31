@@ -1,10 +1,10 @@
 package playwrigkt.skript.user
 
 import org.funktionale.tries.Try
+import playwright.skript.consumer.alpha.QueueMessage
 import playwrigkt.skript.Skript
 import playwrigkt.skript.common.ApplicationStage
 import playwrigkt.skript.ex.*
-import playwrigkt.skript.performer.PublishCommand
 import playwrigkt.skript.sql.transaction.SQLTransactionSkript
 import playwrigkt.skript.user.models.*
 import playwrigkt.skript.user.sql.*
@@ -17,13 +17,13 @@ object UserSkripts {
     private val PUBLISH_USER_CREATE_EVENT: Skript<UserProfile, UserProfile, ApplicationStage> =
             Skript.identity<UserProfile, ApplicationStage>()
                     .serialize()
-                    .publish { PublishCommand.Publish(userCreatedAddress, it) }
+                    .publish { QueueMessage(userCreatedAddress, it) }
                     .deserialize(UserProfile::class.java)
 
     private val PUBLISH_USER_LOGIN_EVENT: Skript<UserSession, UserSession, ApplicationStage> =
             Skript.identity<UserSession, ApplicationStage>()
                     .serialize()
-                    .publish { PublishCommand.Publish(userLoginAddress, it) }
+                    .publish { QueueMessage(userLoginAddress, it) }
                     .deserialize(UserSession::class.java)
 
     private val onlyIfRequestedUserMatchesSessionUser =  { session: UserSession, userId: String ->

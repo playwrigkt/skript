@@ -1,17 +1,17 @@
 package playwrigkt.skript.common
 
+import playwright.skript.performer.QueuePublishPerformer
+import playwright.skript.stage.QueuePublishStage
 import playwrigkt.skript.Skript
-import playwrigkt.skript.performer.PublishPerformer
 import playwrigkt.skript.performer.SQLPerformer
 import playwrigkt.skript.performer.SerializePerformer
 import playwrigkt.skript.result.AsyncResult
-import playwrigkt.skript.stage.PublishStage
 import playwrigkt.skript.stage.SQLStage
 import playwrigkt.skript.stage.SerializeStage
 import playwrigkt.skript.venue.Venue
 
 class ApplicationVenue(
-        val publishProvider: Venue<PublishPerformer>,
+        val publishProvider: Venue<QueuePublishPerformer>,
         val sqlProvider: Venue<SQLPerformer>,
         val serializeProvider: Venue<SerializePerformer>
 ): Venue<ApplicationStage> {
@@ -32,13 +32,13 @@ class ApplicationVenue(
 }
 
 class ApplicationStage(
-        private val publishPerformer: PublishPerformer,
+        private val publishPerformer: QueuePublishPerformer,
         private val sqlPerformer: SQLPerformer,
         private val serializePerformer: SerializePerformer):
-        PublishStage,
+        QueuePublishStage,
         SQLStage,
         SerializeStage {
-    override fun getPublishPerformer(): PublishPerformer = publishPerformer
+    override fun getPublishPerformer(): QueuePublishPerformer = publishPerformer
     override fun getSerializePerformer(): SerializePerformer = serializePerformer
     override fun getSQLPerformer(): SQLPerformer = sqlPerformer
 }

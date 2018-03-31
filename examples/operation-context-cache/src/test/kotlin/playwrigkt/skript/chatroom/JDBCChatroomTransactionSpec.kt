@@ -9,7 +9,6 @@ import com.zaxxer.hikari.HikariDataSource
 import playwrigkt.skript.amqp.AMQPManager
 import playwrigkt.skript.common.ApplicationVenue
 import playwrigkt.skript.user.JDBCUserServiceSpec
-import playwrigkt.skript.venue.AMQPPublishVenue
 import playwrigkt.skript.venue.JacksonSerializeVenue
 
 class JDBCChatroomTransactionSpec: ChatroomTransactionsSpec() {

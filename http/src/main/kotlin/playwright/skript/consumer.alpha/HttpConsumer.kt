@@ -1,7 +1,10 @@
 package playwright.skript.consumer.alpha
 
 import playwrigkt.skript.Skript
-import playwrigkt.skript.consumer.alpha.*
+import playwrigkt.skript.consumer.alpha.Consumer
+import playwrigkt.skript.consumer.alpha.ConsumerProduction
+import playwrigkt.skript.consumer.alpha.Sink
+import playwrigkt.skript.consumer.alpha.Stream
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.venue.Venue
 

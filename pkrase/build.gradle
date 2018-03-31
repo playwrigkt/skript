@@ -1,9 +1,8 @@
 
 dependencies {
-    compile project(':publisher')
-    compile project(':consumer')
     compile project(':sql')
     compile project(':serialize')
+    compile project(':queue')
 
     /*testCompile project(':vertx')
     testCompile project(':coroutine-jdbc')

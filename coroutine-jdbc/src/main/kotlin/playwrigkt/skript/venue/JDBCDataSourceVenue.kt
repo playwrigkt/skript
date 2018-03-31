@@ -1,7 +1,6 @@
 package playwrigkt.skript.venue
 
 import kotlinx.coroutines.experimental.launch
-import playwrigkt.skript.performer.CoroutineJDBCPerformer
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.CompletableResult
 import javax.sql.DataSource
