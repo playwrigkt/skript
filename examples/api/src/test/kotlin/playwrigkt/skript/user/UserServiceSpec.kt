@@ -6,14 +6,14 @@ import io.kotlintest.matchers.shouldBe
 import io.kotlintest.matchers.shouldNotBe
 import io.kotlintest.specs.StringSpec
 import org.slf4j.LoggerFactory
-import playwright.skript.consumer.alpha.QueueConsumerTroupe
 import playwright.skript.consumer.alpha.QueueMessage
+import playwright.skript.consumer.alpha.QueueVenue
 import playwrigkt.skript.Skript
-import playwrigkt.skript.common.ApplicationStage
-import playwrigkt.skript.common.ApplicationVenue
+import playwrigkt.skript.common.ApplicationStageManager
+import playwrigkt.skript.common.ApplicationTroupe
+import playwrigkt.skript.consumer.alpha.Production
 import playwrigkt.skript.ex.deserialize
 import playwrigkt.skript.result.AsyncResult
-import playwrigkt.skript.result.Result
 import playwrigkt.skript.sql.SQLCommand
 import playwrigkt.skript.sql.SQLError
 import playwrigkt.skript.sql.SQLStatement
@@ -25,40 +25,54 @@ import playwrigkt.skript.user.sql.EnsureNoSessionExists
 import playwrigkt.skript.user.sql.UserSQL
 import playwrigkt.skript.user.sql.ValidatePasswordForUserId
 import java.util.*
+import java.util.concurrent.BlockingQueue
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
 
 
 abstract class UserServiceSpec : StringSpec() {
 
     val LOG = LoggerFactory.getLogger(this.javaClass)
 
-    abstract fun provider(): ApplicationVenue
-    abstract fun consumerPerformerProvider(): QueueConsumerTroupe
+    abstract fun provider(): ApplicationStageManager
+    abstract fun consumerPerformerProvider(): QueueVenue
     abstract fun closeResources()
 
     val userService: UserService = UserService(provider())
 
-    fun loginConsumer(): playwrigkt.skript.consumer.alpha.Stream<UserSession> {
+    fun loginConsumer(): Production {
         return awaitSucceededFuture(
-                userLoginConsumer(consumerPerformerProvider(), provider())
-                        .stream(Skript.identity<QueueMessage, ApplicationStage>()
+                userLoginConsumer(
+                        consumerPerformerProvider(),
+                        provider(),
+                        Skript.identity<QueueMessage, ApplicationTroupe>()
                                 .map { it.body }
-                                .deserialize(UserSession::class.java)))!!
+                                .deserialize(UserSession::class.java)
+                                .map(processedLoginEvents::add)))!!
     }
 
-    fun createConsumer(): playwrigkt.skript.consumer.alpha.Stream<UserProfile> {
+    val processedLoginEvents = LinkedBlockingQueue<UserSession>()
+
+    fun createConsumer(): Production {
         return awaitSucceededFuture(
-                playwrigkt.skript.user.userCreateConsumer(consumerPerformerProvider(), provider())
-                        .stream(Skript.identity<QueueMessage, ApplicationStage>()
+                userCreateConsumer(
+                        consumerPerformerProvider(),
+                        provider(),
+                        Skript.identity<QueueMessage, ApplicationTroupe>()
                                 .map { it.body }
-                                .deserialize(UserProfile::class.java)))!!
+                                .deserialize(UserProfile::class.java)
+                                .map(processedCreateEvents::add)))!!
     }
+
+    val processedCreateEvents = LinkedBlockingQueue<UserProfile>()
+
     override fun interceptSpec(context: Spec, spec: () -> Unit) {
-        awaitSucceededFuture(provider().provideStage().flatMap{ it.dropUserSchema() })
-        awaitSucceededFuture(provider().provideStage().flatMap{ it.initUserSchema() })
+        awaitSucceededFuture(provider().hireTroupe().flatMap{ it.dropUserSchema() })
+        awaitSucceededFuture(provider().hireTroupe().flatMap{ it.initUserSchema() })
 
         spec()
-        awaitSucceededFuture(provider().provideStage().flatMap{ it.deleteAllUsers() })
-        awaitSucceededFuture(provider().provideStage().flatMap{ it.dropUserSchema() })
+        awaitSucceededFuture(provider().hireTroupe().flatMap{ it.deleteAllUsers() })
+        awaitSucceededFuture(provider().hireTroupe().flatMap{ it.dropUserSchema() })
         closeResources()
     }
 
@@ -83,8 +97,8 @@ abstract class UserServiceSpec : StringSpec() {
             session?.userId shouldBe userId
             session shouldNotBe null
 
-            awaitStreamItem(createStream, user)
-            awaitStreamItem(loginStream, session!!)
+            awaitStreamItem(processedCreateEvents, user)
+            awaitStreamItem(processedLoginEvents, session!!)
             awaitSucceededFuture(createStream.stop())
             awaitSucceededFuture(loginStream.stop())
         }
@@ -194,16 +208,8 @@ abstract class UserServiceSpec : StringSpec() {
         }
     }
 
-    fun <T> awaitStreamItem(stream: playwrigkt.skript.consumer.alpha.Stream<T>, expected: T, maxDuration: Long = 1000L) {
-        val start = System.currentTimeMillis()
-        while(!stream.hasNext() && System.currentTimeMillis() - start < maxDuration) {
-            Thread.sleep(100)
-        }
-        val result = stream.next()
-        when(result) {
-            is Result.Success -> result.result shouldBe expected
-            is Result.Failure -> throw result.error
-        }
+    fun <T> awaitStreamItem(queue: BlockingQueue<T>, expected: T, maxDuration: Long = 1000L) {
+        queue.poll(maxDuration, TimeUnit.MILLISECONDS) shouldBe expected
     }
 
     fun <T> awaitSucceededFuture(future: AsyncResult<T>, result: T? = null, maxDuration: Long = 1000L): T? {

@@ -1,20 +1,15 @@
 package playwright.skript.consumer.alpha
 
 import playwrigkt.skript.Skript
-import playwrigkt.skript.consumer.alpha.Consumer
-import playwrigkt.skript.consumer.alpha.ConsumerProduction
-import playwrigkt.skript.consumer.alpha.Sink
-import playwrigkt.skript.consumer.alpha.Stream
+import playwrigkt.skript.consumer.alpha.Production
+import playwrigkt.skript.consumer.alpha.Venue
 import playwrigkt.skript.result.AsyncResult
-import playwrigkt.skript.venue.Venue
+import playwrigkt.skript.venue.StageManager
 
-abstract class HttpConsumerProduction<STAGE>(
-        val venue: Venue<STAGE>): ConsumerProduction<STAGE, HttpRequest> {
-    override fun <O> sink(skript: Skript<HttpRequest, O, STAGE>): AsyncResult<Sink> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun <O> stream(skript: Skript<HttpRequest, O, STAGE>): AsyncResult<Stream<O>> {
+abstract class HttpVenue: Venue<HttpEndpoint, HttpRequest> {
+    override fun <O, STAGE> sink(skript: Skript<HttpRequest, O, STAGE>,
+                                 stageManager: StageManager<STAGE>,
+                                 rule: HttpEndpoint): AsyncResult<Production> {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 }
@@ -25,6 +20,12 @@ data class HttpEndpoint(
 )
 
 sealed class HttpMethod {
+    fun matches(other: HttpMethod) =
+            when(other) {
+                is All -> true
+                else -> this.equals(other)
+            }
+
     object Get: HttpMethod()
     object Put: HttpMethod();
     object Delete: HttpMethod();
@@ -32,6 +33,13 @@ sealed class HttpMethod {
     object Head: HttpMethod()
     object Options: HttpMethod()
     object Connect: HttpMethod()
+    object All: HttpMethod() {
+        override fun equals(other: Any?): Boolean =
+                when(other) {
+                    is HttpMethod -> true
+                    else -> false
+                }
+    }
 }
 
 data class HttpRequest(
@@ -46,9 +54,9 @@ data class HttpResponse(
         val responseBody: ByteArray
 )
 
-class HttpConsumer<STAGE>(
-        val venue: Venue<STAGE>,
-        val skript: Skript<HttpRequest, HttpResponse, STAGE>): Consumer {
+class HttpProduction<STAGE>(
+        val stageManager: StageManager<STAGE>,
+        val skript: Skript<HttpRequest, HttpResponse, STAGE>): Production {
     override fun isRunning(): Boolean {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }

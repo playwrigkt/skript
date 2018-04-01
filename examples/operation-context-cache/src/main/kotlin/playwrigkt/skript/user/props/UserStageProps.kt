@@ -2,15 +2,15 @@ package playwrigkt.skript.user.props
 
 import org.funktionale.option.Option
 import playwrigkt.skript.auth.AuthSession
-import playwrigkt.skript.auth.props.UserSessionStageProps
+import playwrigkt.skript.auth.props.UserSessionTroupeProps
 import playwrigkt.skript.user.models.UserProfile
 
-interface ExistingUserProfileStageProps {
+interface ExistingUserProfileTroupeProps {
     fun getExistingProfile(): Option<UserProfile>
     fun useProfile(profile: UserProfile)
 }
 
-class GetUserStageProps(val sessionKey: String, var session: Option<AuthSession> = Option.None): UserSessionStageProps {
+class GetUserTroupeProps(val sessionKey: String, var session: Option<AuthSession> = Option.None): UserSessionTroupeProps {
     override fun getUserSessionKey(): String = sessionKey
 
     override fun setUserSession(userSession: AuthSession) {

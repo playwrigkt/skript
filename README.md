@@ -2,7 +2,7 @@
 
 This project allows users to implement application logic independently of technology
 
-This project is in an early stage of development and may change drastically in
+This project is in an early troupe of development and may change drastically in
 order to provider cleaner and more powerful interfaces.
 
 ## Project Goals
@@ -21,11 +21,11 @@ Skript models itself after a play.
 * Skript: A skript is a list of one or more sequential actions that are
   executed in a non blocking manner. Skripts implement business logic
   in a (mostly) technology agnostic way.
-* Stage: Each skript has a stage, a stage has application resources such
+* Stage: Each skript has a troupe, a troupe has application resources such
   as database connections and application configuration properties
 * Performer: a performer is part of the Stage and provides a specific
   implementation of an application resource
-* Venue: A venue provides stages so that Skripts may be run.  A Venue
+* Venue: A stageManager provides stages so that Skripts may be run.  A Venue
   should handle initializing and managing application resources.
 
 ## What is a skript?
@@ -34,7 +34,7 @@ A skript is a set of functions that are run asynchronously and can be
 run as many times as desired.  Skripts can be application singletons
 that define behavior, static variables, or even single use objects.  You
 can think of a skript like a real life script.  A play has a script that
-defines what lines an actor should say, and some stage directions, but
+defines what lines an actor should say, and some troupe directions, but
 the details of how skripts are actually performed are left up to the cast.
 
 A skript offers the following features:
@@ -61,7 +61,7 @@ can do. However, its a good place to start examining skript behavior.
 In the first line, we create a `map` skript, which simply executes a
 synchronous function (we'll get to asynchronous soon).  The skript has
 three type parameters: `<Input, Output, Stage>`, input and output are
-pretty self explanatory.  This simple example doesn't require a stage
+pretty self explanatory.  This simple example doesn't require a troupe
 so the `Unit` value suffices. and we'll get to Stage later.
 
 This skript is essentially a function that takes in type Int and returns
@@ -70,7 +70,7 @@ implemented synchronously the result is immediately available,but this
 is not always the case with skripts.
 
 The second and third lines run the skript.  For now, ignore the `Unit`
-value being passed in, as thats the "stage.
+value being passed in, as thats the "troupe.
 
 ### Composing skripts
 
@@ -178,9 +178,9 @@ more meaningful functionality.
 
 ## Stage
 
-The stage is used to inject non static Application resources into a skript.
+The troupe is used to inject non static Application resources into a skript.
 For example, a database connection or runtime configuration.  Much how a
-script is the same regardless of the perfoming cast and venue, a skript
+script is the same regardless of the perfoming cast and stageManager, a skript
 is the same regardless of the underlying implementation. Lets
 start by looking at a concrete example.
 
@@ -188,7 +188,7 @@ start by looking at a concrete example.
 
 ### SQLSkript
 
-A `SQLSkript` is given its connection through the stage object.  A
+A `SQLSkript` is given its connection through the troupe object.  A
 SQLSkript is a Skript that is run with a `SQLCast`:
 
 ```
@@ -202,7 +202,7 @@ database, without needing to worry about such an implemention while
 implementing business logic.
 
 
-An application that needs a SQL connection might have a stage implemented
+An application that needs a SQL connection might have a troupe implemented
 like this:
 
 ```
@@ -279,7 +279,7 @@ object SelectUserProfileById: SQLQueryMapping<String, UserProfile> {
 Putting it all together, and running the skript:
 
 ```
-val stage: ApplicationStage = ...
+val troupe: ApplicationStage = ...
 
 data class UserProfile(val id: String, val name: String, val allowPublicMessage: Boolean)
 
@@ -298,7 +298,7 @@ object SelectUserProfileById: SQLQueryMapping<String, UserProfile> {
 }
 val getUserById = SQLSkript.query<String, UserProfile, ApplicationStage>(SelectUserProfileById)
 
-val result: AsyncResult<UserProfile> = getUserById.run("id1234", stage)
+val result: AsyncResult<UserProfile> = getUserById.run("id1234", troupe)
 ```
 
 This code doesn't provide any actual sql implementation, and it doesn't
@@ -362,7 +362,7 @@ is not directly related to the Input and Output of the API.  In this case,
 the Skript needs to use an existing Chatroom.  One option is to have an input
 type that includes all the extant information needed by a Skript
 (see the `api` example), another option is to use some `StageProps`,
-just like on a real life stage, `StageProps` are objects that help
+just like on a real life troupe, `StageProps` are objects that help
 perform a skript.  In this case, we're saving an existing chatroom to `Props`.
 
 Looking at the implementation of `hydrateExistingChatroom`, we can see
@@ -374,11 +374,11 @@ fun <I: ChatroomId> hydrateExistingChatroom(): Skript<I, I, ApplicationStage<Cha
                Skript.identity<I, ApplicationStage<ChatroomOperationProps>>()
                        .map { it.getChatroomId() }
                        .query(GetChatRoom)
-                       .mapWithStage { chatroom, stage -> stage.getStageProps().useChatroom(chatroom) })
+                       .mapWithTroupe { chatroom, troupe -> troupe.getStageProps().useChatroom(chatroom) })
 ```
 
 `updateStage` is a special task that doesn't transform a task it is
-chained to and only operates on the stage.  In this example, the StageProps
+chained to and only operates on the troupe.  In this example, the StageProps
 are mutable.
 
 ### Swapping out implementations
@@ -413,7 +413,7 @@ class ApplicationStage<R>(
 This `ApplicationStage` can run `Publish`, `SQL`, and `Serialize` scripts.
 It also provides a `Skript` scoped cache via `StageProps`.
 
-In `Skript`, a `Venue` provides a stage.  A given stage should be used
+In `Skript`, a `Venue` provides a troupe.  A given troupe should be used
 exactly once, but a `Venue` should live for the entire application lifecycle
 and provide a `Stage` each time a `Skript` is invoked.
 
@@ -445,18 +445,18 @@ class ApplicationVenue (
 }
 ```
 
-Now we can actually have code that uses the venue to run tasks:
+Now we can actually have code that uses the stageManager to run tasks:
 
 ```
 fun createChatRoom(chatRoom: ChatRoom, sessionKey: String): AsyncResult<ChatRoom> =
-        venue.runOnStage(ChatRoomSkripts.CREATE_CHAT_ROOM_SKRIPT, chatRoom, ChatroomStageProps(sessionKey))
+        stageManager.runOnStage(ChatRoomSkripts.CREATE_CHAT_ROOM_SKRIPT, chatRoom, ChatroomStageProps(sessionKey))
 
 fun updateChatRoom(chatRoom: ChatRoom, sessionKey: String): AsyncResult<ChatRoom> =
-        venue.runOnStage(ChatRoomSkripts.UPDATE_CHAT_ROOM_SKRIPT, chatRoom, ChatroomStageProps(sessionKey))
+        stageManager.runOnStage(ChatRoomSkripts.UPDATE_CHAT_ROOM_SKRIPT, chatRoom, ChatroomStageProps(sessionKey))
 ```
 
 At this point, we've wired everything up, but we still haven't created
-a venue.
+a stageManager.
 
 The tests provide two main examples.
 
@@ -492,7 +492,7 @@ val provider: ApplicationVenue by lazy {
 
 The second example uses JDBC and AMQP.  To change this implementaiton,
 we dont' have to reimplement any of the `Skripts`, we just have to change
-the venue object that we use to generate `Stage` objects.
+the stageManager object that we use to generate `Stage` objects.
 
 ```
 val amqpConnectionFactory: ConnectionFactory by lazy {
@@ -515,7 +515,7 @@ val hikariDSConfig: HikariConfig by lazy {
 }
 
 val hikariDataSource = HikariDataSource(hikariDSConfig)
-val sqlConnectionProvider = playwrigkt.skript.venue.JDBCDataSourceVenue(hikariDataSource)
+val sqlConnectionProvider = playwrigkt.skript.venue.JDBCDataSourceLegacyVenueeVenue(hikariDataSource)
 val publishVenue by lazy { AMQPPublishVenue(AMQPManager.amqpExchange, JDBCUserServiceSpec.amqpConnection, AMQPManager.basicProperties) }
 val serializeVenue = JacksonSerializeVenue()
 val provider: ApplicationVenue by lazy {

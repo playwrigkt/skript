@@ -3,37 +3,37 @@ package playwrigkt.skript.chatrooom
 import playwrigkt.skript.chatrooom.models.ChatRoom
 import playwrigkt.skript.chatrooom.models.ChatRoomPermissions
 import playwrigkt.skript.chatrooom.models.ChatRoomUser
-import playwrigkt.skript.chatrooom.props.ChatroomStageProps
-import playwrigkt.skript.common.ApplicationVenue
+import playwrigkt.skript.chatrooom.props.ChatroomTroupeProps
+import playwrigkt.skript.common.ApplicationStageManager
 import playwrigkt.skript.result.AsyncResult
 
-class ChatRoomService(val venue: ApplicationVenue) {
+class ChatRoomService(val venue: ApplicationStageManager) {
 
     fun addUser(chatRoomUser: ChatRoomUser, sessionKey: String): AsyncResult<ChatRoom> =
-            venue.runOnStage(ChatRoomSkripts.ADD_USER_SKRIPT, chatRoomUser, ChatroomStageProps(sessionKey))
+            venue.runWithTroupe(ChatRoomSkripts.ADD_USER_SKRIPT, chatRoomUser, ChatroomTroupeProps(sessionKey))
 
     fun removeUser(chatRoomUser: ChatRoomUser, sessionKey: String): AsyncResult<ChatRoom> =
-            venue.runOnStage(ChatRoomSkripts.REMOVE_USER_SKRIPT, chatRoomUser, ChatroomStageProps(sessionKey))
+            venue.runWithTroupe(ChatRoomSkripts.REMOVE_USER_SKRIPT, chatRoomUser, ChatroomTroupeProps(sessionKey))
 
     fun addUserPermissions(chatRoomUser: ChatRoomUser, sessionKey: String): AsyncResult<ChatRoom> =
-            venue.runOnStage(ChatRoomSkripts.ADD_USER_PERMISSIONS_SKRIPT, chatRoomUser, ChatroomStageProps(sessionKey))
+            venue.runWithTroupe(ChatRoomSkripts.ADD_USER_PERMISSIONS_SKRIPT, chatRoomUser, ChatroomTroupeProps(sessionKey))
 
     fun removeUserPermissions(chatRoomUser: ChatRoomUser, sessionKey: String): AsyncResult<ChatRoom> =
-            venue.runOnStage(ChatRoomSkripts.REMOVE_USER_PERMISSIONS_SKRIPT, chatRoomUser, ChatroomStageProps(sessionKey))
+            venue.runWithTroupe(ChatRoomSkripts.REMOVE_USER_PERMISSIONS_SKRIPT, chatRoomUser, ChatroomTroupeProps(sessionKey))
 
     fun addPublicPermissions(chatRoomPermissions: ChatRoomPermissions, sessionKey: String): AsyncResult<ChatRoom> =
-            venue.runOnStage(ChatRoomSkripts.ADD_PUBLIC_PERMISSION_SKRIPT, chatRoomPermissions, ChatroomStageProps(sessionKey))
+            venue.runWithTroupe(ChatRoomSkripts.ADD_PUBLIC_PERMISSION_SKRIPT, chatRoomPermissions, ChatroomTroupeProps(sessionKey))
 
     fun removePublicPermissions(chatRoomPermissions: ChatRoomPermissions, sessionKey: String): AsyncResult<ChatRoom> =
-            venue.runOnStage(ChatRoomSkripts.REMOVE_PUBLIC_PERMISSION_SKRIPT, chatRoomPermissions, ChatroomStageProps(sessionKey))
+            venue.runWithTroupe(ChatRoomSkripts.REMOVE_PUBLIC_PERMISSION_SKRIPT, chatRoomPermissions, ChatroomTroupeProps(sessionKey))
 
     fun createChatRoom(chatRoom: ChatRoom, sessionKey: String): AsyncResult<ChatRoom> =
-            venue.runOnStage(ChatRoomSkripts.CREATE_CHAT_ROOM_SKRIPT, chatRoom, ChatroomStageProps(sessionKey))
+            venue.runWithTroupe(ChatRoomSkripts.CREATE_CHAT_ROOM_SKRIPT, chatRoom, ChatroomTroupeProps(sessionKey))
 
     fun updateChatRoom(chatRoom: ChatRoom, sessionKey: String): AsyncResult<ChatRoom> =
-            venue.runOnStage(ChatRoomSkripts.UPDATE_CHAT_ROOM_SKRIPT, chatRoom, ChatroomStageProps(sessionKey))
+            venue.runWithTroupe(ChatRoomSkripts.UPDATE_CHAT_ROOM_SKRIPT, chatRoom, ChatroomTroupeProps(sessionKey))
 
     fun getChatRoom(chatRoomId: String, sessionKey: String): AsyncResult<ChatRoom> =
-            venue.runOnStage(ChatRoomSkripts.GET_CHATROOM_SKRIPT, chatRoomId, ChatroomStageProps(sessionKey))
+            venue.runWithTroupe(ChatRoomSkripts.GET_CHATROOM_SKRIPT, chatRoomId, ChatroomTroupeProps(sessionKey))
 
 }

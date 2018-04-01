@@ -1,7 +1,7 @@
-package playwrigkt.skript.stage
+package playwrigkt.skript.troupe
 
 import playwrigkt.skript.performer.PublishPerformer
 
-interface PublishStage<Message> {
+interface PublishTroupe<Message> {
     fun getPublishPerformer(): PublishPerformer<Message>
 }

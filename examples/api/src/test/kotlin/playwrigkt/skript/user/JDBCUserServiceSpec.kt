@@ -3,11 +3,11 @@ package playwrigkt.skript.user
 import com.rabbitmq.client.ConnectionFactory
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import playwright.skript.consumer.alpha.QueueConsumerTroupe
+import playwright.skript.consumer.alpha.QueueVenue
 import playwrigkt.skript.amqp.AMQPManager
-import playwrigkt.skript.common.ApplicationVenue
-import playwrigkt.skript.consumer.alpha.AMQPConsumerTroupe
-import playwrigkt.skript.venue.JacksonSerializeVenue
+import playwrigkt.skript.common.ApplicationStageManager
+import playwrigkt.skript.consumer.alpha.AMQPVenue
+import playwrigkt.skript.venue.JacksonSerializeStageManager
 
 class JDBCUserServiceSpec: UserServiceSpec() {
     companion object {
@@ -32,19 +32,19 @@ class JDBCUserServiceSpec: UserServiceSpec() {
 
         val hikariDataSource by lazy { HikariDataSource(hikariDSConfig) }
 
-        val sqlConnectionProvider by lazy { playwrigkt.skript.venue.JDBCDataSourceVenue(hikariDataSource) }
-        val publishVenue by lazy { playwrigkt.skript.venue.AMQPPublishVenue(AMQPManager.amqpExchange, amqpConnection, AMQPManager.basicProperties) }
-        val serializeVenue = JacksonSerializeVenue()
+        val sqlConnectionProvider by lazy { playwrigkt.skript.venue.JDBCDataSourceStageManager(hikariDataSource) }
+        val publishVenue by lazy { playwrigkt.skript.venue.AMQPPublishStageManager(AMQPManager.amqpExchange, amqpConnection, AMQPManager.basicProperties) }
+        val serializeVenue = JacksonSerializeStageManager()
 
-        val provider: ApplicationVenue by lazy {
-            ApplicationVenue(publishVenue, sqlConnectionProvider, serializeVenue)
+        val provider: ApplicationStageManager by lazy {
+            ApplicationStageManager(publishVenue, sqlConnectionProvider, serializeVenue)
         }
 
-        val CONSUMER_TROUPE: QueueConsumerTroupe = AMQPConsumerTroupe(amqpConnection)
+        val CONSUMER_TROUPE: QueueVenue = AMQPVenue(amqpConnection)
     }
 
-    override fun provider(): ApplicationVenue = provider
-    override fun consumerPerformerProvider(): QueueConsumerTroupe = CONSUMER_TROUPE
+    override fun provider(): ApplicationStageManager = provider
+    override fun consumerPerformerProvider(): QueueVenue = CONSUMER_TROUPE
     override fun closeResources() {
         hikariDataSource.close()
         amqpConnection.close()

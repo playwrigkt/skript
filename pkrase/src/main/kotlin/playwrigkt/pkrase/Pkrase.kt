@@ -1,9 +1,9 @@
 package playwrigkt.pkrase
 
-import playwright.skript.stage.QueuePublishStage
+import playwright.skript.troupe.QueuePublishTroupe
 import playwrigkt.skript.Skript
-import playwrigkt.skript.stage.SQLStage
-import playwrigkt.skript.stage.SerializeStage
+import playwrigkt.skript.troupe.SQLTroupe
+import playwrigkt.skript.troupe.SerializeTroupe
 
 fun main(args: Array<String>) {
     println(one.evaluate())
@@ -16,12 +16,12 @@ fun main(args: Array<String>) {
     println((half of (one plus one plus one)).evaluate())
 }
 
-class Tasks<T> where T: SQLStage, T: QueuePublishStage, T: SerializeStage {
+class Tasks<T> where T: SQLTroupe, T: QueuePublishTroupe, T: SerializeTroupe {
 
 }
 
 
-class Skripter<T> where T: SQLStage, T: QueuePublishStage, T: SerializeStage {
+class Skripter<T> where T: SQLTroupe, T: QueuePublishTroupe, T: SerializeTroupe {
     fun <I> of(): Skript<I, I, T> {
         return Skript.identity()
     }

@@ -11,8 +11,8 @@ import playwrigkt.skript.chatrooom.models.ChatRoomPermissionKey
 import playwrigkt.skript.chatrooom.models.ChatRoomPermissions
 import playwrigkt.skript.chatrooom.models.ChatRoomUser
 import playwrigkt.skript.chatrooom.sql.ChatRoomSchema
-import playwrigkt.skript.common.ApplicationStage
-import playwrigkt.skript.common.ApplicationVenue
+import playwrigkt.skript.common.ApplicationStageManager
+import playwrigkt.skript.common.ApplicationTroupe
 import playwrigkt.skript.common.models.Reference
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.sql.transaction.SQLTransactionSkript
@@ -27,29 +27,29 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
 
     val LOG = LoggerFactory.getLogger(this.javaClass)
 
-    abstract fun provider(): ApplicationVenue
+    abstract fun provider(): ApplicationStageManager
     val userService = UserService(provider())
     val chatRoomService = ChatRoomService(provider())
 
     abstract fun closeResources()
 
     override fun interceptSpec(context: Spec, spec: () -> Unit) {
-        awaitSucceededFuture(provider().runOnStage(
-                SQLTransactionSkript.transaction<Unit, Unit, ApplicationStage<Unit>>(ChatRoomSchema.dropAllAction),
+        awaitSucceededFuture(provider().runWithTroupe(
+                SQLTransactionSkript.transaction<Unit, Unit, ApplicationTroupe<Unit>>(ChatRoomSchema.dropAllAction),
                 Unit,
                 Unit))
-        awaitSucceededFuture(provider().provideStage().flatMap { it.dropUserSchema() })
-        awaitSucceededFuture(provider().provideStage().flatMap { it.initUserSchema() })
-        awaitSucceededFuture(provider().runOnStage(
-                SQLTransactionSkript.transaction<Unit, Unit, ApplicationStage<Unit>>(ChatRoomSchema.initAction),
+        awaitSucceededFuture(provider().hireTroupe().flatMap { it.dropUserSchema() })
+        awaitSucceededFuture(provider().hireTroupe().flatMap { it.initUserSchema() })
+        awaitSucceededFuture(provider().runWithTroupe(
+                SQLTransactionSkript.transaction<Unit, Unit, ApplicationTroupe<Unit>>(ChatRoomSchema.initAction),
                 Unit,
                 Unit))
         spec()
-        awaitSucceededFuture(provider().runOnStage(
-                SQLTransactionSkript.transaction<Unit, Unit, ApplicationStage<Unit>>(ChatRoomSchema.dropAllAction),
+        awaitSucceededFuture(provider().runWithTroupe(
+                SQLTransactionSkript.transaction<Unit, Unit, ApplicationTroupe<Unit>>(ChatRoomSchema.dropAllAction),
                 Unit,
                 Unit))
-        awaitSucceededFuture(provider().provideStage().flatMap { it.dropUserSchema() })
+        awaitSucceededFuture(provider().hireTroupe().flatMap { it.dropUserSchema() })
         closeResources()
     }
 

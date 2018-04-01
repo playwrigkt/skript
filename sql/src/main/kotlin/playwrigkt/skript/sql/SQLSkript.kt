@@ -3,9 +3,9 @@ package playwrigkt.skript.sql
 import org.funktionale.tries.Try
 import playwrigkt.skript.Skript
 import playwrigkt.skript.result.AsyncResult
-import playwrigkt.skript.stage.SQLStage
+import playwrigkt.skript.troupe.SQLTroupe
 
-sealed class SQLSkript<IN, OUT>: Skript<IN, OUT, SQLStage> {
+sealed class SQLSkript<IN, OUT>: Skript<IN, OUT, SQLTroupe> {
 
     companion object {
         fun <IN, OUT> query(mapping: SQLMapping<IN, OUT, SQLCommand.Query, SQLResult.Query>): SQLSkript<IN, OUT> = Query(mapping)
@@ -16,9 +16,9 @@ sealed class SQLSkript<IN, OUT>: Skript<IN, OUT, SQLStage> {
     abstract val mapping: SQLMapping<IN, OUT, *, *>
 
     private data class Query<IN, OUT>(override val mapping: SQLMapping<IN, OUT, SQLCommand.Query, SQLResult.Query>): SQLSkript<IN, OUT>() {
-        override fun run(i: IN, stage: SQLStage): AsyncResult<OUT> {
+        override fun run(i: IN, troupe: SQLTroupe): AsyncResult<OUT> {
             val sqlCommand = mapping.toSql(i)
-            return stage.getSQLPerformer().query(sqlCommand)
+            return troupe.getSQLPerformer().query(sqlCommand)
                     .map { mapping.mapResult(i, it) }
                     .flatMap(this::handleFailure)
                     .recover { AsyncResult.failed(SQLError.OnCommand(sqlCommand, it)) }
@@ -26,9 +26,9 @@ sealed class SQLSkript<IN, OUT>: Skript<IN, OUT, SQLStage> {
     }
 
     private data class Update<IN, OUT>(override val mapping: SQLMapping<IN, OUT, SQLCommand.Update, SQLResult.Update>): SQLSkript<IN, OUT>() {
-        override fun run(i: IN, stage: SQLStage): AsyncResult<OUT> {
+        override fun run(i: IN, troupe: SQLTroupe): AsyncResult<OUT> {
             val sqlCommand = mapping.toSql(i)
-            return stage.getSQLPerformer().update(sqlCommand)
+            return troupe.getSQLPerformer().update(sqlCommand)
                     .map { mapping.mapResult(i, it) }
                     .flatMap(this::handleFailure)
                     .recover { AsyncResult.failed(SQLError.OnCommand(sqlCommand, it)) }
@@ -36,9 +36,9 @@ sealed class SQLSkript<IN, OUT>: Skript<IN, OUT, SQLStage> {
     }
 
     private data class Exec<IN, OUT>(override val mapping: SQLMapping<IN, OUT, SQLCommand.Exec, SQLResult.Void>): SQLSkript<IN, OUT>() {
-        override fun run(i: IN, stage: SQLStage): AsyncResult<OUT> {
+        override fun run(i: IN, troupe: SQLTroupe): AsyncResult<OUT> {
             val sqlCommand = mapping.toSql(i)
-            return stage.getSQLPerformer().exec(sqlCommand)
+            return troupe.getSQLPerformer().exec(sqlCommand)
                     .map { mapping.mapResult(i, it) }
                     .flatMap(this::handleFailure)
                     .recover { AsyncResult.failed(SQLError.OnCommand(sqlCommand, it)) }

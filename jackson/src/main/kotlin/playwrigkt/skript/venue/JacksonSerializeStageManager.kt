@@ -6,7 +6,7 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import playwrigkt.skript.performer.JacksonSerializePerformer
 import playwrigkt.skript.result.AsyncResult
 
-class JacksonSerializeVenue(val objectMapper: ObjectMapper = defaultObjectMapper): Venue<JacksonSerializePerformer> {
+class JacksonSerializeStageManager(val objectMapper: ObjectMapper = defaultObjectMapper): StageManager<JacksonSerializePerformer> {
     companion object {
         val defaultObjectMapper by lazy {
             ObjectMapper()
@@ -15,7 +15,7 @@ class JacksonSerializeVenue(val objectMapper: ObjectMapper = defaultObjectMapper
         }
     }
 
-    override fun provideStage(): AsyncResult<JacksonSerializePerformer> {
+    override fun hireTroupe(): AsyncResult<JacksonSerializePerformer> {
         return AsyncResult.succeeded(JacksonSerializePerformer(objectMapper))
     }
 }

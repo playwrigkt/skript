@@ -5,11 +5,11 @@ import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.jdbc.JDBCClient
 import io.vertx.ext.sql.SQLClient
-import playwrigkt.skript.common.ApplicationVenue
+import playwrigkt.skript.common.ApplicationStageManager
 import playwrigkt.skript.result.VertxResult
-import playwrigkt.skript.venue.VertxPublishVenue
-import playwrigkt.skript.venue.VertxSQLVenue
-import playwrigkt.skript.venue.VertxSerializeVenue
+import playwrigkt.skript.venue.VertxPublishStageManager
+import playwrigkt.skript.venue.VertxSQLStageManager
+import playwrigkt.skript.venue.VertxSerializeStageManager
 
 class VertxChatroomTransactionSpec: ChatroomTransactionsSpec() {
 
@@ -28,15 +28,15 @@ class VertxChatroomTransactionSpec: ChatroomTransactionsSpec() {
         val sqlClient: SQLClient by lazy {
             JDBCClient.createShared(vertx, hikariConfig, "test_ds")
         }
-        val sqlConnectionProvider = VertxSQLVenue(sqlClient)
-        val publishVenue = VertxPublishVenue(vertx)
-        val serializeVenue = VertxSerializeVenue()
-        val provider: ApplicationVenue by lazy {
-            ApplicationVenue(publishVenue, sqlConnectionProvider, serializeVenue)
+        val sqlConnectionProvider = VertxSQLStageManager(sqlClient)
+        val publishVenue = VertxPublishStageManager(vertx)
+        val serializeVenue = VertxSerializeStageManager()
+        val provider: ApplicationStageManager by lazy {
+            ApplicationStageManager(publishVenue, sqlConnectionProvider, serializeVenue)
         }
     }
 
-    override fun provider(): ApplicationVenue = VertxChatroomTransactionSpec.provider
+    override fun provider(): ApplicationStageManager = VertxChatroomTransactionSpec.provider
 
     override fun closeResources() {
         val clientF = Future.future<Void>()

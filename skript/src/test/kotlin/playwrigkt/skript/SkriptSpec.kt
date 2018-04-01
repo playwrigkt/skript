@@ -22,12 +22,12 @@ class SkriptSpec : StringSpec() {
 
         "a skript stage can provide properties" {
             data class Config(val appName: String)
-            data class ConfigStage(val config: Config)
+            data class ConfigTroupe(val config: Config)
 
             val skript =
-                    Skript.map<Int, String, ConfigStage>{ it.toString() }
-                            .mapWithStage { i, c -> "Application ${c.config.appName} received $i" }
-            skript.run(10, ConfigStage(Config("Example"))) shouldBe AsyncResult.succeeded("Application Example received 10")
+                    Skript.map<Int, String, ConfigTroupe>{ it.toString() }
+                            .mapWithTroupe { i, c -> "Application ${c.config.appName} received $i" }
+            skript.run(10, ConfigTroupe(Config("Example"))) shouldBe AsyncResult.succeeded("Application Example received 10")
         }
 
         "A skript can branch based on the result of a skript" {

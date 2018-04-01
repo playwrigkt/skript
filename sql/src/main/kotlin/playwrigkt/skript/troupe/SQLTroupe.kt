@@ -1,7 +1,7 @@
-package playwrigkt.skript.stage
+package playwrigkt.skript.troupe
 
 import playwrigkt.skript.performer.SQLPerformer
 
-interface SQLStage {
+interface SQLTroupe {
     fun getSQLPerformer(): SQLPerformer
 }

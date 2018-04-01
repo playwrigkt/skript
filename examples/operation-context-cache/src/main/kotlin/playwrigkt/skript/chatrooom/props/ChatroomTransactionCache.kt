@@ -2,19 +2,19 @@ package playwrigkt.skript.chatrooom.props
 
 import org.funktionale.option.Option
 import playwrigkt.skript.auth.AuthSession
-import playwrigkt.skript.auth.props.UserSessionStageProps
+import playwrigkt.skript.auth.props.UserSessionTroupeProps
 import playwrigkt.skript.chatrooom.models.ChatRoom
 
-interface ExistingChatroomStageProps {
+interface ExistingChatroomTroupeProps {
     fun useChatroom(chatroom: ChatRoom)
     fun getChatroom(): Option<ChatRoom>
 }
 
-data class ChatroomStageProps(
+data class ChatroomTroupeProps(
         private val sessionKey: String,
         private var session: Option<AuthSession> = Option.None,
         private var chatroom: Option<ChatRoom> = Option.None)
-    : UserSessionStageProps, ExistingChatroomStageProps {
+    : UserSessionTroupeProps, ExistingChatroomTroupeProps {
     override fun useChatroom(chatroom: ChatRoom) {
         this.chatroom = Option.Some(chatroom)
     }

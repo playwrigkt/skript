@@ -6,7 +6,7 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import playwrigkt.skript.performer.VertxSerializePerformer
 import playwrigkt.skript.result.AsyncResult
 
-class VertxSerializeVenue(val objectMapper: ObjectMapper? = null): Venue<VertxSerializePerformer> {
+class VertxSerializeStageManager(val objectMapper: ObjectMapper? = null): StageManager<VertxSerializePerformer> {
     companion object {
         val defaultObjectMapper by lazy {
             ObjectMapper()
@@ -15,6 +15,6 @@ class VertxSerializeVenue(val objectMapper: ObjectMapper? = null): Venue<VertxSe
         }
     }
 
-    override fun provideStage(): AsyncResult<VertxSerializePerformer> =
+    override fun hireTroupe(): AsyncResult<VertxSerializePerformer> =
             AsyncResult.succeeded(VertxSerializePerformer(objectMapper ?: defaultObjectMapper))
 }

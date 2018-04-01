@@ -4,8 +4,8 @@ import io.vertx.core.Vertx
 import playwrigkt.skript.performer.VertxPublishPerformer
 import playwrigkt.skript.result.AsyncResult
 
-class VertxPublishVenue(val vertx: Vertx): Venue<VertxPublishPerformer> {
-    override fun provideStage(): AsyncResult<VertxPublishPerformer> {
+class VertxPublishStageManager(val vertx: Vertx): StageManager<VertxPublishPerformer> {
+    override fun hireTroupe(): AsyncResult<VertxPublishPerformer> {
         return AsyncResult.succeeded(VertxPublishPerformer(vertx.eventBus()))
     }
 

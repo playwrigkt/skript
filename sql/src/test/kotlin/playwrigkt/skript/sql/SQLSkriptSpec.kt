@@ -11,7 +11,7 @@ import playwrigkt.skript.ex.query
 import playwrigkt.skript.ex.update
 import playwrigkt.skript.performer.SQLPerformer
 import playwrigkt.skript.sql.transaction.SQLTransactionSkript
-import playwrigkt.skript.stage.SQLStage
+import playwrigkt.skript.troupe.SQLTroupe
 import java.time.Instant
 
 class SQLSkriptSpec : StringSpec() {
@@ -19,8 +19,8 @@ class SQLSkriptSpec : StringSpec() {
 
 
 
-    data class ApplicationStage<R>(val sqlPerformer: SQLPerformer, val cache: R):
-            SQLStage,
+    data class ApplicationTroupe<R>(val sqlPerformer: SQLPerformer, val cache: R):
+            SQLTroupe,
             OperationCache<R> {
         override fun getOperationCache(): R = cache
 
@@ -33,20 +33,20 @@ class SQLSkriptSpec : StringSpec() {
         fun getOperationCache(): R
     }
 
-    interface UserSessionStage {
+    interface UserSessionTroupe {
         fun getUserSessionKey(): String
         fun setUserSession(userSession: UserSession)
         fun getUserSession(): Option<UserSession>
     }
 
-    interface ExistingUserProfileStage {
+    interface ExistingUserProfileTroupe {
         fun getExistingProfile(): Option<UserProfile>
         fun useProfile(profile: UserProfile)
     }
 
-    data class UpdateUserProfileStage(val sessionKey: String,
-                                        var session: Option<UserSession> = Option.None,
-                                        var existing: Option<UserProfile> = Option.None): UserSessionStage, ExistingUserProfileStage {
+    data class UpdateUserProfileTroupe(val sessionKey: String,
+                                       var session: Option<UserSession> = Option.None,
+                                       var existing: Option<UserProfile> = Option.None): UserSessionTroupe, ExistingUserProfileTroupe {
         override fun getUserSessionKey(): String = this.sessionKey
 
         override fun setUserSession(userSession: UserSession) {
@@ -99,7 +99,7 @@ class SQLSkriptSpec : StringSpec() {
         }
     }
 
-    val onlyIfSessionUserIdMathcesRequested = { update: UserProfile, stage: ApplicationStage<UpdateUserProfileStage> ->
+    val onlyIfSessionUserIdMathcesRequested = { update: UserProfile, stage: ApplicationTroupe<UpdateUserProfileTroupe> ->
         stage.getOperationCache().getUserSession()
                 .map { it.userId }
                 .filter { update.id == it }
@@ -107,42 +107,42 @@ class SQLSkriptSpec : StringSpec() {
                 .getOrElse { Try.Failure<UserProfile>(IllegalArgumentException("not authorized")) }
     }
 
-    val authenticateUpdateUserProfile = Skript.mapTryWithStage(onlyIfSessionUserIdMathcesRequested)
+    val authenticateUpdateUserProfile = Skript.mapTryWithTroupe(onlyIfSessionUserIdMathcesRequested)
 
-    fun <R: ExistingUserProfileStage> addExistingUserToStage() =
-            Skript.updateStage(Skript.identity<UserProfile, ApplicationStage<R>>()
+    fun <R: ExistingUserProfileTroupe> addExistingUserToTroupe() =
+            Skript.updateTroupe(Skript.identity<UserProfile, ApplicationTroupe<R>>()
                     .map { it.id }
                     .query(SelectUserProfileById)
-                    .mapWithStage { existing, stage ->
+                    .mapWithTroupe { existing, stage ->
                         stage.getOperationCache().useProfile(existing)
                     })
 
-    fun <R: ExistingUserProfileStage> failIfProfileNotCached() = Skript.mapTryWithStage<UserProfile, UserProfile, ApplicationStage<R>> {
+    fun <R: ExistingUserProfileTroupe> failIfProfileNotCached() = Skript.mapTryWithTroupe<UserProfile, UserProfile, ApplicationTroupe<R>> {
         i, stage ->
         stage.getOperationCache().getExistingProfile()
                 .map { Try.Success(i) }
                 .getOrElse { Try.Failure<UserProfile>(IllegalArgumentException("No such user")) }
     }
 
-    fun <I, R: UserSessionStage> validateSession(): Skript<I, I, ApplicationStage<R>> =
-            Skript.updateStage(Skript.identity<I, ApplicationStage<R>>()
-                            .mapWithStage { _, c -> c.cache.getUserSessionKey()}
+    fun <I, R: UserSessionTroupe> validateSession(): Skript<I, I, ApplicationTroupe<R>> =
+            Skript.updateTroupe(Skript.identity<I, ApplicationTroupe<R>>()
+                            .mapWithTroupe { _, c -> c.cache.getUserSessionKey()}
                             .query(SelectSessionByKey)
-                            .mapWithStage { session, c -> c.cache.setUserSession(session) })
+                            .mapWithTroupe { session, c -> c.cache.setUserSession(session) })
 
 
     init {
         "Do a thing" {
             val performer = mock<SQLPerformer>()
             val sessionKey = "TEST_SESSION_KEY"
-            ApplicationStage<UpdateUserProfileStage>(performer, UpdateUserProfileStage(sessionKey))
+            ApplicationTroupe<UpdateUserProfileTroupe>(performer, UpdateUserProfileTroupe(sessionKey))
 
 
             SQLTransactionSkript.transaction(
-                        validateSession<UserProfile, UpdateUserProfileStage>()
+                        validateSession<UserProfile, UpdateUserProfileTroupe>()
                             .andThen(authenticateUpdateUserProfile)
-                            .andThen(addExistingUserToStage<UpdateUserProfileStage>())
-                            .andThen(failIfProfileNotCached<UpdateUserProfileStage>())
+                            .andThen(addExistingUserToTroupe<UpdateUserProfileTroupe>())
+                            .andThen(failIfProfileNotCached<UpdateUserProfileTroupe>())
                             .update(UpdateUserProfile))
 
 

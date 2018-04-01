@@ -6,11 +6,11 @@ import org.funktionale.tries.Try
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.toAsyncResult
 
-class AMQPPublishVenue(
+class AMQPPublishStageManager(
         val exchange: String,
         val connection: Connection,
-        val basicProperties: AMQP.BasicProperties): Venue<playwrigkt.skript.publish.AMQPPublishPerformer> {
-    override fun provideStage(): AsyncResult<playwrigkt.skript.publish.AMQPPublishPerformer> =
+        val basicProperties: AMQP.BasicProperties): StageManager<playwrigkt.skript.publish.AMQPPublishPerformer> {
+    override fun hireTroupe(): AsyncResult<playwrigkt.skript.publish.AMQPPublishPerformer> =
             Try { playwrigkt.skript.publish.AMQPPublishPerformer(exchange, connection.createChannel(), basicProperties) }
                     .toAsyncResult()
 }

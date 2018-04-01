@@ -2,9 +2,9 @@ package playwrigkt.skript.publish
 
 import playwrigkt.skript.Skript
 import playwrigkt.skript.result.AsyncResult
-import playwrigkt.skript.stage.PublishStage
+import playwrigkt.skript.troupe.PublishTroupe
 
-sealed class PublishSkript<I, Message>: Skript<I, I, PublishStage<Message>> {
+sealed class PublishSkript<I, Message>: Skript<I, I, PublishTroupe<Message>> {
 
     companion object {
         fun<I, Message>publish(mapping: (I) -> Message): PublishSkript<I, Message> {
@@ -12,8 +12,8 @@ sealed class PublishSkript<I, Message>: Skript<I, I, PublishStage<Message>> {
         }
     }
     data class Publish<I, Message>(val mapping: (I) -> Message): PublishSkript<I, Message>() {
-        override fun run(i: I, stage: PublishStage<Message>): AsyncResult<I> {
-            return stage.getPublishPerformer()
+        override fun run(i: I, troupe: PublishTroupe<Message>): AsyncResult<I> {
+            return troupe.getPublishPerformer()
                     .publish(mapping(i))
                     .map { i }
         }

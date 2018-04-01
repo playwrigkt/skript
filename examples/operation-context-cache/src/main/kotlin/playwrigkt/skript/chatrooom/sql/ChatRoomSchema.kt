@@ -1,7 +1,7 @@
 package playwrigkt.skript.chatrooom.sql
 
 import playwrigkt.skript.Skript
-import playwrigkt.skript.common.ApplicationStage
+import playwrigkt.skript.common.ApplicationTroupe
 import playwrigkt.skript.ex.dropTableIfExists
 import playwrigkt.skript.ex.exec
 import playwrigkt.skript.sql.SQLMapping
@@ -36,13 +36,13 @@ object ChatRoomSchema {
         date_added timestamp,
         PRIMARY KEY (chatroom_id, user_id))""".trimIndent()
 
-    val initAction = Skript.identity<Unit, ApplicationStage<Unit>>()
+    val initAction = Skript.identity<Unit, ApplicationTroupe<Unit>>()
             .exec(SQLMapping.exec(createChatRoomTable))
             .exec(SQLMapping.exec(createChatRoomPermissionTable))
             .exec(SQLMapping.exec(createChatRoomUserPermissionTable))
             .exec(SQLMapping.exec(createBannedUserTable))
 
-    val dropAllAction = Skript.identity<Unit, ApplicationStage<Unit>>()
+    val dropAllAction = Skript.identity<Unit, ApplicationTroupe<Unit>>()
             .dropTableIfExists("chatroom_user_banned")
             .dropTableIfExists("chatroom_user_permission")
             .dropTableIfExists("chatroom_permission")

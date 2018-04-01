@@ -1,5 +1,5 @@
 dependencies {
 
-    compile project(':consumer')
+    compile project(':produktion')
     compile project(':publisher')
 }

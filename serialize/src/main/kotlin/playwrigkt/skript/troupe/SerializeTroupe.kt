@@ -1,7 +1,7 @@
-package playwrigkt.skript.stage
+package playwrigkt.skript.troupe
 
 import playwrigkt.skript.performer.SerializePerformer
 
-interface SerializeStage {
+interface SerializeTroupe {
     fun getSerializePerformer(): SerializePerformer
 }

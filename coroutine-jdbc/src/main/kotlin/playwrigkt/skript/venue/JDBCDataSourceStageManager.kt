@@ -5,8 +5,8 @@ import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.CompletableResult
 import javax.sql.DataSource
 
-data class JDBCDataSourceVenue(val dataSource: DataSource): playwrigkt.skript.venue.Venue<playwrigkt.skript.performer.CoroutineJDBCPerformer> {
-    override fun provideStage(): AsyncResult<playwrigkt.skript.performer.CoroutineJDBCPerformer> {
+data class JDBCDataSourceStageManager(val dataSource: DataSource): playwrigkt.skript.venue.StageManager<playwrigkt.skript.performer.CoroutineJDBCPerformer> {
+    override fun hireTroupe(): AsyncResult<playwrigkt.skript.performer.CoroutineJDBCPerformer> {
         val result = CompletableResult<playwrigkt.skript.performer.CoroutineJDBCPerformer>()
         launch {
             try {

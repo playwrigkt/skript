@@ -5,61 +5,61 @@ import org.funktionale.tries.Try
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.CompletableResult
 
-interface Skript<in I, O, Stage> {
-    fun run(i: I, stage: Stage): AsyncResult<O>
+interface Skript<in I, O, Troupe> {
+    fun run(i: I, troupe: Troupe): AsyncResult<O>
 
     companion object {
-        fun <I, Stage> identity(): Skript<I, I, Stage> = map { it }
-        fun <I, O, Stage> mapWithStage(mapper: (I, Stage) -> O): Skript<I, O, Stage> = Map(mapper)
-        fun <I, O, Stage> map(mapper: (I) -> O): Skript<I, O, Stage> = mapWithStage({ o, _ -> mapper(o) })
-        fun <I, O, Stage> mapTryWithStage(mapper: (I, Stage) -> Try<O>): Skript<I, O, Stage> = MapTry(mapper)
-        fun <I, O, Stage> mapTry(mapper: (I) -> Try<O>): Skript<I, O, Stage> = mapTryWithStage({ o, _ -> mapper(o) })
-        fun <I, J, K, Stage, O> branch(control: Skript<I, Either<J, K>, Stage>, left: Skript<J, O, Stage>, right: Skript<K, O, Stage>): Skript<I, O, Stage> = Branch(control, left, right)
-        fun <I, J, K, Stage> branch(control: Skript<I, Either<J, K>, Stage>): Branch.Builder<I, J, K, Stage> = Branch.Builder.control(control)
-        fun <I, Stage> updateStage(skript: Skript<I, Unit, Stage>): Skript<I, I, Stage> = UpdateStage(skript)
+        fun <I, Troupe> identity(): Skript<I, I, Troupe> = map { it }
+        fun <I, O, Troupe> mapWithTroupe(mapper: (I, Troupe) -> O): Skript<I, O, Troupe> = Map(mapper)
+        fun <I, O, Troupe> map(mapper: (I) -> O): Skript<I, O, Troupe> = mapWithTroupe({ o, _ -> mapper(o) })
+        fun <I, O, Troupe> mapTryWithTroupe(mapper: (I, Troupe) -> Try<O>): Skript<I, O, Troupe> = MapTry(mapper)
+        fun <I, O, Troupe> mapTry(mapper: (I) -> Try<O>): Skript<I, O, Troupe> = mapTryWithTroupe({ o, _ -> mapper(o) })
+        fun <I, J, K, Troupe, O> branch(control: Skript<I, Either<J, K>, Troupe>, left: Skript<J, O, Troupe>, right: Skript<K, O, Troupe>): Skript<I, O, Troupe> = Branch(control, left, right)
+        fun <I, J, K, Troupe> branch(control: Skript<I, Either<J, K>, Troupe>): Branch.Builder<I, J, K, Troupe> = Branch.Builder.control(control)
+        fun <I, Troupe> updateTroupe(skript: Skript<I, Unit, Troupe>): Skript<I, I, Troupe> = UpdateTroupe(skript)
     }
 
-    fun <O2> flatMap(skript: Skript<O, O2, Stage>): Skript<I, O2, Stage> = SkriptLink(this, skript)
+    fun <O2> flatMap(skript: Skript<O, O2, Troupe>): Skript<I, O2, Troupe> = SkriptLink(this, skript)
 
-    fun <O2> mapWithStage(mapper: (O, Stage) -> O2): Skript<I, O2, Stage> = this.flatMap(Map(mapper))
-    fun <O2> map(mapper: (O) -> O2): Skript<I, O2, Stage> = this.mapWithStage({ o, _ -> mapper(o) })
+    fun <O2> mapWithTroupe(mapper: (O, Troupe) -> O2): Skript<I, O2, Troupe> = this.flatMap(Map(mapper))
+    fun <O2> map(mapper: (O) -> O2): Skript<I, O2, Troupe> = this.mapWithTroupe({ o, _ -> mapper(o) })
 
-    fun <O2> mapTryWithStage(mapper: (O, Stage) -> Try<O2>): Skript<I, O2, Stage> = this.flatMap(MapTry(mapper))
-    fun <O2> mapTry(mapper: (O) -> Try<O2>): Skript<I, O2, Stage> = this.mapTryWithStage({ o, _ -> mapper(o) })
+    fun <O2> mapTryWithTroupe(mapper: (O, Troupe) -> Try<O2>): Skript<I, O2, Troupe> = this.flatMap(MapTry(mapper))
+    fun <O2> mapTry(mapper: (O) -> Try<O2>): Skript<I, O2, Troupe> = this.mapTryWithTroupe({ o, _ -> mapper(o) })
 
-    fun updateStage(skript: Skript<O, Unit, Stage>): Skript<I, O, Stage> = this.flatMap(UpdateStage(skript))
+    fun updateTroupe(skript: Skript<O, Unit, Troupe>): Skript<I, O, Troupe> = this.flatMap(UpdateTroupe(skript))
 
-    fun <J, K, O2> branch(control: Skript<O, Either<J, K>, Stage>, left: Skript<J, O2, Stage>, right: Skript<K, O2, Stage>): Skript<I, O2, Stage> =
+    fun <J, K, O2> branch(control: Skript<O, Either<J, K>, Troupe>, left: Skript<J, O2, Troupe>, right: Skript<K, O2, Troupe>): Skript<I, O2, Troupe> =
         this.flatMap(Branch(control, left, right))
         
-    fun <J, O2>whenRight(doOptionally: Skript<J, O2, Stage>, control: Skript<O, Either<O2, J>, Stage>): Skript<I, O2, Stage> =
+    fun <J, O2>whenRight(doOptionally: Skript<J, O2, Troupe>, control: Skript<O, Either<O2, J>, Troupe>): Skript<I, O2, Troupe> =
         this.flatMap(Branch(control, identity(), doOptionally))
 
-    fun <J>whenNonNull(doOptionally: Skript<J, O, Stage>, control: Skript<O, J?, Stage>): Skript<I, O, Stage> =
+    fun <J>whenNonNull(doOptionally: Skript<J, O, Troupe>, control: Skript<O, J?, Troupe>): Skript<I, O, Troupe> =
             this.flatMap(SkriptWhenNonNull(doOptionally, control))
 
-    fun whenTrue(doOptionally: Skript<O, O, Stage>, control: Skript<O, Boolean, Stage>): Skript<I, O, Stage> =
+    fun whenTrue(doOptionally: Skript<O, O, Troupe>, control: Skript<O, Boolean, Troupe>): Skript<I, O, Troupe> =
             this.flatMap(SkriptWhenTrue(doOptionally, control))
 
-    data class Wrapped<I, O, Stage: SubStage, SubStage>(val skript: Skript<I, O, SubStage>): Skript<I, O, Stage> {
-        override fun run(i: I, stage: Stage): AsyncResult<O> {
-            return skript.run(i, stage)
+    data class Wrapped<I, O, Troupe: SubTroupe, SubTroupe>(val skript: Skript<I, O, SubTroupe>): Skript<I, O, Troupe> {
+        override fun run(i: I, troupe: Troupe): AsyncResult<O> {
+            return skript.run(i, troupe)
         }
     }
     /**
      * A link that contains two skripts that have been chained together.  A chain is essentially a single linked list of skripts.
      */
-    data class SkriptLink<I, J, O, Stage>(val head: Skript<I, J, Stage>, val tail: Skript<J, O, Stage>): Skript<I, O, Stage> {
-        override fun run(i: I, stage: Stage): AsyncResult<O> {
-            return head.run(i, stage).flatMap { tail.run(it, stage) }
+    data class SkriptLink<I, J, O, Troupe>(val head: Skript<I, J, Troupe>, val tail: Skript<J, O, Troupe>): Skript<I, O, Troupe> {
+        override fun run(i: I, troupe: Troupe): AsyncResult<O> {
+            return head.run(i, troupe).flatMap { tail.run(it, troupe) }
         }
 
-        override fun <O2> flatMap(skript: Skript<O, O2, Stage>): Skript<I, O2, Stage> = SkriptLink(this.head, tail.flatMap(skript))
+        override fun <O2> flatMap(skript: Skript<O, O2, Troupe>): Skript<I, O2, Troupe> = SkriptLink(this.head, tail.flatMap(skript))
     }
 
-    data class Map<I, O, Stage>(val mapper: (I, Stage) -> O): Skript<I, O, Stage> {
-        override fun run(i: I, stage: Stage): AsyncResult<O> {
-            val tri = Try { mapper(i, stage) }
+    data class Map<I, O, Troupe>(val mapper: (I, Troupe) -> O): Skript<I, O, Troupe> {
+        override fun run(i: I, troupe: Troupe): AsyncResult<O> {
+            val tri = Try { mapper(i, troupe) }
             return when(tri) {
                 is Try.Failure -> CompletableResult.failed(tri.throwable)
                 is Try.Success -> CompletableResult.succeeded(tri.get())
@@ -67,9 +67,9 @@ interface Skript<in I, O, Stage> {
         }
     }
 
-    data class MapTry<I, O, Stage>(val mapper: (I, Stage) -> Try<O>): Skript<I, O, Stage> {
-        override fun run(i: I, stage: Stage): AsyncResult<O> {
-            val tri = mapper(i, stage)
+    data class MapTry<I, O, Troupe>(val mapper: (I, Troupe) -> Try<O>): Skript<I, O, Troupe> {
+        override fun run(i: I, troupe: Troupe): AsyncResult<O> {
+            val tri = mapper(i, troupe)
             return when(tri) {
                 is Try.Failure -> CompletableResult.failed(tri.throwable)
                 is Try.Success -> CompletableResult.succeeded(tri.get())
@@ -77,64 +77,64 @@ interface Skript<in I, O, Stage> {
         }
     }
 
-    data class Branch<I, J, K, O, Stage>(val control: Skript<I, Either<J, K>, Stage>, val left: Skript<J, O, Stage>, val right: Skript<K, O, Stage>): Skript<I, O, Stage> {
-        override fun run(i: I, stage: Stage): AsyncResult<O> {
-            return control.run(i, stage)
+    data class Branch<I, J, K, O, Troupe>(val control: Skript<I, Either<J, K>, Troupe>, val left: Skript<J, O, Troupe>, val right: Skript<K, O, Troupe>): Skript<I, O, Troupe> {
+        override fun run(i: I, troupe: Troupe): AsyncResult<O> {
+            return control.run(i, troupe)
                     .flatMap { when(it) {
-                        is Either.Left -> left.run(it.l, stage)
-                        is Either.Right -> right.run(it.r, stage)
+                        is Either.Left -> left.run(it.l, troupe)
+                        is Either.Right -> right.run(it.r, troupe)
                     } }
         }
 
-        sealed class Builder<I, J, K, Stage> {
-            abstract val control: Skript<I, Either<J, K>, Stage>
+        sealed class Builder<I, J, K, Troupe> {
+            abstract val control: Skript<I, Either<J, K>, Troupe>
 
             companion object {
-                fun <I, J, K, Stage> control(control: Skript<I, Either<J, K>, Stage>): Builder<I, J, K, Stage> = Impl(control)
+                fun <I, J, K, Troupe> control(control: Skript<I, Either<J, K>, Troupe>): Builder<I, J, K, Troupe> = Impl(control)
             }
 
-            fun <O> left(left: Skript<J, O, Stage>): Left<I, J, K, O, Stage> = Left(control, left)
-            fun <O> right(right: Skript<K, O, Stage>): Right<I, J, K, O, Stage> = Right(control, right)
+            fun <O> left(left: Skript<J, O, Troupe>): Left<I, J, K, O, Troupe> = Left(control, left)
+            fun <O> right(right: Skript<K, O, Troupe>): Right<I, J, K, O, Troupe> = Right(control, right)
 
-            private data class Impl<I, J, K, Stage>(override val control: Skript<I, Either<J, K>, Stage>): Builder<I, J, K, Stage>()
+            private data class Impl<I, J, K, Troupe>(override val control: Skript<I, Either<J, K>, Troupe>): Builder<I, J, K, Troupe>()
 
-            data class Left<I, J, K, O, Stage>(val control: Skript<I, Either<J, K>, Stage>, val left: Skript<J, O, Stage>) {
-                fun right(right: Skript<K, O, Stage>): Skript<I, O, Stage> = Branch(control, left, right)
+            data class Left<I, J, K, O, Troupe>(val control: Skript<I, Either<J, K>, Troupe>, val left: Skript<J, O, Troupe>) {
+                fun right(right: Skript<K, O, Troupe>): Skript<I, O, Troupe> = Branch(control, left, right)
             }
             
-            data class Right<I, J, K, O, Stage>(val control: Skript<I, Either<J, K>, Stage>, val right: Skript<K, O, Stage>) {
-                fun left(left: Skript<J, O, Stage>): Skript<I, O, Stage> = Branch(control, left, right)
+            data class Right<I, J, K, O, Troupe>(val control: Skript<I, Either<J, K>, Troupe>, val right: Skript<K, O, Troupe>) {
+                fun left(left: Skript<J, O, Troupe>): Skript<I, O, Troupe> = Branch(control, left, right)
             }
         }
     }
 
-    data class SkriptWhenNonNull<I, J, Stage>(val doOptionally: Skript<J, I, Stage>, val control: Skript<I, J?, Stage>): Skript<I, I, Stage> {
-        override fun run(i: I, stage: Stage): AsyncResult<I> {
-            return control.run(i, stage)
+    data class SkriptWhenNonNull<I, J, Troupe>(val doOptionally: Skript<J, I, Troupe>, val control: Skript<I, J?, Troupe>): Skript<I, I, Troupe> {
+        override fun run(i: I, troupe: Troupe): AsyncResult<I> {
+            return control.run(i, troupe)
                     .flatMap {
                         when(it) {
                             null -> CompletableResult.succeeded(i)
-                            else -> doOptionally.run(it, stage)
+                            else -> doOptionally.run(it, troupe)
                         }
                     }
         }
     }
 
-    data class SkriptWhenTrue<I, Stage>(val doOptionally: Skript<I, I, Stage>, val control: Skript<I, Boolean, Stage>): Skript<I, I, Stage> {
-        override fun run(i: I, stage: Stage): AsyncResult<I> {
-            return control.run(i, stage)
+    data class SkriptWhenTrue<I, Troupe>(val doOptionally: Skript<I, I, Troupe>, val control: Skript<I, Boolean, Troupe>): Skript<I, I, Troupe> {
+        override fun run(i: I, troupe: Troupe): AsyncResult<I> {
+            return control.run(i, troupe)
                     .flatMap {
                         when(it) {
-                            true -> doOptionally.run(i, stage)
+                            true -> doOptionally.run(i, troupe)
                             else -> CompletableResult.succeeded(i)
                         }
                     }
         }
     }
 
-    data class UpdateStage<I, Stage>(val skript: Skript<I, Unit, Stage>): Skript<I, I, Stage> {
-        override fun run(i: I, stage: Stage): AsyncResult<I> {
-            return skript.run(i, stage)
+    data class UpdateTroupe<I, Troupe>(val skript: Skript<I, Unit, Troupe>): Skript<I, I, Troupe> {
+        override fun run(i: I, troupe: Troupe): AsyncResult<I> {
+            return skript.run(i, troupe)
                     .map { i }
         }
 

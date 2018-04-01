@@ -1,17 +1,28 @@
 package playwrigkt.skript.user
 
-import playwright.skript.consumer.alpha.QueueConsumerProduction
-import playwright.skript.consumer.alpha.QueueConsumerTroupe
-import playwrigkt.skript.common.ApplicationStage
-import playwrigkt.skript.common.ApplicationVenue
+import playwright.skript.consumer.alpha.QueueMessage
+import playwright.skript.consumer.alpha.QueueVenue
+import playwrigkt.skript.Skript
+import playwrigkt.skript.common.ApplicationStageManager
+import playwrigkt.skript.common.ApplicationTroupe
+import playwrigkt.skript.consumer.alpha.Production
+import playwrigkt.skript.result.AsyncResult
 
 val userCreatedAddress = "user.updated"
 val userLoginAddress = "user.login"
 
-fun userLoginConsumer(consumerPerformer: QueueConsumerTroupe, applicationVenue: ApplicationVenue): QueueConsumerProduction<ApplicationStage> {
-    return consumerPerformer.production(userLoginAddress, applicationVenue)
+fun <O> userLoginConsumer(consumerPerformer: QueueVenue, applicationVenue: ApplicationStageManager, skript: Skript<QueueMessage, O, ApplicationTroupe>): AsyncResult<Production> {
+    return consumerPerformer.sink(
+            skript,
+            applicationVenue,
+            userLoginAddress
+    )
 }
 
-fun userCreateConsumer(consumerPerformer: QueueConsumerTroupe, applicationVenue: ApplicationVenue): QueueConsumerProduction<ApplicationStage> {
-    return consumerPerformer.production(userCreatedAddress, applicationVenue)
+fun <O> userCreateConsumer(consumerPerformer: QueueVenue, applicationVenue: ApplicationStageManager, skript: Skript<QueueMessage, O, ApplicationTroupe>): AsyncResult<Production> {
+    return consumerPerformer.sink(
+            skript,
+            applicationVenue,
+            userCreatedAddress
+    )
 }

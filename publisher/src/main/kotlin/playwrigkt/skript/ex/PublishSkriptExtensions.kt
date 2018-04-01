@@ -2,7 +2,7 @@ package playwrigkt.skript.ex
 
 import playwrigkt.skript.Skript
 import playwrigkt.skript.publish.PublishSkript
-import playwrigkt.skript.stage.PublishStage
+import playwrigkt.skript.troupe.PublishTroupe
 
-fun <I, O, Stage, Message> Skript<I, O, Stage>.publish(mapping: (O) -> Message) where Stage: PublishStage<Message> =
+fun <I, O, Troupe, Message> Skript<I, O, Troupe>.publish(mapping: (O) -> Message) where Troupe: PublishTroupe<Message> =
         this.andThen(PublishSkript.publish(mapping))
