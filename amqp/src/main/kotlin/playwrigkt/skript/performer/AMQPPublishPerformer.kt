@@ -1,4 +1,4 @@
-package playwrigkt.skript.publish
+package playwrigkt.skript.performer
 
 import com.rabbitmq.client.AMQP
 import com.rabbitmq.client.Channel
