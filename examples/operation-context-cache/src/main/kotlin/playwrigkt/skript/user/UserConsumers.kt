@@ -1,7 +1,7 @@
 package playwrigkt.skript.user
 
-import playwright.skript.queue.QueueMessage
-import playwright.skript.venue.QueueVenue
+import playwrigkt.skript.queue.QueueMessage
+import playwrigkt.skript.venue.QueueVenue
 import playwrigkt.skript.Skript
 import playwrigkt.skript.stagemanager.ApplicationStageManager
 import playwrigkt.skript.troupe.ApplicationTroupe

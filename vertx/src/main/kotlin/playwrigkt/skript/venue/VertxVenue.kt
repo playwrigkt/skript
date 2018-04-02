@@ -1,8 +1,8 @@
 package playwrigkt.skript.venue
 
 import io.vertx.core.Vertx
-import playwright.skript.queue.QueueMessage
-import playwright.skript.venue.QueueVenue
+import playwrigkt.skript.queue.QueueMessage
+import playwrigkt.skript.venue.QueueVenue
 import playwrigkt.skript.Skript
 import playwrigkt.skript.produktion.Production
 import playwrigkt.skript.produktion.VertxProduction

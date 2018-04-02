@@ -6,8 +6,8 @@ import io.kotlintest.matchers.shouldBe
 import io.kotlintest.matchers.shouldNotBe
 import io.kotlintest.specs.StringSpec
 import org.slf4j.LoggerFactory
-import playwright.skript.queue.QueueMessage
-import playwright.skript.venue.QueueVenue
+import playwrigkt.skript.queue.QueueMessage
+import playwrigkt.skript.venue.QueueVenue
 import playwrigkt.skript.Skript
 import playwrigkt.skript.stagemanager.ApplicationStageManager
 import playwrigkt.skript.troupe.ApplicationTroupe

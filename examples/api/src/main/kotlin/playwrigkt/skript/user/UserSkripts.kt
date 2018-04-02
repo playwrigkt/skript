@@ -1,7 +1,7 @@
 package playwrigkt.skript.user
 
 import org.funktionale.tries.Try
-import playwright.skript.queue.QueueMessage
+import playwrigkt.skript.queue.QueueMessage
 import playwrigkt.skript.Skript
 import playwrigkt.skript.troupe.ApplicationTroupe
 import playwrigkt.skript.ex.*

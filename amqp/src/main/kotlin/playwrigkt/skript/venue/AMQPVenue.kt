@@ -2,8 +2,8 @@ package playwrigkt.skript.venue
 
 import com.rabbitmq.client.Connection
 import org.funktionale.tries.Try
-import playwright.skript.queue.QueueMessage
-import playwright.skript.venue.QueueVenue
+import playwrigkt.skript.queue.QueueMessage
+import playwrigkt.skript.venue.QueueVenue
 import playwrigkt.skript.Skript
 import playwrigkt.skript.produktion.AMQPProduction
 import playwrigkt.skript.produktion.Production

@@ -1,6 +1,6 @@
 package playwrigkt.skript.stagemanager
 
-import playwright.skript.troupe.QueuePublishTroupe
+import playwrigkt.skript.troupe.QueuePublishTroupe
 import playwrigkt.skript.Skript
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.troupe.ApplicationTroupe

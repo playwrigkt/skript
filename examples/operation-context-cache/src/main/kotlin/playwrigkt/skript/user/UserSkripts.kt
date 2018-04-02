@@ -2,7 +2,7 @@ package playwrigkt.skript.user
 
 import org.funktionale.option.getOrElse
 import org.funktionale.tries.Try
-import playwright.skript.queue.QueueMessage
+import playwrigkt.skript.queue.QueueMessage
 import playwrigkt.skript.Skript
 import playwrigkt.skript.auth.AuthSkripts
 import playwrigkt.skript.troupe.ApplicationTroupe

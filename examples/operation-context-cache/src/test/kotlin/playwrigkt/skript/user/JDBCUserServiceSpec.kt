@@ -6,7 +6,7 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.rabbitmq.client.ConnectionFactory
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import playwright.skript.venue.QueueVenue
+import playwrigkt.skript.venue.QueueVenue
 import playwrigkt.skript.amqp.AMQPManager
 import playwrigkt.skript.stagemanager.ApplicationStageManager
 import playwrigkt.skript.stagemanager.JacksonSerializeStageManager

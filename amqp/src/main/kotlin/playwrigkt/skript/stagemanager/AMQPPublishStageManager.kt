@@ -3,7 +3,7 @@ package playwrigkt.skript.stagemanager
 import com.rabbitmq.client.AMQP
 import com.rabbitmq.client.Connection
 import org.funktionale.tries.Try
-import playwright.skript.troupe.QueuePublishTroupe
+import playwrigkt.skript.troupe.QueuePublishTroupe
 import playwrigkt.skript.publish.AMQPPublishPerformer
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.toAsyncResult

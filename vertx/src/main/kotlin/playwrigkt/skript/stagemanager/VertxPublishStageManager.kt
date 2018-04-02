@@ -1,7 +1,7 @@
 package playwrigkt.skript.stagemanager
 
 import io.vertx.core.Vertx
-import playwright.skript.troupe.QueuePublishTroupe
+import playwrigkt.skript.troupe.QueuePublishTroupe
 import playwrigkt.skript.performer.VertxPublishPerformer
 import playwrigkt.skript.result.AsyncResult
 

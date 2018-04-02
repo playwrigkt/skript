@@ -1,6 +1,6 @@
 package playwrigkt.pkrase
 
-import playwright.skript.troupe.QueuePublishTroupe
+import playwrigkt.skript.troupe.QueuePublishTroupe
 import playwrigkt.skript.Skript
 import playwrigkt.skript.troupe.SQLTroupe
 import playwrigkt.skript.troupe.SerializeTroupe

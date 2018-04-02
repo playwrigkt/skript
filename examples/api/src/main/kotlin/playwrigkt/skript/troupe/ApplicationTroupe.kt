@@ -1,7 +1,7 @@
 package playwrigkt.skript.troupe
 
-import playwright.skript.queue.QueueMessage
-import playwright.skript.troupe.QueuePublishTroupe
+import playwrigkt.skript.queue.QueueMessage
+import playwrigkt.skript.troupe.QueuePublishTroupe
 import playwrigkt.skript.performer.PublishPerformer
 import playwrigkt.skript.performer.SQLPerformer
 import playwrigkt.skript.performer.SerializePerformer
