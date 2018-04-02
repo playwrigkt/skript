@@ -3,7 +3,7 @@ package playwrigkt.skript.chatrooom.props
 import playwrigkt.skript.Skript
 import playwrigkt.skript.chatrooom.models.ChatroomId
 import playwrigkt.skript.chatrooom.sql.query.GetChatRoom
-import playwrigkt.skript.common.ApplicationTroupe
+import playwrigkt.skript.troupe.ApplicationTroupe
 import playwrigkt.skript.ex.query
 
 object ChatroomPropsSkripts {

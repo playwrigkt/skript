@@ -7,7 +7,7 @@ import com.rabbitmq.client.ConnectionFactory
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import playwrigkt.skript.amqp.AMQPManager
-import playwrigkt.skript.common.ApplicationStageManager
+import playwrigkt.skript.stagemanager.ApplicationStageManager
 import playwrigkt.skript.stagemanager.JacksonSerializeStageManager
 import playwrigkt.skript.user.JDBCUserServiceSpec
 

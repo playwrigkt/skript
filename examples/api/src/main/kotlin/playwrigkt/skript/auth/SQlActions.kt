@@ -1,7 +1,7 @@
 package playwrigkt.skript.auth
 
 import playwrigkt.skript.Skript
-import playwrigkt.skript.common.ApplicationTroupe
+import playwrigkt.skript.troupe.ApplicationTroupe
 import playwrigkt.skript.ex.query
 
 object AuthSkripts {

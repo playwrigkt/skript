@@ -3,7 +3,7 @@ import org.funktionale.tries.Try
 import playwrigkt.skript.Skript
 import playwrigkt.skript.chatrooom.sql.query.*
 import playwrigkt.skript.chatrooom.sql.update.*
-import playwrigkt.skript.common.ApplicationTroupe
+import playwrigkt.skript.troupe.ApplicationTroupe
 import playwrigkt.skript.ex.query
 import playwrigkt.skript.ex.update
 

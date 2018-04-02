@@ -7,8 +7,8 @@ import io.kotlintest.specs.StringSpec
 import org.slf4j.LoggerFactory
 import playwrigkt.skript.Skript
 import playwrigkt.skript.chatrooom.sql.query.authorizeChatroomSelectStatement
-import playwrigkt.skript.common.ApplicationStageManager
-import playwrigkt.skript.common.ApplicationTroupe
+import playwrigkt.skript.stagemanager.ApplicationStageManager
+import playwrigkt.skript.troupe.ApplicationTroupe
 import playwrigkt.skript.common.models.Reference
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.sql.SQLCommand

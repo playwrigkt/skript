@@ -6,7 +6,6 @@ import playwrigkt.skript.http.HttpResponse
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.stagemanager.StageManager
 
-
 class HttpProduction<STAGE>(
         val stageManager: StageManager<STAGE>,
         val skript: Skript<HttpRequest, HttpResponse, STAGE>): Production {

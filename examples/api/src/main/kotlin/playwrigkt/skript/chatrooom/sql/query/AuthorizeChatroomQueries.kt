@@ -2,7 +2,7 @@ package playwrigkt.skript.chatrooom.sql.query
 
 import org.funktionale.tries.Try
 import playwrigkt.skript.Skript
-import playwrigkt.skript.common.ApplicationTroupe
+import playwrigkt.skript.troupe.ApplicationTroupe
 import playwrigkt.skript.sql.SQLCommand
 import playwrigkt.skript.sql.SQLQueryMapping
 import playwrigkt.skript.sql.SQLResult

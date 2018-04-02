@@ -3,8 +3,8 @@ package playwrigkt.skript.user
 import playwright.skript.queue.QueueMessage
 import playwright.skript.venue.QueueVenue
 import playwrigkt.skript.Skript
-import playwrigkt.skript.common.ApplicationStageManager
-import playwrigkt.skript.common.ApplicationTroupe
+import playwrigkt.skript.stagemanager.ApplicationStageManager
+import playwrigkt.skript.troupe.ApplicationTroupe
 import playwrigkt.skript.produktion.Production
 import playwrigkt.skript.result.AsyncResult
 

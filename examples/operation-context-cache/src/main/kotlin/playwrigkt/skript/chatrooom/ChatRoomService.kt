@@ -4,7 +4,7 @@ import playwrigkt.skript.chatrooom.models.ChatRoom
 import playwrigkt.skript.chatrooom.models.ChatRoomPermissions
 import playwrigkt.skript.chatrooom.models.ChatRoomUser
 import playwrigkt.skript.chatrooom.props.ChatroomTroupeProps
-import playwrigkt.skript.common.ApplicationStageManager
+import playwrigkt.skript.stagemanager.ApplicationStageManager
 import playwrigkt.skript.result.AsyncResult
 
 class ChatRoomService(val venue: ApplicationStageManager) {

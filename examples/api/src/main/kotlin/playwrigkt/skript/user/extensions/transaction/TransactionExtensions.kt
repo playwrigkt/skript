@@ -1,6 +1,6 @@
 package playwrigkt.skript.user.extensions.transaction
 
-import playwrigkt.skript.common.ApplicationTroupe
+import playwrigkt.skript.troupe.ApplicationTroupe
 import playwrigkt.skript.sql.transaction.SQLTransactionSkript
 import playwrigkt.skript.user.UserSkripts
 

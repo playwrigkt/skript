@@ -8,7 +8,7 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import playwright.skript.venue.QueueVenue
 import playwrigkt.skript.amqp.AMQPManager
-import playwrigkt.skript.common.ApplicationStageManager
+import playwrigkt.skript.stagemanager.ApplicationStageManager
 import playwrigkt.skript.stagemanager.JacksonSerializeStageManager
 import playwrigkt.skript.venue.AMQPVenue
 

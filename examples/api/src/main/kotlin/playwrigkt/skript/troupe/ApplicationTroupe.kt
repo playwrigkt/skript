@@ -1,30 +1,11 @@
-package playwrigkt.skript.common
+package playwrigkt.skript.troupe
 
 import playwright.skript.queue.QueueMessage
 import playwright.skript.troupe.QueuePublishTroupe
-import playwrigkt.skript.Skript
 import playwrigkt.skript.performer.PublishPerformer
 import playwrigkt.skript.performer.SQLPerformer
 import playwrigkt.skript.performer.SerializePerformer
 import playwrigkt.skript.result.AsyncResult
-import playwrigkt.skript.stagemanager.StageManager
-import playwrigkt.skript.troupe.SQLTroupe
-import playwrigkt.skript.troupe.SerializeTroupe
-
-data class ApplicationStageManager(
-        val publishProvider: StageManager<QueuePublishTroupe>,
-        val sqlProvider: StageManager<SQLTroupe>,
-        val serializeProvider: StageManager<SerializeTroupe>
-): StageManager<ApplicationTroupe> {
-    override fun hireTroupe(): ApplicationTroupe =
-        ApplicationTroupe(publishProvider.hireTroupe(), sqlProvider.hireTroupe(), serializeProvider.hireTroupe())
-
-    fun <I, O> runWithTroupe(skript: Skript<I, O, ApplicationTroupe>, i: I): AsyncResult<O> {
-        val troupe = hireTroupe()
-        println("troupe: $troupe")
-        return skript.run(i, troupe)
-    }
-}
 
 data class ApplicationTroupe(
         private val publishTroupe: QueuePublishTroupe,
