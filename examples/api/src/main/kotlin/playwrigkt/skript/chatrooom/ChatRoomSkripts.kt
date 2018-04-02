@@ -3,9 +3,9 @@ import org.funktionale.tries.Try
 import playwrigkt.skript.Skript
 import playwrigkt.skript.chatrooom.sql.query.*
 import playwrigkt.skript.chatrooom.sql.update.*
-import playwrigkt.skript.troupe.ApplicationTroupe
 import playwrigkt.skript.ex.query
 import playwrigkt.skript.ex.update
+import playwrigkt.skript.troupe.ApplicationTroupe
 
 object ChatRoomSkripts {
     private val onlyIfHasUsers: (playwrigkt.skript.chatrooom.models.ChatRoom) -> Try<playwrigkt.skript.chatrooom.models.ChatRoom> = { if(it.users.isEmpty()) Try.Failure(playwrigkt.skript.chatrooom.models.ChatRoomError.NoUsers) else { Try.Success(it) } }

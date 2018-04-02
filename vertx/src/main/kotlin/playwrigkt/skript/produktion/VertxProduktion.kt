@@ -4,8 +4,8 @@ import io.vertx.core.AbstractVerticle
 import io.vertx.core.Vertx
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.eventbus.Message
-import playwrigkt.skript.queue.QueueMessage
 import playwrigkt.skript.Skript
+import playwrigkt.skript.queue.QueueMessage
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.CompletableResult
 import playwrigkt.skript.stagemanager.StageManager

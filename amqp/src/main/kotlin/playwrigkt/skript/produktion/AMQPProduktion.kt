@@ -2,8 +2,8 @@ package playwrigkt.skript.produktion
 
 import com.rabbitmq.client.*
 import org.funktionale.tries.Try
-import playwrigkt.skript.queue.QueueMessage
 import playwrigkt.skript.Skript
+import playwrigkt.skript.queue.QueueMessage
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.CompletableResult
 import playwrigkt.skript.result.toAsyncResult

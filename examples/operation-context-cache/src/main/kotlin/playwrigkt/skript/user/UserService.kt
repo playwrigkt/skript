@@ -1,7 +1,7 @@
 package playwrigkt.skript.user
 
-import playwrigkt.skript.stagemanager.ApplicationStageManager
 import playwrigkt.skript.result.AsyncResult
+import playwrigkt.skript.stagemanager.ApplicationStageManager
 import playwrigkt.skript.user.models.UserNameAndPassword
 import playwrigkt.skript.user.models.UserProfile
 import playwrigkt.skript.user.models.UserProfileAndPassword

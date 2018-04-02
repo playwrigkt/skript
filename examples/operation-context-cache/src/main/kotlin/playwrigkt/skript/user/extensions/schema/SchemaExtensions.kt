@@ -1,8 +1,8 @@
 package playwrigkt.skript.user.extensions.schema
 
-import playwrigkt.skript.troupe.ApplicationTroupe
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.sql.transaction.SQLTransactionSkript
+import playwrigkt.skript.troupe.ApplicationTroupe
 import playwrigkt.skript.user.sql.UserSchema
 
 fun ApplicationTroupe<Unit>.initUserSchema() = SQLTransactionSkript.transaction<Unit, Unit, ApplicationTroupe<Unit>>(UserSchema.init()).run(Unit, this)

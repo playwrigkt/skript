@@ -3,11 +3,11 @@ package playwrigkt.skript.user
 import com.rabbitmq.client.ConnectionFactory
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import playwrigkt.skript.venue.QueueVenue
 import playwrigkt.skript.amqp.AMQPManager
 import playwrigkt.skript.stagemanager.ApplicationStageManager
 import playwrigkt.skript.stagemanager.JacksonSerializeStageManager
 import playwrigkt.skript.venue.AMQPVenue
+import playwrigkt.skript.venue.QueueVenue
 
 class JDBCUserServiceSpec: UserServiceSpec() {
     companion object {

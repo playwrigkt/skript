@@ -2,11 +2,11 @@ package playwrigkt.skript.chatrooom.sql.query
 
 import org.funktionale.tries.Try
 import playwrigkt.skript.Skript
-import playwrigkt.skript.troupe.ApplicationTroupe
 import playwrigkt.skript.sql.SQLCommand
 import playwrigkt.skript.sql.SQLQueryMapping
 import playwrigkt.skript.sql.SQLResult
 import playwrigkt.skript.sql.SQLStatement
+import playwrigkt.skript.troupe.ApplicationTroupe
 import playwrigkt.skript.user.models.UserError
 
 fun <T> authenticate(): Skript<playwrigkt.skript.auth.TokenAndInput<T>, playwrigkt.skript.auth.SessionAndInput<T>, ApplicationTroupe> {

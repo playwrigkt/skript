@@ -1,10 +1,10 @@
 package playwrigkt.skript.user.sql
 
 import playwrigkt.skript.Skript
-import playwrigkt.skript.troupe.ApplicationTroupe
 import playwrigkt.skript.ex.dropTableIfExists
 import playwrigkt.skript.ex.exec
 import playwrigkt.skript.sql.SQLMapping
+import playwrigkt.skript.troupe.ApplicationTroupe
 
 object UserSchema {
 

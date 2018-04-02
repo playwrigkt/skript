@@ -1,8 +1,8 @@
 package playwrigkt.skript.auth
 
 import playwrigkt.skript.Skript
-import playwrigkt.skript.troupe.ApplicationTroupe
 import playwrigkt.skript.ex.query
+import playwrigkt.skript.troupe.ApplicationTroupe
 
 object AuthSkripts {
     fun <T> validateAction() =

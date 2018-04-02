@@ -1,7 +1,6 @@
 package playwrigkt.skript.troupe
 
 import playwrigkt.skript.performer.QueuePublishPerformer
-import playwrigkt.skript.troupe.QueuePublishTroupe
 import playwrigkt.skript.performer.SQLPerformer
 import playwrigkt.skript.performer.SerializePerformer
 import playwrigkt.skript.result.AsyncResult

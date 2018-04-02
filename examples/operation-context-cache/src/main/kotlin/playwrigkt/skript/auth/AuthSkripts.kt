@@ -3,8 +3,8 @@ package playwrigkt.skript.auth
 import playwrigkt.skript.Skript
 import playwrigkt.skript.auth.props.UserSessionTroupeProps
 import playwrigkt.skript.auth.sql.query.AuthQueries
-import playwrigkt.skript.troupe.ApplicationTroupe
 import playwrigkt.skript.ex.query
+import playwrigkt.skript.troupe.ApplicationTroupe
 
 object AuthSkripts {
     fun <T, R: UserSessionTroupeProps> validate(): Skript<T, T, ApplicationTroupe<R>> =
