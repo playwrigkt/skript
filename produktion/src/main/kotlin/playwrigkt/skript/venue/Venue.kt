@@ -1,8 +1,10 @@
-package playwrigkt.skript.consumer.alpha
+package playwrigkt.skript.venue
 
 import playwrigkt.skript.Skript
+import playwrigkt.skript.produktion.Performance
+import playwrigkt.skript.produktion.Production
 import playwrigkt.skript.result.AsyncResult
-import playwrigkt.skript.venue.StageManager
+import playwrigkt.skript.stagemanager.StageManager
 
 interface Venue<Rule, Beginning> { //This is a stage
     fun <O, Troupe> sink(skript: Skript<Beginning, O, Troupe>,

@@ -3,11 +3,11 @@ package playwrigkt.skript.user
 import com.rabbitmq.client.ConnectionFactory
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import playwright.skript.consumer.alpha.QueueVenue
+import playwright.skript.venue.QueueVenue
 import playwrigkt.skript.amqp.AMQPManager
 import playwrigkt.skript.common.ApplicationStageManager
-import playwrigkt.skript.consumer.alpha.AMQPVenue
-import playwrigkt.skript.venue.JacksonSerializeStageManager
+import playwrigkt.skript.stagemanager.JacksonSerializeStageManager
+import playwrigkt.skript.venue.AMQPVenue
 
 class JDBCUserServiceSpec: UserServiceSpec() {
     companion object {
@@ -32,8 +32,8 @@ class JDBCUserServiceSpec: UserServiceSpec() {
 
         val hikariDataSource by lazy { HikariDataSource(hikariDSConfig) }
 
-        val sqlConnectionProvider by lazy { playwrigkt.skript.venue.JDBCDataSourceStageManager(hikariDataSource) }
-        val publishVenue by lazy { playwrigkt.skript.venue.AMQPPublishStageManager(AMQPManager.amqpExchange, amqpConnection, AMQPManager.basicProperties) }
+        val sqlConnectionProvider by lazy { playwrigkt.skript.stagemanager.JDBCDataSourceStageManager(hikariDataSource) }
+        val publishVenue by lazy { playwrigkt.skript.stagemanager.AMQPPublishStageManager(AMQPManager.amqpExchange, amqpConnection, AMQPManager.basicProperties) }
         val serializeVenue = JacksonSerializeStageManager()
 
         val provider: ApplicationStageManager by lazy {

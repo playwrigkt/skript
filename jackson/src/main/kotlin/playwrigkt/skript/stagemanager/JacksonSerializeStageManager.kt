@@ -1,4 +1,4 @@
-package playwrigkt.skript.venue
+package playwrigkt.skript.stagemanager
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule

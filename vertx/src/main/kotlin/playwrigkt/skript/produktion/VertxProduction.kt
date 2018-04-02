@@ -1,21 +1,14 @@
-package playwrigkt.skript.consumer.alpha
+package playwrigkt.skript.produktion
 
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Vertx
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.eventbus.Message
-import playwright.skript.consumer.alpha.QueueMessage
-import playwright.skript.consumer.alpha.QueueVenue
+import playwright.skript.queue.QueueMessage
 import playwrigkt.skript.Skript
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.CompletableResult
-import playwrigkt.skript.venue.StageManager
-
-class VertxVenue(val vertx: Vertx): QueueVenue {
-    override fun <Ending, Troupe> sink(skript: Skript<QueueMessage, Ending, Troupe>, stageManager: StageManager<Troupe>, rule: String): AsyncResult<Production> {
-        return AsyncResult.succeeded(VertxProduction(vertx, rule, skript, stageManager))
-    }
-}
+import playwrigkt.skript.stagemanager.StageManager
 
 data class VertxProduction<O, Troupe>(
         val vertx: Vertx,

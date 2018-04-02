@@ -1,4 +1,4 @@
-package playwrigkt.skript.venue
+package playwrigkt.skript.stagemanager
 
 import com.rabbitmq.client.AMQP
 import com.rabbitmq.client.Connection

@@ -3,8 +3,8 @@ package playwrigkt.skript.performer
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.eventbus.EventBus
 import org.funktionale.tries.Try
-import playwright.skript.consumer.alpha.QueueMessage
 import playwright.skript.performer.QueuePublishPerformer
+import playwright.skript.queue.QueueMessage
 import playwrigkt.skript.result.AsyncResult
 
 class VertxPublishPerformer(val eventBus: EventBus): QueuePublishPerformer {

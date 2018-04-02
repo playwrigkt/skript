@@ -1,11 +1,11 @@
 package playwrigkt.skript.user
 
-import playwright.skript.consumer.alpha.QueueMessage
-import playwright.skript.consumer.alpha.QueueVenue
+import playwright.skript.queue.QueueMessage
+import playwright.skript.venue.QueueVenue
 import playwrigkt.skript.Skript
 import playwrigkt.skript.common.ApplicationStageManager
 import playwrigkt.skript.common.ApplicationTroupe
-import playwrigkt.skript.consumer.alpha.Production
+import playwrigkt.skript.produktion.Production
 import playwrigkt.skript.result.AsyncResult
 
 val userCreatedAddress = "user.updated"

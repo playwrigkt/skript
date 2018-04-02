@@ -1,8 +1,7 @@
-package playwrigkt.skript.venue
+package playwrigkt.skript.stagemanager
 
 import kotlinx.coroutines.experimental.launch
 import playwrigkt.skript.performer.CoroutineJDBCPerformer
-import playwrigkt.skript.performer.SQLPerformer
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.CompletableResult
 import playwrigkt.skript.troupe.SQLTroupe

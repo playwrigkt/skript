@@ -1,26 +1,13 @@
-package playwrigkt.skript.consumer.alpha
+package playwrigkt.skript.produktion
 
 import com.rabbitmq.client.*
 import org.funktionale.tries.Try
-import playwright.skript.consumer.alpha.QueueMessage
-import playwright.skript.consumer.alpha.QueueVenue
+import playwright.skript.queue.QueueMessage
 import playwrigkt.skript.Skript
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.CompletableResult
 import playwrigkt.skript.result.toAsyncResult
-import playwrigkt.skript.venue.StageManager
-
-data class AMQPVenue(val amqpConnection: Connection): QueueVenue {
-    override fun <O, Troupe> sink(skript: Skript<QueueMessage, O, Troupe>,
-                                  stageManager: StageManager<Troupe>,
-                                  queue: String): AsyncResult<Production> {
-        return Try {
-            AMQPProduction(amqpConnection.createChannel(), queue, skript, stageManager)
-        }
-                .toAsyncResult()
-                .map { it as Production }
-    }
-}
+import playwrigkt.skript.stagemanager.StageManager
 
 data class AMQPProduction<O, Troupe>(
         val channel: Channel,

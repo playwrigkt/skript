@@ -1,8 +1,8 @@
-package playwrigkt.skript.consumer.alpha
+package playwrigkt.skript.produktion
 
 import playwrigkt.skript.Skript
 import playwrigkt.skript.result.AsyncResult
-import playwrigkt.skript.venue.StageManager
+import playwrigkt.skript.stagemanager.StageManager
 
 interface Production {
     fun isRunning(): Boolean

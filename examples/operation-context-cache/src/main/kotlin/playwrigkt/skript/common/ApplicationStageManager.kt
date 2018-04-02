@@ -6,9 +6,9 @@ import playwrigkt.skript.Skript
 import playwrigkt.skript.performer.SQLPerformer
 import playwrigkt.skript.performer.SerializePerformer
 import playwrigkt.skript.result.AsyncResult
+import playwrigkt.skript.stagemanager.StageManager
 import playwrigkt.skript.troupe.SQLTroupe
 import playwrigkt.skript.troupe.SerializeTroupe
-import playwrigkt.skript.venue.StageManager
 
 class ApplicationStageManager (
         val publishStageManager: StageManager<QueuePublishTroupe>,

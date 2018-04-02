@@ -7,9 +7,9 @@ import io.vertx.ext.jdbc.JDBCClient
 import io.vertx.ext.sql.SQLClient
 import playwrigkt.skript.common.ApplicationStageManager
 import playwrigkt.skript.result.VertxResult
-import playwrigkt.skript.venue.VertxPublishStageManager
-import playwrigkt.skript.venue.VertxSQLStageManager
-import playwrigkt.skript.venue.VertxSerializeStageManager
+import playwrigkt.skript.stagemanager.VertxPublishStageManager
+import playwrigkt.skript.stagemanager.VertxSQLStageManager
+import playwrigkt.skript.stagemanager.VertxSerializeStageManager
 
 class VertxChatroomTransactionSpec: ChatroomTransactionsSpec() {
 

@@ -1,4 +1,4 @@
-package playwrigkt.skript.venue
+package playwrigkt.skript.stagemanager
 
 import io.vertx.core.Vertx
 import playwright.skript.troupe.QueuePublishTroupe

@@ -5,8 +5,8 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import playwrigkt.skript.amqp.AMQPManager
 import playwrigkt.skript.common.ApplicationStageManager
+import playwrigkt.skript.stagemanager.JacksonSerializeStageManager
 import playwrigkt.skript.user.JDBCUserServiceSpec
-import playwrigkt.skript.venue.JacksonSerializeStageManager
 
 class JDBCChatroomTransactionSpec: ChatroomTransactionsSpec() {
 
@@ -30,8 +30,8 @@ class JDBCChatroomTransactionSpec: ChatroomTransactionsSpec() {
         }
 
         val hikariDataSource = HikariDataSource(hikariDSConfig)
-        val sqlConnectionProvider = playwrigkt.skript.venue.JDBCDataSourceStageManager(hikariDataSource)
-        val publishVenue by lazy { playwrigkt.skript.venue.AMQPPublishStageManager(AMQPManager.amqpExchange, JDBCUserServiceSpec.amqpConnection, AMQPManager.basicProperties) }
+        val sqlConnectionProvider = playwrigkt.skript.stagemanager.JDBCDataSourceStageManager(hikariDataSource)
+        val publishVenue by lazy { playwrigkt.skript.stagemanager.AMQPPublishStageManager(AMQPManager.amqpExchange, JDBCUserServiceSpec.amqpConnection, AMQPManager.basicProperties) }
         val serializeVenue = JacksonSerializeStageManager()
         val provider: ApplicationStageManager by lazy {
             ApplicationStageManager(publishVenue, sqlConnectionProvider, serializeVenue)

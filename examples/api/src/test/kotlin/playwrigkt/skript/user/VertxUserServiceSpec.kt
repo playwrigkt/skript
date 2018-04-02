@@ -5,13 +5,13 @@ import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.jdbc.JDBCClient
 import io.vertx.ext.sql.SQLClient
-import playwright.skript.consumer.alpha.QueueVenue
+import playwright.skript.venue.QueueVenue
 import playwrigkt.skript.common.ApplicationStageManager
-import playwrigkt.skript.consumer.alpha.VertxVenue
 import playwrigkt.skript.result.VertxResult
-import playwrigkt.skript.venue.VertxPublishStageManager
-import playwrigkt.skript.venue.VertxSQLStageManager
-import playwrigkt.skript.venue.VertxSerializeStageManager
+import playwrigkt.skript.stagemanager.VertxPublishStageManager
+import playwrigkt.skript.stagemanager.VertxSQLStageManager
+import playwrigkt.skript.stagemanager.VertxSerializeStageManager
+import playwrigkt.skript.venue.VertxVenue
 
 class VertxUserServiceSpec: UserServiceSpec() {
     companion object {

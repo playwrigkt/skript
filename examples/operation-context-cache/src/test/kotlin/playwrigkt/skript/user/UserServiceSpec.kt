@@ -6,13 +6,13 @@ import io.kotlintest.matchers.shouldBe
 import io.kotlintest.matchers.shouldNotBe
 import io.kotlintest.specs.StringSpec
 import org.slf4j.LoggerFactory
-import playwright.skript.consumer.alpha.QueueMessage
-import playwright.skript.consumer.alpha.QueueVenue
+import playwright.skript.queue.QueueMessage
+import playwright.skript.venue.QueueVenue
 import playwrigkt.skript.Skript
 import playwrigkt.skript.common.ApplicationStageManager
 import playwrigkt.skript.common.ApplicationTroupe
-import playwrigkt.skript.consumer.alpha.Production
 import playwrigkt.skript.ex.deserialize
+import playwrigkt.skript.produktion.Production
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.sql.SQLCommand
 import playwrigkt.skript.sql.SQLError
