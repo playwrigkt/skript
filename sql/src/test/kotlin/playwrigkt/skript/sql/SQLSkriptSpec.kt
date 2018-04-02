@@ -10,6 +10,7 @@ import playwrigkt.skript.ex.andThen
 import playwrigkt.skript.ex.query
 import playwrigkt.skript.ex.update
 import playwrigkt.skript.performer.SQLPerformer
+import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.sql.transaction.SQLTransactionSkript
 import playwrigkt.skript.troupe.SQLTroupe
 import java.time.Instant
@@ -24,8 +25,8 @@ class SQLSkriptSpec : StringSpec() {
             OperationCache<R> {
         override fun getOperationCache(): R = cache
 
-        override fun getSQLPerformer(): SQLPerformer {
-            return sqlPerformer
+        override fun getSQLPerformer():AsyncResult<SQLPerformer> {
+            return AsyncResult.succeeded(sqlPerformer)
         }
     }
 

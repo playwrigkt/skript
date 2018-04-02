@@ -1,6 +1,7 @@
 package playwrigkt.skript.result
 
 import org.funktionale.tries.Try
+import java.util.concurrent.LinkedBlockingQueue
 
 fun <T> Try<T>.toAsyncResult(): AsyncResult<T> =
     when(this) {
@@ -26,6 +27,8 @@ interface AsyncResult<T> {
 
     fun result(): T?
     fun error(): Throwable?
+
+    fun copy(): AsyncResult<T>
 }
 
 interface Completable<T> {
@@ -59,6 +62,7 @@ interface CompletableResult<T>: AsyncResult<T>, Completable<T> {
     private class CompletableResultImpl<T>: CompletableResult<T> {
         @Volatile private var result: Result<T>? = null
         @Volatile private var handler: ResultHandler<T>? = null
+        @Volatile private var notify: LinkedBlockingQueue<CompletableResult<T>> = LinkedBlockingQueue()
 
         override fun <U> map(f: (T) -> U): AsyncResult<U> {
             val newResult = CompletableResultImpl<U>()
@@ -125,6 +129,7 @@ interface CompletableResult<T>: AsyncResult<T>, Completable<T> {
         override fun succeed(t: T): Unit = synchronized(this) {
             if(!isComplete()) {
                 result = Result.Success(t)
+                notify.map { it.succeed(t) }
                 handler?.invoke(Result.Success(t))
             } else {
                 throw IllegalStateException("Result is already succeed")
@@ -134,6 +139,7 @@ interface CompletableResult<T>: AsyncResult<T>, Completable<T> {
         override fun fail(error: Throwable): Unit = synchronized(this) {
             if(!isComplete()) {
                 result = Result.Failure(error)
+                notify.map { it.fail(error) }
                 handler?.invoke(Result.Failure(error))
             } else {
                 throw IllegalStateException("Result is already succeed")
@@ -159,6 +165,15 @@ interface CompletableResult<T>: AsyncResult<T>, Completable<T> {
         override fun error(): Throwable? {
             return result?.error
         }
+
+        override fun copy(): CompletableResult<T> =
+            this.result?.let { result ->
+                result.error?.let { CompletableResult.failed<T>(it) }
+                        ?: result.result?.let { CompletableResult.succeeded(it) }
+            }?: CompletableResult<T>().let {
+                this.notify.add(it)
+                it
+            }
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true

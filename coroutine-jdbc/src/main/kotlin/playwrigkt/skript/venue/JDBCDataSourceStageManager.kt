@@ -1,22 +1,27 @@
 package playwrigkt.skript.venue
 
 import kotlinx.coroutines.experimental.launch
+import playwrigkt.skript.performer.CoroutineJDBCPerformer
+import playwrigkt.skript.performer.SQLPerformer
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.CompletableResult
+import playwrigkt.skript.troupe.SQLTroupe
 import javax.sql.DataSource
 
-data class JDBCDataSourceStageManager(val dataSource: DataSource): playwrigkt.skript.venue.StageManager<playwrigkt.skript.performer.CoroutineJDBCPerformer> {
-    override fun hireTroupe(): AsyncResult<playwrigkt.skript.performer.CoroutineJDBCPerformer> {
-        val result = CompletableResult<playwrigkt.skript.performer.CoroutineJDBCPerformer>()
-        launch {
-            try {
-                result.succeed(playwrigkt.skript.performer.CoroutineJDBCPerformer(dataSource.connection))
-            } catch(e: Throwable) {
-                result.fail(e)
+data class JDBCDataSourceStageManager(val dataSource: DataSource): StageManager<SQLTroupe> {
+    override fun hireTroupe(): SQLTroupe =
+        object: SQLTroupe {
+            val sqlPerformer: AsyncResult<CoroutineJDBCPerformer> by lazy {
+                val result = CompletableResult<CoroutineJDBCPerformer>()
+                launch {
+                    try {
+                        result.succeed(CoroutineJDBCPerformer(dataSource.connection))
+                    } catch(e: Throwable) {
+                        result.fail(e)
+                    }
+                }
+                result
             }
+            override fun getSQLPerformer(): AsyncResult<CoroutineJDBCPerformer> = sqlPerformer.copy()
         }
-
-        return result
-    }
-
 }

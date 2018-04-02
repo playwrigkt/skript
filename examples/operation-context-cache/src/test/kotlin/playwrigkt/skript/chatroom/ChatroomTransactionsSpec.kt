@@ -38,8 +38,8 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
                 SQLTransactionSkript.transaction<Unit, Unit, ApplicationTroupe<Unit>>(ChatRoomSchema.dropAllAction),
                 Unit,
                 Unit))
-        awaitSucceededFuture(provider().hireTroupe().flatMap { it.dropUserSchema() })
-        awaitSucceededFuture(provider().hireTroupe().flatMap { it.initUserSchema() })
+        awaitSucceededFuture(provider().hireTroupe().dropUserSchema())
+        awaitSucceededFuture(provider().hireTroupe().initUserSchema())
         awaitSucceededFuture(provider().runWithTroupe(
                 SQLTransactionSkript.transaction<Unit, Unit, ApplicationTroupe<Unit>>(ChatRoomSchema.initAction),
                 Unit,
@@ -49,7 +49,7 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
                 SQLTransactionSkript.transaction<Unit, Unit, ApplicationTroupe<Unit>>(ChatRoomSchema.dropAllAction),
                 Unit,
                 Unit))
-        awaitSucceededFuture(provider().hireTroupe().flatMap { it.dropUserSchema() })
+        awaitSucceededFuture(provider().hireTroupe().dropUserSchema())
         closeResources()
     }
 

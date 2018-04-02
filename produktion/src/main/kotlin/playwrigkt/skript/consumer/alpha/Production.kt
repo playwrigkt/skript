@@ -14,7 +14,5 @@ data class Performance<I, O, Troupe>(
         val skript: Skript<I, O, Troupe>,
         val stageManager: StageManager<Troupe>
 ) {
-    fun run(i: I): AsyncResult<O> =
-        stageManager.hireTroupe()
-                .flatMap { skript.run(i, it) }
+    fun run(i: I): AsyncResult<O> = skript.run(i, stageManager.hireTroupe())
 }

@@ -40,8 +40,7 @@ data class AMQPProduction<O, Troupe>(
 
 
     fun handleMessage(consumerTag: String, envelope: Envelope, properties: BasicProperties, body: ByteArray) {
-        provider.hireTroupe()
-                .flatMap { stage -> skript.run(QueueMessage(envelope.routingKey, body), stage) }
+        skript.run(QueueMessage(envelope.routingKey, body), provider.hireTroupe())
                 .map { channel.basicAck(envelope.deliveryTag, false) }
                 .recover {
                     Try {

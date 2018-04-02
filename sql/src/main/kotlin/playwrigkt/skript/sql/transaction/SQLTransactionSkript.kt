@@ -33,10 +33,12 @@ sealed class SQLTransactionSkript<I, O, Troupe: SQLTroupe>: Skript<I, O, Troupe>
                 }
 
         override fun run(i: I, troupe: Troupe): AsyncResult<O> =
-                troupe.getSQLPerformer().setAutoCommit(true)
-                        .flatMap { transaction.run(i, troupe) }
-                        .flatMap(troupe.getSQLPerformer().close())
-                        .recover(troupe.getSQLPerformer().closeOnFailure())
+                troupe.getSQLPerformer().flatMap { sqlPerformer ->
+                    sqlPerformer.setAutoCommit(true)
+                            .flatMap { transaction.run(i, troupe) }
+                            .flatMap(sqlPerformer.close())
+                            .recover(sqlPerformer.closeOnFailure())
+                }
     }
 
     data class TransactionalSQLTransactionSkript<I, O, Troupe: SQLTroupe>(override val transaction: Skript<I, O, Troupe>) : SQLTransactionSkript<I, O, Troupe>() {
@@ -47,14 +49,16 @@ sealed class SQLTransactionSkript<I, O, Troupe: SQLTroupe>: Skript<I, O, Troupe>
                 }
 
         override fun run(i: I, troupe: Troupe): AsyncResult<O> =
-                troupe.getSQLPerformer().setAutoCommit(false)
-                        .flatMap {
-                            transaction.run(i, troupe)
-                                    .flatMap(troupe.getSQLPerformer().commit())
-                                    .recover(troupe.getSQLPerformer().rollback())
-                        }
-                        .flatMap(troupe.getSQLPerformer().close())
-                        .recover(troupe.getSQLPerformer().closeOnFailure())
+                troupe.getSQLPerformer().flatMap { sqlPerformer ->
+                    sqlPerformer.setAutoCommit(false)
+                            .flatMap {
+                                transaction.run(i, troupe)
+                                        .flatMap(sqlPerformer.commit())
+                                        .recover(sqlPerformer.rollback())
+                            }
+                            .flatMap(sqlPerformer.close())
+                            .recover(sqlPerformer.closeOnFailure())
+                }
     }
 }
 

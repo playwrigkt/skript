@@ -3,6 +3,10 @@ package playwrigkt.skript.result
 import io.vertx.core.Future
 
 class VertxResult<T>(val future: Future<T>): AsyncResult<T> {
+
+    override fun copy(): VertxResult<T> = VertxResult(future)
+
+
     override fun setHandler(handler: (Result<T>) -> Unit) {
         future.setHandler {
             when {

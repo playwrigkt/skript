@@ -67,12 +67,12 @@ abstract class UserServiceSpec : StringSpec() {
 
     abstract fun consumerPerformerProvider(): QueueVenue
     override fun interceptSpec(context: Spec, spec: () -> Unit) {
-        awaitSucceededFuture(provider().hireTroupe().flatMap{ it.dropUserSchema() })
-        awaitSucceededFuture(provider().hireTroupe().flatMap{ it.initUserSchema() })
+        awaitSucceededFuture(provider().hireTroupe().dropUserSchema())
+        awaitSucceededFuture(provider().hireTroupe().initUserSchema())
 
         spec()
-        awaitSucceededFuture(provider().hireTroupe().flatMap{ it.deleteAllUsers() })
-        awaitSucceededFuture(provider().hireTroupe().flatMap{ it.dropUserSchema() })
+        awaitSucceededFuture(provider().hireTroupe().deleteAllUsers())
+        awaitSucceededFuture(provider().hireTroupe().dropUserSchema())
         closeResources()
     }
 

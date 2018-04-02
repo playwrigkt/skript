@@ -18,7 +18,8 @@ sealed class SQLSkript<IN, OUT>: Skript<IN, OUT, SQLTroupe> {
     private data class Query<IN, OUT>(override val mapping: SQLMapping<IN, OUT, SQLCommand.Query, SQLResult.Query>): SQLSkript<IN, OUT>() {
         override fun run(i: IN, troupe: SQLTroupe): AsyncResult<OUT> {
             val sqlCommand = mapping.toSql(i)
-            return troupe.getSQLPerformer().query(sqlCommand)
+            return troupe.getSQLPerformer()
+                    .flatMap { sqlPerformer -> sqlPerformer.query(sqlCommand) }
                     .map { mapping.mapResult(i, it) }
                     .flatMap(this::handleFailure)
                     .recover { AsyncResult.failed(SQLError.OnCommand(sqlCommand, it)) }
@@ -28,7 +29,8 @@ sealed class SQLSkript<IN, OUT>: Skript<IN, OUT, SQLTroupe> {
     private data class Update<IN, OUT>(override val mapping: SQLMapping<IN, OUT, SQLCommand.Update, SQLResult.Update>): SQLSkript<IN, OUT>() {
         override fun run(i: IN, troupe: SQLTroupe): AsyncResult<OUT> {
             val sqlCommand = mapping.toSql(i)
-            return troupe.getSQLPerformer().update(sqlCommand)
+            return troupe.getSQLPerformer()
+                    .flatMap { sqlPerformer -> sqlPerformer.update(sqlCommand) }
                     .map { mapping.mapResult(i, it) }
                     .flatMap(this::handleFailure)
                     .recover { AsyncResult.failed(SQLError.OnCommand(sqlCommand, it)) }
@@ -38,7 +40,8 @@ sealed class SQLSkript<IN, OUT>: Skript<IN, OUT, SQLTroupe> {
     private data class Exec<IN, OUT>(override val mapping: SQLMapping<IN, OUT, SQLCommand.Exec, SQLResult.Void>): SQLSkript<IN, OUT>() {
         override fun run(i: IN, troupe: SQLTroupe): AsyncResult<OUT> {
             val sqlCommand = mapping.toSql(i)
-            return troupe.getSQLPerformer().exec(sqlCommand)
+            return troupe.getSQLPerformer()
+                    .flatMap { sqlPerformer -> sqlPerformer.exec(sqlCommand) }
                     .map { mapping.mapResult(i, it) }
                     .flatMap(this::handleFailure)
                     .recover { AsyncResult.failed(SQLError.OnCommand(sqlCommand, it)) }

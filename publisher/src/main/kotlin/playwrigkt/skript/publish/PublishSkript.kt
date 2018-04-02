@@ -14,7 +14,7 @@ sealed class PublishSkript<I, Message>: Skript<I, I, PublishTroupe<Message>> {
     data class Publish<I, Message>(val mapping: (I) -> Message): PublishSkript<I, Message>() {
         override fun run(i: I, troupe: PublishTroupe<Message>): AsyncResult<I> {
             return troupe.getPublishPerformer()
-                    .publish(mapping(i))
+                    .flatMap { publishPerformer -> publishPerformer.publish(mapping(i)) }
                     .map { i }
         }
     }

@@ -4,9 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import playwrigkt.skript.performer.JacksonSerializePerformer
+import playwrigkt.skript.performer.SerializePerformer
 import playwrigkt.skript.result.AsyncResult
+import playwrigkt.skript.troupe.SerializeTroupe
 
-class JacksonSerializeStageManager(val objectMapper: ObjectMapper = defaultObjectMapper): StageManager<JacksonSerializePerformer> {
+data class JacksonSerializeStageManager(val objectMapper: ObjectMapper = defaultObjectMapper): StageManager<SerializeTroupe> {
     companion object {
         val defaultObjectMapper by lazy {
             ObjectMapper()
@@ -15,8 +17,13 @@ class JacksonSerializeStageManager(val objectMapper: ObjectMapper = defaultObjec
         }
     }
 
-    override fun hireTroupe(): AsyncResult<JacksonSerializePerformer> {
-        return AsyncResult.succeeded(JacksonSerializePerformer(objectMapper))
-    }
+    override fun hireTroupe(): SerializeTroupe =
+        object: SerializeTroupe {
+            val perfomer: AsyncResult<JacksonSerializePerformer> by lazy {
+                AsyncResult.succeeded(JacksonSerializePerformer(objectMapper))
+            }
+
+            override fun getSerializePerformer(): AsyncResult<out SerializePerformer> = perfomer.copy()
+        }
 }
 

@@ -38,10 +38,8 @@ data class VertxProduction<O, Troupe>(
     }
 
     fun handleMessage(message: Message<Buffer>) {
-        provider.hireTroupe()
-                .flatMap { skript.run(QueueMessage(address, message.body().bytes), it) }
-                .map {
-                    message.reply("success") }
+        skript.run(QueueMessage(address, message.body().bytes), provider.hireTroupe())
+                .map { message.reply("success") }
                 .recover {
                     message.fail(0, it.message)
                     AsyncResult.failed(it)
