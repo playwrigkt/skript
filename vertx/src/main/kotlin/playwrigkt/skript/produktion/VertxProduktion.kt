@@ -10,18 +10,18 @@ import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.CompletableResult
 import playwrigkt.skript.stagemanager.StageManager
 
-data class VertxProduction<O, Troupe>(
+data class VertxProduktion<O, Troupe>(
         val vertx: Vertx,
         val address: String,
         val skript: Skript<QueueMessage, O, Troupe>,
-        val provider: StageManager<Troupe>): Production {
+        val provider: StageManager<Troupe>): Produktion {
     private val result: CompletableResult<Unit> = CompletableResult()
     private val verticle: AbstractVerticle
 
     init {
         val handler = this::handleMessage
         verticle = object: AbstractVerticle() {
-            override fun toString(): String = "VertxProduction-$address"
+            override fun toString(): String = "VertxProduktion-$address"
 
             override fun start() {
                 vertx.eventBus().consumer<Buffer>(address, handler)

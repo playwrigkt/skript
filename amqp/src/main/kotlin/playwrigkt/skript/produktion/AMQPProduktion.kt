@@ -9,11 +9,11 @@ import playwrigkt.skript.result.CompletableResult
 import playwrigkt.skript.result.toAsyncResult
 import playwrigkt.skript.stagemanager.StageManager
 
-data class AMQPProduction<O, Troupe>(
+data class AMQPProduktion<O, Troupe>(
         val channel: Channel,
         val queue: String,
         val skript: Skript<QueueMessage, O, Troupe>,
-        val provider: StageManager<Troupe>): Production {
+        val provider: StageManager<Troupe>): Produktion {
     private val result = CompletableResult<Unit>()
     private val consumerTag: String = channel.basicConsume(queue, false, object: DefaultConsumer(channel) {
             override fun handleDelivery(

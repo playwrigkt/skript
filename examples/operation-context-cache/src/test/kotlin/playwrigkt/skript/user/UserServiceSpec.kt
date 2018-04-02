@@ -12,7 +12,7 @@ import playwrigkt.skript.Skript
 import playwrigkt.skript.stagemanager.ApplicationStageManager
 import playwrigkt.skript.troupe.ApplicationTroupe
 import playwrigkt.skript.ex.deserialize
-import playwrigkt.skript.produktion.Production
+import playwrigkt.skript.produktion.Produktion
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.sql.SQLCommand
 import playwrigkt.skript.sql.SQLError
@@ -39,7 +39,7 @@ abstract class UserServiceSpec : StringSpec() {
 
     abstract fun closeResources()
 
-    fun loginConsumer(): Production {
+    fun loginConsumer(): Produktion {
         return awaitSucceededFuture(
                 userLoginConsumer(
                         consumerPerformerProvider(),
@@ -52,7 +52,7 @@ abstract class UserServiceSpec : StringSpec() {
 
     val processedLoginEvents = LinkedBlockingQueue<UserSession>()
 
-    fun createConsumer(): Production {
+    fun createConsumer(): Produktion {
         return awaitSucceededFuture(
                 userCreateConsumer(
                         consumerPerformerProvider(),

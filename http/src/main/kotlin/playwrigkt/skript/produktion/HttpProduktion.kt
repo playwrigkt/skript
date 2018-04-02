@@ -6,9 +6,9 @@ import playwrigkt.skript.http.HttpResponse
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.stagemanager.StageManager
 
-class HttpProduction<STAGE>(
+class HttpProduktion<STAGE>(
         val stageManager: StageManager<STAGE>,
-        val skript: Skript<HttpRequest, HttpResponse, STAGE>): Production {
+        val skript: Skript<HttpRequest, HttpResponse, STAGE>): Produktion {
     override fun isRunning(): Boolean {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }

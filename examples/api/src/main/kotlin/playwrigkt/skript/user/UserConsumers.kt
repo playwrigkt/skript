@@ -5,13 +5,13 @@ import playwrigkt.skript.venue.QueueVenue
 import playwrigkt.skript.Skript
 import playwrigkt.skript.stagemanager.ApplicationStageManager
 import playwrigkt.skript.troupe.ApplicationTroupe
-import playwrigkt.skript.produktion.Production
+import playwrigkt.skript.produktion.Produktion
 import playwrigkt.skript.result.AsyncResult
 
 val userCreatedAddress = "user.updated"
 val userLoginAddress = "user.login"
 
-fun <O> userLoginConsumer(consumerPerformer: QueueVenue, applicationVenue: ApplicationStageManager, skript: Skript<QueueMessage, O, ApplicationTroupe>): AsyncResult<Production> {
+fun <O> userLoginConsumer(consumerPerformer: QueueVenue, applicationVenue: ApplicationStageManager, skript: Skript<QueueMessage, O, ApplicationTroupe>): AsyncResult<Produktion> {
     return consumerPerformer.sink(
             skript,
             applicationVenue,
@@ -19,7 +19,7 @@ fun <O> userLoginConsumer(consumerPerformer: QueueVenue, applicationVenue: Appli
     )
 }
 
-fun <O> userCreateConsumer(consumerPerformer: QueueVenue, applicationVenue: ApplicationStageManager, skript: Skript<QueueMessage, O, ApplicationTroupe>): AsyncResult<Production> {
+fun <O> userCreateConsumer(consumerPerformer: QueueVenue, applicationVenue: ApplicationStageManager, skript: Skript<QueueMessage, O, ApplicationTroupe>): AsyncResult<Produktion> {
     return consumerPerformer.sink(
             skript,
             applicationVenue,
