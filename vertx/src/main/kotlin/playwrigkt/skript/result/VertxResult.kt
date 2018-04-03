@@ -4,10 +4,7 @@ import io.vertx.core.Future
 
 class VertxResult<T>(val future: Future<T>): AsyncResult<T> {
 
-    override fun copy(): VertxResult<T> = VertxResult(future)
-
-
-    override fun setHandler(handler: (Result<T>) -> Unit) {
+    override fun addHandler(handler: (Result<T>) -> Unit) {
         future.setHandler {
             when {
                 it.succeeded() -> handler(Result.Success(it.result()))
@@ -24,7 +21,7 @@ class VertxResult<T>(val future: Future<T>): AsyncResult<T> {
         val result = CompletableResult<U>()
         future.setHandler {
             if(it.succeeded()) {
-                f(it.result()).setHandler(result.completionHandler())
+                f(it.result()).addHandler(result.completionHandler())
             } else {
                 result.fail(it.cause())
             }
@@ -38,7 +35,7 @@ class VertxResult<T>(val future: Future<T>): AsyncResult<T> {
             if(it.succeeded()) {
                 result.succeed(it.result())
             } else {
-                f(it.cause()).setHandler(result.completionHandler())
+                f(it.cause()).addHandler(result.completionHandler())
             }
         }
         return result

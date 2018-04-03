@@ -15,5 +15,5 @@ data class VertxSQLTroupe(val sqlClient: SQLClient): SQLTroupe {
         VertxResult(future.map { VertxSQLPerformer(it) })
     }
 
-    override fun getSQLPerformer(): AsyncResult<out SQLPerformer> = performer.copy()
+    override fun getSQLPerformer(): AsyncResult<out SQLPerformer> = performer
 }

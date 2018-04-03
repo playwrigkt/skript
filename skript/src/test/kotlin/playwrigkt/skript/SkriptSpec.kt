@@ -10,14 +10,14 @@ class SkriptSpec : StringSpec() {
     init {
         "a skript can have no stage" {
             val skript = Skript.map<Int, String, Unit> { it.toString() }
-            skript.run(10, Unit) shouldBe AsyncResult.succeeded("10")
+            skript.run(10, Unit).result() shouldBe "10"
         }
 
         "a skript can be chained" {
             val skript = Skript
                     .map<Int, String, Unit> { it.toString() }
                     .map { it.toLong() * 2 }
-            skript.run(10, Unit) shouldBe AsyncResult.succeeded(20L)
+            skript.run(10, Unit).result() shouldBe 20L
         }
 
         "a skript stage can provide properties" {
@@ -27,7 +27,7 @@ class SkriptSpec : StringSpec() {
             val skript =
                     Skript.map<Int, String, ConfigTroupe>{ it.toString() }
                             .mapWithTroupe { i, c -> "Application ${c.config.appName} received $i" }
-            skript.run(10, ConfigTroupe(Config("Example"))) shouldBe AsyncResult.succeeded("Application Example received 10")
+            skript.run(10, ConfigTroupe(Config("Example"))).result() shouldBe "Application Example received 10"
         }
 
         "A skript can branch based on the result of a skript" {
@@ -45,8 +45,8 @@ class SkriptSpec : StringSpec() {
                     .left(double)
                     .right(half)
 
-            skript.run(5, Unit) shouldBe AsyncResult.succeeded(10)
-            skript.run(16, Unit) shouldBe AsyncResult.succeeded(8)
+            skript.run(5, Unit).result() shouldBe 10
+            skript.run(16, Unit).result() shouldBe 8
         }
 
         "A skript can transform and branch based on the result of a skript" {
@@ -66,8 +66,8 @@ class SkriptSpec : StringSpec() {
                     .left(double.andThen(toLong))
                     .right(stringLength.andThen(toLong))
 
-            skript.run(5, Unit) shouldBe AsyncResult.succeeded(10L)
-            skript.run(16, Unit) shouldBe AsyncResult.succeeded(2L)
+            skript.run(5, Unit).result() shouldBe 10L
+            skript.run(16, Unit).result() shouldBe 2L
         }
     }
 }

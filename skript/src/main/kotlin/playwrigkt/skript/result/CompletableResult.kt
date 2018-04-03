@@ -1,7 +1,9 @@
 package playwrigkt.skript.result
 
 import org.funktionale.tries.Try
+import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.locks.ReentrantLock
 
 fun <T> Try<T>.toAsyncResult(): AsyncResult<T> =
     when(this) {
@@ -19,7 +21,7 @@ interface AsyncResult<T> {
     fun <U> flatMap(f: (T) -> AsyncResult<U>): AsyncResult<U>
     fun recover(f: (Throwable) -> AsyncResult<T>): AsyncResult<T>
 
-    fun setHandler(handler: (Result<T>) -> Unit)
+    fun addHandler(handler: (Result<T>) -> Unit)
 
     fun isComplete(): Boolean
     fun isSuccess(): Boolean
@@ -27,8 +29,6 @@ interface AsyncResult<T> {
 
     fun result(): T?
     fun error(): Throwable?
-
-    fun copy(): AsyncResult<T>
 }
 
 interface Completable<T> {
@@ -61,12 +61,12 @@ interface CompletableResult<T>: AsyncResult<T>, Completable<T> {
 
     private class CompletableResultImpl<T>: CompletableResult<T> {
         @Volatile private var result: Result<T>? = null
-        @Volatile private var handler: ResultHandler<T>? = null
-        @Volatile private var notify: LinkedBlockingQueue<CompletableResult<T>> = LinkedBlockingQueue()
+        @Volatile private var handlers: Queue<ResultHandler<T>> = LinkedBlockingQueue()
+        private val lock: ReentrantLock = ReentrantLock()
 
         override fun <U> map(f: (T) -> U): AsyncResult<U> {
             val newResult = CompletableResultImpl<U>()
-            setHandler {
+            addHandler {
                 when (it) {
                     is Result.Failure -> newResult.fail(it.error)
                     is Result.Success -> {
@@ -83,11 +83,11 @@ interface CompletableResult<T>: AsyncResult<T>, Completable<T> {
 
         override fun <U> flatMap(f: (T) -> AsyncResult<U>): AsyncResult<U> {
             val newResult: CompletableResult<U> = CompletableResultImpl<U>()
-            setHandler {
+            addHandler {
                 when(it) {
                     is Result.Failure -> newResult.fail(it.error)
                     is Result.Success ->
-                        f(it.result).setHandler { asyncResult ->
+                        f(it.result).addHandler { asyncResult ->
                             when(asyncResult) {
                                 is Result.Failure -> newResult.fail(asyncResult.error)
                                 is Result.Success -> newResult.succeed(asyncResult.result)
@@ -100,10 +100,10 @@ interface CompletableResult<T>: AsyncResult<T>, Completable<T> {
 
         override fun recover(f: (Throwable) -> AsyncResult<T>): AsyncResult<T> {
             val newResult: CompletableResult<T> = invoke()
-            setHandler {
+            addHandler {
                 when(it) {
                     is Result.Failure ->
-                        f(it.error).setHandler { asyncResult ->
+                        f(it.error).addHandler { asyncResult ->
                             when(asyncResult) {
                                 is Result.Failure -> newResult.fail(asyncResult.error)
                                 is Result.Success -> newResult.succeed(asyncResult.result)
@@ -115,32 +115,33 @@ interface CompletableResult<T>: AsyncResult<T>, Completable<T> {
             return newResult
         }
 
-        //TODO make this a protected method
-        override fun setHandler(handler: (Result<T>) -> Unit): Unit = synchronized(this) {
-            when {
-                this.handler == null -> {
-                    this.handler = handler
-                    result?.let { handler(it) }
-                }
-                else -> throw IllegalStateException("Result is already succeed")
+        private fun <T> lock(fn: () -> T) {
+            lock.lockInterruptibly()
+            try {
+                fn()
+            } finally {
+                lock.unlock()
             }
         }
 
-        override fun succeed(t: T): Unit = synchronized(this) {
+        override fun addHandler(handler: (Result<T>) -> Unit): Unit = lock {
+            this.result?.let(handler)
+                    ?: handlers.add(handler)
+        }
+
+        override fun succeed(t: T): Unit = lock {
             if(!isComplete()) {
                 result = Result.Success(t)
-                notify.map { it.succeed(t) }
-                handler?.invoke(Result.Success(t))
+                handlers.map { it.invoke(Result.Success(t)) }
             } else {
                 throw IllegalStateException("Result is already succeed")
             }
         }
 
-        override fun fail(error: Throwable): Unit = synchronized(this) {
+        override fun fail(error: Throwable): Unit = lock {
             if(!isComplete()) {
                 result = Result.Failure(error)
-                notify.map { it.fail(error) }
-                handler?.invoke(Result.Failure(error))
+                handlers.map { it(Result.Failure(error)) }
             } else {
                 throw IllegalStateException("Result is already succeed")
             }
@@ -166,33 +167,24 @@ interface CompletableResult<T>: AsyncResult<T>, Completable<T> {
             return result?.error
         }
 
-        override fun copy(): CompletableResult<T> =
-            this.result?.let { result ->
-                result.error?.let { CompletableResult.failed<T>(it) }
-                        ?: result.result?.let { CompletableResult.succeeded(it) }
-            }?: CompletableResult<T>().let {
-                this.notify.add(it)
-                it
-            }
-
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (other !is CompletableResultImpl<*>) return false
 
             if (result != other.result) return false
-            if (handler != other.handler) return false
+            if (handlers != other.handlers) return false
 
             return true
         }
 
         override fun hashCode(): Int {
             var result1 = result?.hashCode() ?: 0
-            result1 = 31 * result1 + (handler?.hashCode() ?: 0)
+            result1 = 31 * result1 + (handlers.hashCode())
             return result1
         }
 
         override fun toString(): String {
-            return "CompletableResultImpl(result=$result, handler=$handler)"
+            return "CompletableResultImpl(result=$result, handlers=$handlers    )"
         }
     }
 }

@@ -9,5 +9,5 @@ data class JacksonSerializeTroupe(val objectMapper: ObjectMapper): SerializeTrou
         AsyncResult.succeeded(JacksonSerializePerformer(objectMapper))
     }
 
-    override fun getSerializePerformer(): AsyncResult<JacksonSerializePerformer> = perfomer.copy()
+    override fun getSerializePerformer(): AsyncResult<JacksonSerializePerformer> = perfomer
 }

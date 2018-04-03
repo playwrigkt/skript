@@ -9,5 +9,5 @@ data class VertxPublishTroupe(val vertx: Vertx): QueuePublishTroupe {
         AsyncResult.succeeded(VertxPublishPerformer(vertx.eventBus()))
     }
 
-    override fun getPublishPerformer(): AsyncResult<VertxPublishPerformer> = performer.copy()
+    override fun getPublishPerformer(): AsyncResult<VertxPublishPerformer> = performer
 }

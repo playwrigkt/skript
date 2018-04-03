@@ -14,5 +14,5 @@ data class AMQPPublishTroupe(val exchange: String,
         Try { AMQPPublishPerformer(exchange, connection.createChannel(), basicProperties) }
                 .toAsyncResult()
     }
-    override fun getPublishPerformer(): AsyncResult<AMQPPublishPerformer> = performer.copy()
+    override fun getPublishPerformer(): AsyncResult<AMQPPublishPerformer> = performer
 }

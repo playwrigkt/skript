@@ -18,5 +18,5 @@ data class JDBCSQLTroupe(val dataSource: DataSource): SQLTroupe {
         }
         result
     }
-    override fun getSQLPerformer(): AsyncResult<CoroutineJDBCPerformer> = sqlPerformer.copy()
+    override fun getSQLPerformer(): AsyncResult<CoroutineJDBCPerformer> = sqlPerformer
 }
