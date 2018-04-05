@@ -11,10 +11,10 @@ import playwrigkt.skript.venue.QueueVenue
 val userCreatedAddress = "user.updated"
 val userLoginAddress = "user.login"
 
-fun <O> userLoginConsumer(consumerPerformer: QueueVenue, applicationVenue: ApplicationStageManager, skript: Skript<QueueMessage, O, ApplicationTroupe<Unit>>): AsyncResult<Produktion> {
-    return consumerPerformer.sink(skript, applicationVenue, userLoginAddress)
+fun userLoginProduktion(venue: QueueVenue, stageManager: ApplicationStageManager, skript: Skript<QueueMessage, Unit, ApplicationTroupe<Unit>>): AsyncResult<out Produktion> {
+    return venue.produktion(skript, stageManager, userLoginAddress)
 }
 
-fun <O> userCreateConsumer(consumerPerformer: QueueVenue, applicationVenue: ApplicationStageManager, skript: Skript<QueueMessage, O, ApplicationTroupe<Unit>>): AsyncResult<Produktion> {
-    return consumerPerformer.sink(skript, applicationVenue, userCreatedAddress)
+fun userCreateProduktion(venue: QueueVenue, stageManager: ApplicationStageManager, skript: Skript<QueueMessage, Unit, ApplicationTroupe<Unit>>): AsyncResult<out Produktion> {
+    return venue.produktion(skript, stageManager, userCreatedAddress)
 }

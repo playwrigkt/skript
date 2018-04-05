@@ -28,15 +28,15 @@ class VertxChatroomTransactionSpec: ChatroomTransactionsSpec() {
         val sqlClient: SQLClient by lazy {
             JDBCClient.createShared(vertx, hikariConfig, "test_ds")
         }
-        val sqlConnectionProvider = VertxSQLStageManager(sqlClient)
-        val publishVenue = VertxPublishStageManager(vertx)
-        val serializeVenue = VertxSerializeStageManager()
-        val provider: ApplicationStageManager by lazy {
-            ApplicationStageManager(publishVenue, sqlConnectionProvider, serializeVenue)
+        val sqlConnectionStageManager = VertxSQLStageManager(sqlClient)
+        val publishStageManager = VertxPublishStageManager(vertx)
+        val serializeStageManager = VertxSerializeStageManager()
+        val stageManager: ApplicationStageManager by lazy {
+            ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManager)
         }
     }
 
-    override fun provider(): ApplicationStageManager = VertxChatroomTransactionSpec.provider
+    override fun stageManager(): ApplicationStageManager = VertxChatroomTransactionSpec.stageManager
 
     override fun closeResources() {
         val clientF = Future.future<Void>()

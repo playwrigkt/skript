@@ -4,7 +4,9 @@ import com.rabbitmq.client.ConnectionFactory
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import playwrigkt.skript.amqp.AMQPManager
+import playwrigkt.skript.stagemanager.AMQPPublishStageManager
 import playwrigkt.skript.stagemanager.ApplicationStageManager
+import playwrigkt.skript.stagemanager.JDBCDataSourceStageManager
 import playwrigkt.skript.stagemanager.JacksonSerializeStageManager
 import playwrigkt.skript.venue.AMQPVenue
 import playwrigkt.skript.venue.QueueVenue
@@ -32,19 +34,19 @@ class JDBCUserServiceSpec: UserServiceSpec() {
 
         val hikariDataSource by lazy { HikariDataSource(hikariDSConfig) }
 
-        val sqlConnectionProvider by lazy { playwrigkt.skript.stagemanager.JDBCDataSourceStageManager(hikariDataSource) }
-        val publishVenue by lazy { playwrigkt.skript.stagemanager.AMQPPublishStageManager(AMQPManager.amqpExchange, amqpConnection, AMQPManager.basicProperties) }
-        val serializeVenue = JacksonSerializeStageManager()
+        val sqlConnectionStageManager by lazy { JDBCDataSourceStageManager(hikariDataSource) }
+        val publishStageManager by lazy { AMQPPublishStageManager(AMQPManager.amqpExchange, amqpConnection, AMQPManager.basicProperties) }
+        val serializeStageManagerr = JacksonSerializeStageManager()
 
-        val provider: ApplicationStageManager by lazy {
-            ApplicationStageManager(publishVenue, sqlConnectionProvider, serializeVenue)
+        val stageManager: ApplicationStageManager by lazy {
+            ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManagerr)
         }
 
-        val CONSUMER_TROUPE: QueueVenue = AMQPVenue(amqpConnection)
+        val amqpVenue: QueueVenue = AMQPVenue(amqpConnection)
     }
 
-    override fun provider(): ApplicationStageManager = provider
-    override fun consumerPerformerProvider(): QueueVenue = CONSUMER_TROUPE
+    override fun stageManager(): ApplicationStageManager = stageManager
+    override fun queueVenue(): QueueVenue = amqpVenue
     override fun closeResources() {
         hikariDataSource.close()
         amqpConnection.close()

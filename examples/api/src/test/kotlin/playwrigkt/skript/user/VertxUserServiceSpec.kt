@@ -29,18 +29,18 @@ class VertxUserServiceSpec: UserServiceSpec() {
             JDBCClient.createShared(vertx, hikariConfig, "test_ds")
         }
 
-        val sqlConnectionProvider by lazy { VertxSQLStageManager(sqlClient) }
-        val publishVenue by lazy { VertxPublishStageManager(vertx)  }
-        val serializeVenue = VertxSerializeStageManager()
-        val provider: ApplicationStageManager by lazy {
-            ApplicationStageManager(publishVenue, sqlConnectionProvider, serializeVenue)
+        val sqlConnectionStageManager by lazy { VertxSQLStageManager(sqlClient) }
+        val publishStageManager by lazy { VertxPublishStageManager(vertx)  }
+        val serializeStageManager = VertxSerializeStageManager()
+        val stageManager: ApplicationStageManager by lazy {
+            ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManager)
         }
 
-        val consumerPerformerProvider = VertxVenue(vertx)
+        val vertxVenue = VertxVenue(vertx)
     }
 
-    override fun provider(): ApplicationStageManager = VertxUserServiceSpec.provider
-    override fun consumerPerformerProvider(): QueueVenue = consumerPerformerProvider
+    override fun stageManager(): ApplicationStageManager = VertxUserServiceSpec.stageManager
+    override fun queueVenue(): QueueVenue = vertxVenue
     override fun closeResources() {
         val clientF = Future.future<Void>()
         sqlClient.close(clientF.completer())

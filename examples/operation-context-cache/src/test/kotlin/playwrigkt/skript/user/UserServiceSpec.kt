@@ -34,45 +34,48 @@ abstract class UserServiceSpec : StringSpec() {
 
     val LOG = LoggerFactory.getLogger(this.javaClass)
 
-    abstract fun provider(): ApplicationStageManager
-    val userService: UserService = UserService(provider())
+    abstract fun stageManager(): ApplicationStageManager
+    val userService: UserService = UserService(stageManager())
 
     abstract fun closeResources()
 
     fun loginConsumer(): Produktion {
         return awaitSucceededFuture(
-                userLoginConsumer(
-                        consumerPerformerProvider(),
-                        provider(),
+                userLoginProduktion(
+                        queueVenue(),
+                        stageManager(),
                         Skript.identity<QueueMessage, ApplicationTroupe<Unit>>()
                                 .map { it.body }
                                 .deserialize(UserSession::class.java)
-                                .map(processedLoginEvents::add)))!!
+                                .map(processedLoginEvents::add)
+                                .map { Unit }))!!
     }
 
     val processedLoginEvents = LinkedBlockingQueue<UserSession>()
 
     fun createConsumer(): Produktion {
         return awaitSucceededFuture(
-                userCreateConsumer(
-                        consumerPerformerProvider(),
-                        provider(),
+                userCreateProduktion(
+                        queueVenue(),
+                        stageManager(),
                         Skript.identity<QueueMessage, ApplicationTroupe<Unit>>()
                                 .map { it.body }
                                 .deserialize(UserProfile::class.java)
-                                .map(processedCreateEvents::add)))!!
+                                .map(processedCreateEvents::add)
+                                .map { Unit }))!!
     }
 
     val processedCreateEvents = LinkedBlockingQueue<UserProfile>()
 
-    abstract fun consumerPerformerProvider(): QueueVenue
+    abstract fun queueVenue(): QueueVenue
+
     override fun interceptSpec(context: Spec, spec: () -> Unit) {
-        awaitSucceededFuture(provider().hireTroupe().dropUserSchema())
-        awaitSucceededFuture(provider().hireTroupe().initUserSchema())
+        awaitSucceededFuture(stageManager().hireTroupe().dropUserSchema())
+        awaitSucceededFuture(stageManager().hireTroupe().initUserSchema())
 
         spec()
-        awaitSucceededFuture(provider().hireTroupe().deleteAllUsers())
-        awaitSucceededFuture(provider().hireTroupe().dropUserSchema())
+        awaitSucceededFuture(stageManager().hireTroupe().deleteAllUsers())
+        awaitSucceededFuture(stageManager().hireTroupe().dropUserSchema())
         closeResources()
     }
 

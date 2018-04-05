@@ -9,7 +9,7 @@ import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.stagemanager.StageManager
 
 class VertxVenue(val vertx: Vertx): QueueVenue {
-    override fun <Ending, Troupe> sink(skript: Skript<QueueMessage, Ending, Troupe>, stageManager: StageManager<Troupe>, rule: String): AsyncResult<Produktion> {
+    override fun <Troupe> produktion(skript: Skript<QueueMessage, Unit, Troupe>, stageManager: StageManager<Troupe>, rule: String): AsyncResult<Produktion> {
         return AsyncResult.succeeded(VertxProduktion(vertx, rule, skript, stageManager))
     }
 }

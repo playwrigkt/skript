@@ -35,15 +35,15 @@ class JDBCChatroomTransactionSpec: ChatroomTransactionsSpec() {
         }
 
         val hikariDataSource = HikariDataSource(hikariDSConfig)
-        val sqlConnectionProvider = playwrigkt.skript.stagemanager.JDBCDataSourceStageManager(hikariDataSource)
-        val publishVenue by lazy { playwrigkt.skript.stagemanager.AMQPPublishStageManager(AMQPManager.amqpExchange, JDBCUserServiceSpec.amqpConnection, AMQPManager.basicProperties) }
-        val serializeVenue = JacksonSerializeStageManager(objectMapper)
+        val sqlConnectionStageManager = playwrigkt.skript.stagemanager.JDBCDataSourceStageManager(hikariDataSource)
+        val publishStageManager by lazy { playwrigkt.skript.stagemanager.AMQPPublishStageManager(AMQPManager.amqpExchange, JDBCUserServiceSpec.amqpConnection, AMQPManager.basicProperties) }
+        val serializeStageManager = JacksonSerializeStageManager(objectMapper)
 
-        val provider: ApplicationStageManager by lazy {
-            ApplicationStageManager(publishVenue, sqlConnectionProvider, serializeVenue)
+        val stageManager: ApplicationStageManager by lazy {
+            ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManager)
         } }
 
-    override fun provider(): ApplicationStageManager = JDBCChatroomTransactionSpec.provider
+    override fun stageManager(): ApplicationStageManager = JDBCChatroomTransactionSpec.stageManager
 
     override fun closeResources() {
         hikariDataSource.close()

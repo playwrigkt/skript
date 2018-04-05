@@ -35,21 +35,21 @@ class JDBCUserServiceSpec: UserServiceSpec() {
             config
         }
         val hikariDataSource by lazy { HikariDataSource(hikariDSConfig) }
-        val sqlConnectionProvider by lazy { playwrigkt.skript.stagemanager.JDBCDataSourceStageManager(hikariDataSource) }
-        val publishVenue by lazy { playwrigkt.skript.stagemanager.AMQPPublishStageManager(AMQPManager.amqpExchange, amqpConnection, AMQPManager.basicProperties) }
-        val serializeVenue by lazy { JacksonSerializeStageManager(objectMapper) }
+        val sqlConnectionStageManager by lazy { playwrigkt.skript.stagemanager.JDBCDataSourceStageManager(hikariDataSource) }
+        val publishStageManager by lazy { playwrigkt.skript.stagemanager.AMQPPublishStageManager(AMQPManager.amqpExchange, amqpConnection, AMQPManager.basicProperties) }
+        val serializeStageManager by lazy { JacksonSerializeStageManager(objectMapper) }
 
-        val provider: ApplicationStageManager by lazy {
-            ApplicationStageManager(publishVenue, sqlConnectionProvider, serializeVenue)
+        val stageManager: ApplicationStageManager by lazy {
+            ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManager)
         }
-        val CONSUMER_TROUPE: QueueVenue = AMQPVenue(amqpConnection)
+        val amqpVenue: QueueVenue = AMQPVenue(amqpConnection)
     }
 
 
 
-    override fun provider(): ApplicationStageManager = provider
+    override fun stageManager(): ApplicationStageManager = stageManager
 
-    override fun consumerPerformerProvider(): QueueVenue = CONSUMER_TROUPE
+    override fun queueVenue(): QueueVenue = amqpVenue
 
     override fun closeResources() {
         hikariDataSource.close()

@@ -11,9 +11,9 @@ import playwrigkt.skript.result.toAsyncResult
 import playwrigkt.skript.stagemanager.StageManager
 
 data class AMQPVenue(val amqpConnection: Connection): QueueVenue {
-    override fun <O, Troupe> sink(skript: Skript<QueueMessage, O, Troupe>,
-                                  stageManager: StageManager<Troupe>,
-                                  queue: String): AsyncResult<Produktion> {
+    override fun <Troupe> produktion(skript: Skript<QueueMessage, Unit, Troupe>,
+                                        stageManager: StageManager<Troupe>,
+                                        queue: String): AsyncResult<Produktion> {
         return Try {
             AMQPProduktion(amqpConnection.createChannel(), queue, skript, stageManager)
         }

@@ -34,45 +34,47 @@ abstract class UserServiceSpec : StringSpec() {
 
     val LOG = LoggerFactory.getLogger(this.javaClass)
 
-    abstract fun provider(): ApplicationStageManager
-    abstract fun consumerPerformerProvider(): QueueVenue
+    abstract fun stageManager(): ApplicationStageManager
+    abstract fun queueVenue(): QueueVenue
     abstract fun closeResources()
 
-    val userService: UserService = UserService(provider())
+    val userService: UserService = UserService(stageManager())
 
-    fun loginConsumer(): Produktion {
+    fun loginProduktion(): Produktion {
         return awaitSucceededFuture(
-                userLoginConsumer(
-                        consumerPerformerProvider(),
-                        provider(),
+                userLoginProduktion(
+                        queueVenue(),
+                        stageManager(),
                         Skript.identity<QueueMessage, ApplicationTroupe>()
                                 .map { it.body }
                                 .deserialize(UserSession::class.java)
-                                .map(processedLoginEvents::add)))!!
+                                .map(processedLoginEvents::add)
+                                .map { Unit }))!!
     }
 
     val processedLoginEvents = LinkedBlockingQueue<UserSession>()
 
-    fun createConsumer(): Produktion {
+    fun createProduktion(): Produktion {
         return awaitSucceededFuture(
-                userCreateConsumer(
-                        consumerPerformerProvider(),
-                        provider(),
+                userCreateProduktion(
+                        queueVenue(),
+                        stageManager(),
                         Skript.identity<QueueMessage, ApplicationTroupe>()
                                 .map { it.body }
                                 .deserialize(UserProfile::class.java)
-                                .map(processedCreateEvents::add)))!!
+                                .map(processedCreateEvents::add)
+                                .map { Unit }))!!
     }
 
     val processedCreateEvents = LinkedBlockingQueue<UserProfile>()
 
     override fun interceptSpec(context: Spec, spec: () -> Unit) {
-        awaitSucceededFuture(provider().hireTroupe().dropUserSchema())
-        awaitSucceededFuture(provider().hireTroupe().initUserSchema())
+        awaitSucceededFuture(stageManager().hireTroupe().dropUserSchema())
+        awaitSucceededFuture(stageManager().hireTroupe().initUserSchema())
 
         spec()
-        awaitSucceededFuture(provider().hireTroupe().deleteAllUsers())
-        awaitSucceededFuture(provider().hireTroupe().dropUserSchema())
+        awaitSucceededFuture(stageManager().hireTroupe().deleteAllUsers())
+        awaitSucceededFuture(stageManager().hireTroupe().dropUserSchema())
         closeResources()
     }
 
@@ -83,8 +85,8 @@ abstract class UserServiceSpec : StringSpec() {
             val userName = "sally"
             val user = UserProfile(userId, userName, false)
             val userAndPassword = UserNameAndPassword(userName, password)
-            val createStream = createConsumer()
-            val loginStream= loginConsumer()
+            val createStream = createProduktion()
+            val loginStream= loginProduktion()
 
             createStream.isRunning() shouldBe true
             loginStream.isRunning() shouldBe true

@@ -4,5 +4,6 @@ dependencies {
 
     compile project(':sql')
     compile project(':queue')
+    compile project(':http')
     compile project(':serialize')
 }

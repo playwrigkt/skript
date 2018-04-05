@@ -27,29 +27,29 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
 
     val LOG = LoggerFactory.getLogger(this.javaClass)
 
-    abstract fun provider(): ApplicationStageManager
-    val userService = UserService(provider())
-    val chatRoomService = ChatRoomService(provider())
+    abstract fun stageManager(): ApplicationStageManager
+    val userService = UserService(stageManager())
+    val chatRoomService = ChatRoomService(stageManager())
 
     abstract fun closeResources()
 
     override fun interceptSpec(context: Spec, spec: () -> Unit) {
-        awaitSucceededFuture(provider().runWithTroupe(
+        awaitSucceededFuture(stageManager().runWithTroupe(
                 SQLTransactionSkript.transaction<Unit, Unit, ApplicationTroupe<Unit>>(ChatRoomSchema.dropAllAction),
                 Unit,
                 Unit))
-        awaitSucceededFuture(provider().hireTroupe().dropUserSchema())
-        awaitSucceededFuture(provider().hireTroupe().initUserSchema())
-        awaitSucceededFuture(provider().runWithTroupe(
+        awaitSucceededFuture(stageManager().hireTroupe().dropUserSchema())
+        awaitSucceededFuture(stageManager().hireTroupe().initUserSchema())
+        awaitSucceededFuture(stageManager().runWithTroupe(
                 SQLTransactionSkript.transaction<Unit, Unit, ApplicationTroupe<Unit>>(ChatRoomSchema.initAction),
                 Unit,
                 Unit))
         spec()
-        awaitSucceededFuture(provider().runWithTroupe(
+        awaitSucceededFuture(stageManager().runWithTroupe(
                 SQLTransactionSkript.transaction<Unit, Unit, ApplicationTroupe<Unit>>(ChatRoomSchema.dropAllAction),
                 Unit,
                 Unit))
-        awaitSucceededFuture(provider().hireTroupe().dropUserSchema())
+        awaitSucceededFuture(stageManager().hireTroupe().dropUserSchema())
         closeResources()
     }
 
