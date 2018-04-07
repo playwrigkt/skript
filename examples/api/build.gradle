@@ -4,6 +4,7 @@ dependencies {
     compile project(':queue')
     compile project(':sql')
     compile project(':serialize')
+    compile project(':http')
 
     testCompile project(':vertx')
     testCompile project(':coroutine-jdbc')

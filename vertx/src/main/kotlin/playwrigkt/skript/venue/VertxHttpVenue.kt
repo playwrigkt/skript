@@ -4,6 +4,7 @@ import io.vertx.core.MultiMap
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.HttpServer
 import io.vertx.core.http.HttpServerRequest
+import org.funktionale.option.firstOption
 import org.funktionale.tries.Try
 import playwrigkt.skript.Skript
 import playwrigkt.skript.http.*
@@ -18,21 +19,23 @@ class VertxHttpVenue(val server: HttpServer): HttpVenue {
 
     init {
         server.requestHandler { serverRequest ->
-            val httpRequest = HttpRequest(
-                    serverRequest.absoluteURI(),
-                    serverRequest.method().toHttpMethod(),
-                    serverRequest.headers().toMap(),
-                    serverRequest.body()
-            )
+            val method = serverRequest.method().toHttpMethod()
+            val headers = serverRequest.headers().toMap()
+            val uri = serverRequest.absoluteURI()
+            val body = serverRequest.body()
 
             requestHandlers
-                    .find { it.endpoint.matches(httpRequest) }
-                    ?.invoke(httpRequest)
+                    .firstOption { it.endpoint.matches(method, headers, uri)}
+                    .map {produktion -> HttpRequest.of(uri, method, headers, body, path(uri), produktion.endpoint).flatMap(produktion::invoke) }
+                    .orNull()
                     ?.map { serverRequest.response().setStatusCode(it.status).end(Buffer.buffer(it.responseBody)) }
+                    ?.recover { Try { serverRequest.response().setStatusCode(500).end() }.toAsyncResult() }
                     ?: serverRequest.response().setStatusCode(501).end("Not Implemented")
         }
     }
 
+
+    private fun path(requestUri: String): String = requestUri.substringBefore("?")
 
     private fun io.vertx.core.http.HttpMethod.toHttpMethod(): HttpMethod =
             when(this) {
@@ -56,7 +59,7 @@ class VertxHttpVenue(val server: HttpServer): HttpVenue {
         return result.map { it.bytes }
     }
 
-    override fun <Troupe> produktion(skript: Skript<HttpRequest, HttpResponse, Troupe>,
+    override fun <Troupe> produktion(skript: Skript<HttpRequest<ByteArray>, HttpResponse, Troupe>,
                                      stageManager: StageManager<Troupe>,
                                      rule: HttpEndpoint): AsyncResult<VertxHttpProduktion<Troupe>> =
         Try {

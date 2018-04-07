@@ -19,27 +19,28 @@ interface Skript<in I, O, Troupe> {
         fun <I, Troupe> updateTroupe(skript: Skript<I, Unit, Troupe>): Skript<I, I, Troupe> = UpdateTroupe(skript)
     }
 
-    fun <O2> flatMap(skript: Skript<O, O2, Troupe>): Skript<I, O2, Troupe> = SkriptLink(this, skript)
-
-    fun <O2> mapWithTroupe(mapper: (O, Troupe) -> O2): Skript<I, O2, Troupe> = this.flatMap(Map(mapper))
+    fun <O2> compose(skript: Skript<O, O2, Troupe>): Skript<I, O2, Troupe> = SkriptLink(this, skript)
+    fun <O2> flatMap(mapper: (O) -> AsyncResult<O2>): Skript<I, O2, Troupe> = this.flatMapWithTroupe { o, _ -> mapper(o) }
+    fun <O2> flatMapWithTroupe(mapper: (O, Troupe) -> AsyncResult<O2>): Skript<I, O2, Troupe> = this.compose(playwrigkt.skript.Skript.FlatMap(mapper))
+    fun <O2> mapWithTroupe(mapper: (O, Troupe) -> O2): Skript<I, O2, Troupe> = this.compose(Map(mapper))
     fun <O2> map(mapper: (O) -> O2): Skript<I, O2, Troupe> = this.mapWithTroupe({ o, _ -> mapper(o) })
 
-    fun <O2> mapTryWithTroupe(mapper: (O, Troupe) -> Try<O2>): Skript<I, O2, Troupe> = this.flatMap(MapTry(mapper))
-    fun <O2> mapTry(mapper: (O) -> Try<O2>): Skript<I, O2, Troupe> = this.mapTryWithTroupe({ o, _ -> mapper(o) })
+    fun <O2> mapTryWithTroupe(mapper: (O, Troupe) -> Try<O2>): Skript<I, O2, Troupe> = this.compose(MapTry(mapper))
+    fun <O2> mapTry(mapper: (O) -> Try<O2>): Skript<I, O2, Troupe> = this.mapTryWithTroupe { o, _ -> mapper(o) }
 
-    fun updateTroupe(skript: Skript<O, Unit, Troupe>): Skript<I, O, Troupe> = this.flatMap(UpdateTroupe(skript))
+    fun updateTroupe(skript: Skript<O, Unit, Troupe>): Skript<I, O, Troupe> = this.compose(UpdateTroupe(skript))
 
     fun <J, K, O2> branch(control: Skript<O, Either<J, K>, Troupe>, left: Skript<J, O2, Troupe>, right: Skript<K, O2, Troupe>): Skript<I, O2, Troupe> =
-        this.flatMap(Branch(control, left, right))
+        this.compose(Branch(control, left, right))
         
     fun <J, O2>whenRight(doOptionally: Skript<J, O2, Troupe>, control: Skript<O, Either<O2, J>, Troupe>): Skript<I, O2, Troupe> =
-        this.flatMap(Branch(control, identity(), doOptionally))
+        this.compose(Branch(control, identity(), doOptionally))
 
     fun <J>whenNonNull(doOptionally: Skript<J, O, Troupe>, control: Skript<O, J?, Troupe>): Skript<I, O, Troupe> =
-            this.flatMap(SkriptWhenNonNull(doOptionally, control))
+            this.compose(SkriptWhenNonNull(doOptionally, control))
 
     fun whenTrue(doOptionally: Skript<O, O, Troupe>, control: Skript<O, Boolean, Troupe>): Skript<I, O, Troupe> =
-            this.flatMap(SkriptWhenTrue(doOptionally, control))
+            this.compose(SkriptWhenTrue(doOptionally, control))
 
     data class Wrapped<I, O, Troupe: SubTroupe, SubTroupe>(val skript: Skript<I, O, SubTroupe>): Skript<I, O, Troupe> {
         override fun run(i: I, troupe: Troupe): AsyncResult<O> {
@@ -54,7 +55,7 @@ interface Skript<in I, O, Troupe> {
             return head.run(i, troupe).flatMap { tail.run(it, troupe) }
         }
 
-        override fun <O2> flatMap(skript: Skript<O, O2, Troupe>): Skript<I, O2, Troupe> = SkriptLink(this.head, tail.flatMap(skript))
+        override fun <O2> compose(skript: Skript<O, O2, Troupe>): Skript<I, O2, Troupe> = SkriptLink(this.head, tail.compose(skript))
     }
 
     data class Map<I, O, Troupe>(val mapper: (I, Troupe) -> O): Skript<I, O, Troupe> {
@@ -75,6 +76,11 @@ interface Skript<in I, O, Troupe> {
                 is Try.Success -> CompletableResult.succeeded(tri.get())
             }
         }
+    }
+
+    data class FlatMap<I, O, Troupe>(val mapper: (I, Troupe) -> AsyncResult<O>): Skript<I, O, Troupe> {
+        override fun run(i: I, troupe: Troupe): AsyncResult<O> =
+                mapper(i, troupe)
     }
 
     data class Branch<I, J, K, O, Troupe>(val control: Skript<I, Either<J, K>, Troupe>, val left: Skript<J, O, Troupe>, val right: Skript<K, O, Troupe>): Skript<I, O, Troupe> {

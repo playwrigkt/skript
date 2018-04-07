@@ -28,7 +28,7 @@ sealed class SQLTransactionSkript<I, O, Troupe: SQLTroupe>: Skript<I, O, Troupe>
         override fun <J> mapInsideTransaction(skript: Skript<O, J, Troupe>): SQLTransactionSkript<I, J, Troupe> =
                 when(skript) {
                     is SQLTransactionSkript -> this.mapInsideTransaction(skript.transaction)
-                    else -> AutoCommitSQlTransactionSkript(this.transaction.flatMap(skript))
+                    else -> AutoCommitSQlTransactionSkript(this.transaction.compose(skript))
 
                 }
 
@@ -45,7 +45,7 @@ sealed class SQLTransactionSkript<I, O, Troupe: SQLTroupe>: Skript<I, O, Troupe>
         override fun <J> mapInsideTransaction(skript: Skript<O, J, Troupe>): SQLTransactionSkript<I, J, Troupe> =
                 when(skript) {
                     is SQLTransactionSkript -> this.mapInsideTransaction(skript.transaction)
-                    else -> TransactionalSQLTransactionSkript(this.transaction.flatMap(skript))
+                    else -> TransactionalSQLTransactionSkript(this.transaction.compose(skript))
                 }
 
         override fun run(i: I, troupe: Troupe): AsyncResult<O> =

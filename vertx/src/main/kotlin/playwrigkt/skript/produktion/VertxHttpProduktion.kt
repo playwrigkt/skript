@@ -1,9 +1,5 @@
 package playwrigkt.skript.produktion
 
-import io.vertx.core.Vertx
-import io.vertx.core.http.HttpServer
-import io.vertx.core.http.HttpServerOptions
-import org.funktionale.tries.Try
 import playwrigkt.skript.Skript
 import playwrigkt.skript.http.HttpEndpoint
 import playwrigkt.skript.http.HttpError
@@ -18,14 +14,14 @@ import playwrigkt.skript.venue.VertxHttpVenue
 class VertxHttpProduktion<Troupe>(
         val endpoint: HttpEndpoint,
         val httpVenue: VertxHttpVenue,
-        val skript: Skript<HttpRequest, HttpResponse, Troupe>,
+        val skript: Skript<HttpRequest<ByteArray>, HttpResponse, Troupe>,
         val provider: StageManager<Troupe>
 ): Produktion {
     private val completer = CompletableResult<Unit>()
     private val result = completer
             .flatMap { httpVenue.removeHandler(endpoint).toAsyncResult() }
 
-    fun invoke(httpRequest: HttpRequest): AsyncResult<HttpResponse> {
+    fun invoke(httpRequest: HttpRequest<ByteArray>): AsyncResult<HttpResponse> {
         return skript.run(httpRequest, provider.hireTroupe());
     }
 
