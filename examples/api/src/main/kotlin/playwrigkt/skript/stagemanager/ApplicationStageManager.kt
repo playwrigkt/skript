@@ -16,9 +16,7 @@ data class ApplicationStageManager(
             ApplicationTroupe(publishProvider.hireTroupe(), sqlProvider.hireTroupe(), serializeProvider.hireTroupe())
 
     fun <I, O> runWithTroupe(skript: Skript<I, O, ApplicationTroupe>, i: I): AsyncResult<O> {
-        val troupe = hireTroupe()
-        println("troupe: $troupe")
-        return skript.run(i, troupe)
+        return skript.run(i, hireTroupe())
     }
 }
 

@@ -1,8 +1,6 @@
 package playwrigkt.skript.chatroom
 
-import io.kotlintest.Spec
-import io.kotlintest.matchers.fail
-import io.kotlintest.matchers.shouldBe
+import io.kotlintest.*
 import io.kotlintest.specs.StringSpec
 import org.slf4j.LoggerFactory
 import playwrigkt.skript.Skript
@@ -42,7 +40,7 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
 
     abstract fun closeResources()
 
-    override fun interceptSpec(context: Spec, spec: () -> Unit) {
+    override fun beforeSpec(description: Description, spec: Spec) {
         awaitSucceededFuture(stageManager().runWithTroupe(
                 SQLTransactionSkript.transaction(playwrigkt.skript.chatrooom.sql.ChatRoomSchema.dropAllAction),
                 Unit))
@@ -51,7 +49,9 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
         awaitSucceededFuture(stageManager().runWithTroupe(
                 SQLTransactionSkript.transaction(playwrigkt.skript.chatrooom.sql.ChatRoomSchema.initAction),
                 Unit))
-        spec()
+    }
+
+    override fun afterSpec(description: Description, spec: Spec) {
         awaitSucceededFuture(stageManager().runWithTroupe(
                 SQLTransactionSkript.transaction<Unit, Unit, ApplicationTroupe>(playwrigkt.skript.chatrooom.sql.ChatRoomSchema.dropAllAction),
                 Unit))

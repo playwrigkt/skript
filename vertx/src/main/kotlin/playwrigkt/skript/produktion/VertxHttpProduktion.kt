@@ -3,8 +3,8 @@ package playwrigkt.skript.produktion
 import playwrigkt.skript.Skript
 import playwrigkt.skript.http.HttpEndpoint
 import playwrigkt.skript.http.HttpError
-import playwrigkt.skript.http.HttpRequest
-import playwrigkt.skript.http.HttpResponse
+import playwrigkt.skript.http.HttpServerRequest
+import playwrigkt.skript.http.HttpServerResponse
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.CompletableResult
 import playwrigkt.skript.result.toAsyncResult
@@ -14,15 +14,15 @@ import playwrigkt.skript.venue.VertxHttpVenue
 class VertxHttpProduktion<Troupe>(
         val endpoint: HttpEndpoint,
         val httpVenue: VertxHttpVenue,
-        val skript: Skript<HttpRequest<ByteArray>, HttpResponse, Troupe>,
+        val skript: Skript<HttpServerRequest<ByteArray>, HttpServerResponse, Troupe>,
         val provider: StageManager<Troupe>
 ): Produktion {
     private val completer = CompletableResult<Unit>()
     private val result = completer
             .flatMap { httpVenue.removeHandler(endpoint).toAsyncResult() }
 
-    fun invoke(httpRequest: HttpRequest<ByteArray>): AsyncResult<HttpResponse> {
-        return skript.run(httpRequest, provider.hireTroupe());
+    fun invoke(httpServerRequest: HttpServerRequest<ByteArray>): AsyncResult<HttpServerResponse> {
+        return skript.run(httpServerRequest, provider.hireTroupe());
     }
 
     override fun isRunning(): Boolean =
@@ -33,7 +33,7 @@ class VertxHttpProduktion<Troupe>(
             completer.succeed(Unit)
             return result
         } else {
-            return AsyncResult.failed(HttpError.AlreadyStopped)
+            return AsyncResult.failed(HttpError.AlreadyStopped  )
         }
 
     }

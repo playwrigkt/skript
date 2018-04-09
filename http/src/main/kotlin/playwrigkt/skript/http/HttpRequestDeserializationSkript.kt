@@ -5,8 +5,8 @@ import playwrigkt.skript.performer.SerializeCommand
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.troupe.SerializeTroupe
 
-data class HttpRequestDeserializationSkript<Body>(val bodyClass: Class<Body>): Skript<HttpRequest<ByteArray>, HttpRequest<Body>, SerializeTroupe> {
-    override fun run(i: HttpRequest<ByteArray>, troupe: SerializeTroupe): AsyncResult<HttpRequest<Body>> =
+data class HttpRequestDeserializationSkript<Body>(val bodyClass: Class<Body>): Skript<HttpServerRequest<ByteArray>, HttpServerRequest<Body>, SerializeTroupe> {
+    override fun run(i: HttpServerRequest<ByteArray>, troupe: SerializeTroupe): AsyncResult<HttpServerRequest<Body>> =
             troupe
                     .getSerializePerformer()
                     .map { serializePerformer ->

@@ -34,14 +34,14 @@ object UserSkripts {
         }
     }
 
-    val UNPREPARED_CREATE_SKRIPT: Skript<UserProfileAndPassword, UserProfile, ApplicationTroupe> =
+    val createSkript: Skript<UserProfileAndPassword, UserProfile, ApplicationTroupe> =
             SQLTransactionSkript.transaction(
                     Skript.identity<UserProfileAndPassword, ApplicationTroupe>()
                             .update(InsertUserProfileMapping)
                             .update(InsertUserPasswordMapping)
                             .andThen(PUBLISH_USER_CREATE_EVENT))
 
-    val UNPREPARED_LOGIN_SKRIPT: Skript<UserNameAndPassword, UserSession, ApplicationTroupe> =
+    val loginSkript: Skript<UserNameAndPassword, UserSession, ApplicationTroupe> =
             SQLTransactionSkript.transaction(
                     Skript.identity<UserNameAndPassword, ApplicationTroupe>()
                             .query(SelectUserIdForLogin)
@@ -52,7 +52,7 @@ object UserSkripts {
                             .andThen(PUBLISH_USER_LOGIN_EVENT))
 
 
-    val UNPREPARED_GET_SKRIPT: Skript<playwrigkt.skript.auth.TokenAndInput<String>, UserProfile, ApplicationTroupe> =
+    val getSkript: Skript<playwrigkt.skript.auth.TokenAndInput<String>, UserProfile, ApplicationTroupe> =
             SQLTransactionSkript.autoCommit(
                     validateSession<String>(onlyIfRequestedUserMatchesSessionUser)
                             .query(SelectUserProfileById))

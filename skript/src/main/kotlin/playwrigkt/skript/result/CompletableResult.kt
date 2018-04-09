@@ -176,7 +176,6 @@ interface CompletableResult<T>: AsyncResult<T>, Completable<T> {
             if (other !is CompletableResultImpl<*>) return false
 
             if (result != other.result) return false
-            if (handlers != other.handlers) return false
 
             return true
         }

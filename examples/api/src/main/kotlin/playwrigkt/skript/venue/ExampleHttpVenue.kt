@@ -19,23 +19,23 @@ fun <T> List<AsyncResult<out T>>.lift(): AsyncResult<List<T>> {
             }
 }
 
-fun applyHandlers(venue: HttpVenue, stageManager: ApplicationStageManager): AsyncResult<List<Produktion>> =
+fun userProduktions(serverVenue: HttpServerVenue, stageManager: ApplicationStageManager): AsyncResult<List<Produktion>> =
     listOf(
-            venue.produktion(
+            serverVenue.produktion(
                     createUserHttpEndpointSkript,
                     stageManager,
                     HttpEndpoint(
                             "/users",
                             emptyMap(),
                             HttpMethod.Put)),
-            venue.produktion(
+            serverVenue.produktion(
                     loginUserHttpEndpointSkript,
                     stageManager,
                     HttpEndpoint(
                             "/login",
                             emptyMap(),
                             HttpMethod.Post)),
-            venue.produktion(
+            serverVenue.produktion(
                     getUserHttpEndpointSkript,
                     stageManager,
                     HttpEndpoint(

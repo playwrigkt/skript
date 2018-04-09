@@ -1,7 +1,7 @@
 package playwrigkt.skript.venue
 
 import playwrigkt.skript.http.HttpEndpoint
-import playwrigkt.skript.http.HttpRequest
-import playwrigkt.skript.http.HttpResponse
+import playwrigkt.skript.http.HttpServerRequest
+import playwrigkt.skript.http.HttpServerResponse
 
-typealias HttpVenue = Venue<HttpEndpoint, HttpRequest<ByteArray>, HttpResponse>
+typealias HttpServerVenue = Venue<HttpEndpoint, HttpServerRequest<ByteArray>, HttpServerResponse>

@@ -6,6 +6,7 @@ import io.vertx.core.http.HttpServer
 import io.vertx.core.http.HttpServerRequest
 import org.funktionale.option.firstOption
 import org.funktionale.tries.Try
+import org.slf4j.LoggerFactory
 import playwrigkt.skript.Skript
 import playwrigkt.skript.http.*
 import playwrigkt.skript.produktion.VertxHttpProduktion
@@ -14,7 +15,9 @@ import playwrigkt.skript.result.CompletableResult
 import playwrigkt.skript.result.toAsyncResult
 import playwrigkt.skript.stagemanager.StageManager
 
-class VertxHttpVenue(val server: HttpServer): HttpVenue {
+class VertxHttpVenue(val server: HttpServer): HttpServerVenue {
+    val log = LoggerFactory.getLogger(this::class.java)
+
     private val requestHandlers: MutableList<VertxHttpProduktion<*>> = mutableListOf()
 
     init {
@@ -23,19 +26,24 @@ class VertxHttpVenue(val server: HttpServer): HttpVenue {
             val headers = serverRequest.headers().toMap()
             val uri = serverRequest.absoluteURI()
             val body = serverRequest.body()
+            val path = serverRequest.path()
+
+            log.debug("handling request \n\tmethod: {}\n\theaders: {}\n\turi: {}\n\tbody: {}\n\t: path", method, headers, uri, body, path)
 
             requestHandlers
-                    .firstOption { it.endpoint.matches(method, headers, uri)}
-                    .map {produktion -> HttpRequest.of(uri, method, headers, body, path(uri), produktion.endpoint).flatMap(produktion::invoke) }
+                    .firstOption { it.endpoint.matches(method, headers, path)}
                     .orNull()
+                    ?.let {produktion -> produktion.endpoint.request(uri, method, headers, body, path).flatMap(produktion::invoke) }
                     ?.map { serverRequest.response().setStatusCode(it.status).end(Buffer.buffer(it.responseBody)) }
-                    ?.recover { Try { serverRequest.response().setStatusCode(500).end() }.toAsyncResult() }
+                    ?.recover {
+                        log.debug("error handling request: {}", it)
+                        Try { serverRequest.response().setStatusCode(500).end() }.toAsyncResult()
+                    }
                     ?: serverRequest.response().setStatusCode(501).end("Not Implemented")
         }
+        server.listen()
     }
 
-
-    private fun path(requestUri: String): String = requestUri.substringBefore("?")
 
     private fun io.vertx.core.http.HttpMethod.toHttpMethod(): HttpMethod =
             when(this) {
@@ -59,7 +67,7 @@ class VertxHttpVenue(val server: HttpServer): HttpVenue {
         return result.map { it.bytes }
     }
 
-    override fun <Troupe> produktion(skript: Skript<HttpRequest<ByteArray>, HttpResponse, Troupe>,
+    override fun <Troupe> produktion(skript: Skript<playwrigkt.skript.http.HttpServerRequest<ByteArray>, HttpServerResponse, Troupe>,
                                      stageManager: StageManager<Troupe>,
                                      rule: HttpEndpoint): AsyncResult<VertxHttpProduktion<Troupe>> =
         Try {

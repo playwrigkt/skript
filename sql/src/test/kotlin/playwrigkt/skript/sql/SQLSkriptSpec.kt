@@ -1,6 +1,5 @@
 package playwrigkt.skript.sql
 
-import io.kotlintest.mock.mock
 import io.kotlintest.specs.StringSpec
 import org.funktionale.option.Option
 import org.funktionale.option.getOrElse
@@ -134,7 +133,40 @@ class SQLSkriptSpec : StringSpec() {
 
     init {
         "Do a thing" {
-            val performer = mock<SQLPerformer>()
+            val performer = object: SQLPerformer() {
+                override fun <T> close(): (T) -> AsyncResult<T> {
+                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                }
+
+                override fun <T> closeOnFailure(): (Throwable) -> AsyncResult<T> {
+                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                }
+
+                override fun <T> commit(): (T) -> AsyncResult<T> {
+                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                }
+
+                override fun <T> rollback(): (Throwable) -> AsyncResult<T> {
+                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                }
+
+                override fun setAutoCommit(autoCommit: Boolean): AsyncResult<Unit> {
+                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                }
+
+                override fun query(query: SQLCommand.Query): AsyncResult<SQLResult.Query> {
+                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                }
+
+                override fun update(update: SQLCommand.Update): AsyncResult<SQLResult.Update> {
+                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                }
+
+                override fun exec(exec: SQLCommand.Exec): AsyncResult<SQLResult.Void> {
+                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                }
+
+            }
             val sessionKey = "TEST_SESSION_KEY"
             ApplicationTroupe<UpdateUserProfileTroupe>(performer, UpdateUserProfileTroupe(sessionKey))
 

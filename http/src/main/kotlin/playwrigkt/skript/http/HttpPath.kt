@@ -1,8 +1,9 @@
 package playwrigkt.skript.http
 
 import org.funktionale.option.Option
+import org.funktionale.option.toOption
 
-internal sealed class HttpPathPart {
+sealed class HttpPathPart {
     abstract fun matches(rawPart: String): Boolean
     abstract fun parse(rawPart: String): Pair<String, String>
 
@@ -27,11 +28,11 @@ internal sealed class HttpPathPart {
     }
 }
 
-internal data class HttpPathRule(val rule: String) {
+data class HttpPathRule(val rule: String) {
     val ruleParts: List<HttpPathPart> by lazy {
         rule.split("/")
                 .map {
-                    if(it.startsWith("{") && it.endsWith("}")) {
+                    if (it.startsWith("{") && it.endsWith("}")) {
                         HttpPathPart.Variable(it.removePrefix("{").removeSuffix("}"))
                     } else {
                         HttpPathPart.Literal(it)
@@ -39,20 +40,21 @@ internal data class HttpPathRule(val rule: String) {
                 }
     }
 
-    private fun Pair<HttpPathPart, String>.matches(): Boolean = first.matches(second)
-    private fun Pair<HttpPathPart, String>.parse(): Pair<String, String> = first.parse(second)
+    private fun Pair<HttpPathPart, String>.matchPathPart(): Boolean = first.matches(second)
+    private fun Pair<HttpPathPart, String>.partPathPart(): Pair<String, String> = first.parse(second)
 
-    fun matches(path: String): Boolean =
-            Option.Some(path.split("/"))
-                    .filter { pathParts -> pathParts.size == ruleParts.size }
-                    .map { ruleParts.zip(it) }
-                    .filter { it.all { it.matches() } }
-                    .isDefined()
+    fun pathMatches(path: String): Boolean =
+        path.toOption()
+                .map { it.split("/") }
+                .filter { pathParts -> pathParts.size == ruleParts.size }
+                .map { ruleParts.zip(it) }
+                .filter { it.all { it.matchPathPart() } }
+                .isDefined()
 
-    fun apply(path: String): Option<Map<String, String>> =
-            Option.Some(path.split("/"))
-                    .filter { pathParts -> pathParts.size == ruleParts.size }
-                    .map { ruleParts.zip(it) }
-                    .filter { it.all { it.matches() } }
-                    .map { it.map { it.parse() }.toMap() }
+    fun apply(path: String): Option<Map<String, String>>  =
+        path.split("/").toOption()
+                .filter { pathParts -> pathParts.size == ruleParts.size }
+                .map { ruleParts.zip(it) }
+                .filter { it.all { it.matchPathPart() } }
+                .map { it.map { it.partPathPart() }.toMap() }
 }

@@ -28,7 +28,7 @@ data class HttpEndpoint(
         val path: String = "/",
         val headers: Map<String, List<String>>,
         val method: HttpMethod) {
-    internal val pathRule by lazy {
+    val pathRule by lazy {
         HttpPathRule(path.removePrefix("/"))
     }
 
@@ -42,8 +42,18 @@ data class HttpEndpoint(
                     this.headersMatch(httpEndpoint.headers) &&
                     this.pathMatches(httpEndpoint.path)
 
+    fun <T> request(requestUri: String,
+               method: HttpMethod,
+               headers: Map<String, List<String>>,
+               body: AsyncResult<T>,
+               path: String): AsyncResult<HttpServerRequest<T>> =
+            pathRule.apply(path.removePrefix("/").removeSuffix("/"))
+                    .map {  Try { HttpServerRequest<T>(requestUri, method, headers, body, it) } }
+                    .getOrElse { Try.Failure(HttpError.PathUnparsable(path, this)) }
+                    .toAsyncResult()
+
     private fun pathMatches(path: String): Boolean =
-            this.pathRule.matches(path.removePrefix("/"))
+            this.pathRule.pathMatches(path.removePrefix("/"))
 
     private fun headersMatch(headers: Map<String, List<String>>): Boolean =
             this.headers.all {
@@ -82,11 +92,11 @@ sealed class HttpMethod {
     }
 }
 
-data class HttpRequest<T>(val requestUri: String,
-                            val method: HttpMethod,
-                            val headers: Map<String, List<String>>,
-                            val body: AsyncResult<T>,
-                            val pathParameters: Map<String, String>) {
+data class HttpServerRequest<T>(val requestUri: String,
+                                val method: HttpMethod,
+                                val headers: Map<String, List<String>>,
+                                val body: AsyncResult<T>,
+                                val pathParameters: Map<String, String>) {
     val queryParams by lazy {
         requestUri.substringAfter("?")
                 .split("&")
@@ -96,32 +106,16 @@ data class HttpRequest<T>(val requestUri: String,
                 .toMap()
     }
 
-    companion object {
-        fun <T> of(requestUri: String,
-               method: HttpMethod,
-               headers: Map<String, List<String>>,
-               body: AsyncResult<T>,
-               path: String,
-               httpEndpoint: HttpEndpoint): AsyncResult<HttpRequest<T>> =
-                pathApply(httpEndpoint, path)
-                        .map {  Try { HttpRequest<T>(requestUri, method, headers, body, it) } }
-                        .getOrElse { Try.Failure(HttpError.PathUnparsable(path, httpEndpoint)) }
-                        .toAsyncResult()
-
-        private fun pathApply(httpEndpoint: HttpEndpoint, path: String): Option<Map<String, String>> =
-                httpEndpoint.pathRule.apply(path)
-    }
-
-    fun <U> flatMapBody(parse: (T) -> AsyncResult<U>): HttpRequest<U> =
-        HttpRequest(
+    fun <U> flatMapBody(parse: (T) -> AsyncResult<U>): HttpServerRequest<U> =
+        HttpServerRequest(
                 requestUri,
                 method,
                 headers,
                 body.flatMap(parse),
                 pathParameters)
 
-    fun <U> mapBody(parse: (T) -> U): HttpRequest<U> =
-            HttpRequest(
+    fun <U> mapBody(parse: (T) -> U): HttpServerRequest<U> =
+            HttpServerRequest(
                     requestUri,
                     method,
                     headers,
@@ -129,7 +123,26 @@ data class HttpRequest<T>(val requestUri: String,
                     pathParameters)
 }
 
-data class HttpResponse(
+data class HttpServerResponse(
         val status: Int,
         val responseBody: ByteArray
+)
+
+data class HttpClientRequest(val uriTemplate: String,
+                             val pathParameters: Map<String, String>,
+                             val queryParameters: Map<String, String>,
+                             val headers: Map<String, List<String>>,
+                             val method: HttpMethod,
+                             val body: AsyncResult<ByteArray>) {
+    fun uri(): String =
+            "${uriWithPath()}?${queryParameters.map { "${it.key}=${it.value}" }.joinToString("&")}"
+
+
+    private fun uriWithPath(): String =
+            pathParameters.toList().fold(uriTemplate) { uri, parameter -> uri.replace("{${parameter.first}}", parameter.second) }
+}
+
+data class HttpClientResponse(
+        val status: Int,
+        val responseBody: AsyncResult<ByteArray>
 )

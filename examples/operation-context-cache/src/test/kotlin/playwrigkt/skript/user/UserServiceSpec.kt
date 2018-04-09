@@ -1,9 +1,6 @@
 package  playwrigkt.skript.user
 
-import io.kotlintest.Spec
-import io.kotlintest.matchers.fail
-import io.kotlintest.matchers.shouldBe
-import io.kotlintest.matchers.shouldNotBe
+import io.kotlintest.*
 import io.kotlintest.specs.StringSpec
 import org.slf4j.LoggerFactory
 import playwrigkt.skript.Skript
@@ -69,11 +66,12 @@ abstract class UserServiceSpec : StringSpec() {
 
     abstract fun queueVenue(): QueueVenue
 
-    override fun interceptSpec(context: Spec, spec: () -> Unit) {
+    override fun beforeSpec(description: Description, spec: Spec) {
         awaitSucceededFuture(stageManager().hireTroupe().dropUserSchema())
         awaitSucceededFuture(stageManager().hireTroupe().initUserSchema())
+    }
 
-        spec()
+    override fun afterSpec(description: Description, spec: Spec) {
         awaitSucceededFuture(stageManager().hireTroupe().deleteAllUsers())
         awaitSucceededFuture(stageManager().hireTroupe().dropUserSchema())
         closeResources()

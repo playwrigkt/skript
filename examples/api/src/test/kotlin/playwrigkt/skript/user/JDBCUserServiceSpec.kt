@@ -12,6 +12,10 @@ import playwrigkt.skript.venue.AMQPVenue
 import playwrigkt.skript.venue.QueueVenue
 
 class JDBCUserServiceSpec: UserServiceSpec() {
+    override fun getUserHttpRequestTest() {
+
+    }
+
     companion object {
         val amqpConnectionFactory: ConnectionFactory by lazy {
             AMQPManager.connectionFactory()

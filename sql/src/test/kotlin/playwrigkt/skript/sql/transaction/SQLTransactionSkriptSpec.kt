@@ -1,7 +1,6 @@
 package playwrigkt.skript.sql.skript
 
-import io.kotlintest.matchers.shouldBe
-import io.kotlintest.mock.mock
+import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
 import playwrigkt.skript.Skript
 import playwrigkt.skript.sql.transaction.SQLTransactionSkript
@@ -45,7 +44,7 @@ class SQLTransactionSkriptSpec : StringSpec() {
 
         "A transactional SQLTransactionSkript should map a skript within the transaction" {
             val action1 = Skript.map<Int, String, SQLTroupe>({ it.toString() })
-            val mappedSkript = mock<Skript<String, Long, SQLTroupe>>()
+            val mappedSkript = Skript.map<String, Long, SQLTroupe> { it.toLong() }
             val skript = SQLTransactionSkript
                     .transaction(action1)
                     .mapInsideTransaction(mappedSkript)
@@ -57,7 +56,7 @@ class SQLTransactionSkriptSpec : StringSpec() {
 
         "An autocommit SQLTransactionSkript should map a skript within the transaction" {
             val action1 = Skript.map<Int, String, SQLTroupe>({ it.toString() })
-            val mappedSkript = mock<Skript<String, Long, SQLTroupe>>()
+            val mappedSkript = Skript.map<String, Long, SQLTroupe> { it.toLong() }
             val skript = SQLTransactionSkript
                     .autoCommit(action1)
                     .mapInsideTransaction(mappedSkript)

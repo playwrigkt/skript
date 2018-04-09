@@ -1,10 +1,9 @@
 package playwrigkt.skript
 
-import io.kotlintest.matchers.shouldBe
+import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
 import org.funktionale.either.Either
 import playwrigkt.skript.ex.andThen
-import playwrigkt.skript.result.AsyncResult
 
 class SkriptSpec : StringSpec() {
     init {

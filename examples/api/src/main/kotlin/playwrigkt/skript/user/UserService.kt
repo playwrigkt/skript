@@ -9,11 +9,11 @@ import playwrigkt.skript.user.models.UserSession
 
 class UserService(val provider: ApplicationStageManager) {
     fun createUser(userProfile: UserProfileAndPassword): AsyncResult<UserProfile> =
-            provider.runWithTroupe(UserSkripts.UNPREPARED_CREATE_SKRIPT, userProfile)
+            provider.runWithTroupe(UserSkripts.createSkript, userProfile)
 
     fun loginUser(userNameAndPassword: UserNameAndPassword): AsyncResult<UserSession> =
-            provider.runWithTroupe(UserSkripts.UNPREPARED_LOGIN_SKRIPT, userNameAndPassword)
+            provider.runWithTroupe(UserSkripts.loginSkript, userNameAndPassword)
 
     fun getUser(userId: String, token: String): AsyncResult<UserProfile> =
-            provider.runWithTroupe(UserSkripts.UNPREPARED_GET_SKRIPT, playwrigkt.skript.auth.TokenAndInput(token, userId))
+            provider.runWithTroupe(UserSkripts.getSkript, playwrigkt.skript.auth.TokenAndInput(token, userId))
 }
