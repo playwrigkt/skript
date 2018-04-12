@@ -7,26 +7,13 @@ import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.CompletableResult
 
 data class VertxHttpRequestPerformer(val httpClient: HttpClient): HttpRequestPerformer {
-    override fun perform(httpClientRequest: HttpClientRequest): AsyncResult<HttpClientResponse> =
-        when(httpClientRequest.method) {
-            HttpMethod.Get ->
-                httpClient
-                        .get(httpClientRequest.uri())
-                        .applyHeaders(httpClientRequest)
-                        .handle()
-
-            else -> TODO("other methods")
-        }
-
-    private fun io.vertx.core.http.HttpClientRequest.applyHeaders(clientRequest: HttpClientRequest): io.vertx.core.http.HttpClientRequest =
-            clientRequest.headers.toList().fold(this) { vertxRequest, header -> vertxRequest.putHeader(header.first, header.second) }
-
-    private fun io.vertx.core.http.HttpClientRequest.handle(): AsyncResult<HttpClientResponse> {
+    override fun perform(httpClientRequest: HttpClientRequest): AsyncResult<HttpClientResponse> {
         val vertxResult = CompletableResult<io.vertx.core.http.HttpClientResponse>()
-
-        this.handler(vertxResult::succeed)
+        method(httpClientRequest)
+                .applyHeaders(httpClientRequest)
+                .handler(vertxResult::succeed)
                 .exceptionHandler(vertxResult::fail)
-                .end()
+                .body(httpClientRequest)
 
         return vertxResult.map {
             val result = CompletableResult<Buffer>()
@@ -36,7 +23,29 @@ data class VertxHttpRequestPerformer(val httpClient: HttpClient): HttpRequestPer
                     result.map { it.bytes })
         }
     }
+    fun method(httpClientRequest: HttpClientRequest):  io.vertx.core.http.HttpClientRequest =
+        when(httpClientRequest.method) {
+            HttpMethod.Get -> httpClient.get(httpClientRequest.uri())
+            HttpMethod.Put -> httpClient.put(httpClientRequest.uri())
+            HttpMethod.Delete -> httpClient.delete(httpClientRequest.uri())
+            HttpMethod.Post -> httpClient.post(httpClientRequest.uri())
+            HttpMethod.Head -> httpClient.head(httpClientRequest.uri())
+            HttpMethod.Options -> httpClient.options(httpClientRequest.uri())
+            HttpMethod.Trace -> httpClient.request(io.vertx.core.http.HttpMethod.TRACE, httpClientRequest.uri())
+            HttpMethod.Connect -> httpClient.request(io.vertx.core.http.HttpMethod.CONNECT, httpClientRequest.uri())
+            HttpMethod.Patch -> httpClient.request(io.vertx.core.http.HttpMethod.PATCH, httpClientRequest.uri())
+            is HttpMethod.Other -> httpClient.request(io.vertx.core.http.HttpMethod.OTHER, httpClientRequest.uri())
+            HttpMethod.All -> httpClient.get(httpClientRequest.uri())
+        }
 
+    private fun io.vertx.core.http.HttpClientRequest.applyHeaders(clientRequest: HttpClientRequest): io.vertx.core.http.HttpClientRequest =
+            clientRequest.headers.toList().fold(this) { vertxRequest, header -> vertxRequest.putHeader(header.first, header.second) }
 
-
+    private fun io.vertx.core.http.HttpClientRequest.body(clientRequest: HttpClientRequest): AsyncResult<Unit> =
+            clientRequest.body.map { body ->
+                this
+                        .putHeader("Content-Length", body.size.toString())
+                        .write(io.vertx.core.buffer.Buffer.buffer(body))
+                        .end()
+            }
 }

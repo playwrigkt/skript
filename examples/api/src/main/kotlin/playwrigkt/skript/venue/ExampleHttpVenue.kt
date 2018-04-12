@@ -27,7 +27,7 @@ fun userProduktions(serverVenue: HttpServerVenue, stageManager: ApplicationStage
                     HttpEndpoint(
                             "/users",
                             emptyMap(),
-                            HttpMethod.Put)),
+                            HttpMethod.Post)),
             serverVenue.produktion(
                     loginUserHttpEndpointSkript,
                     stageManager,

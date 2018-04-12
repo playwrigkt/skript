@@ -2,14 +2,13 @@ package playwrigkt.skript.chatroom
 
 import io.vertx.core.Future
 import io.vertx.core.Vertx
+import io.vertx.core.http.HttpClientOptions
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.jdbc.JDBCClient
 import io.vertx.ext.sql.SQLClient
 import playwrigkt.skript.result.VertxResult
-import playwrigkt.skript.stagemanager.ApplicationStageManager
-import playwrigkt.skript.stagemanager.VertxPublishStageManager
-import playwrigkt.skript.stagemanager.VertxSQLStageManager
-import playwrigkt.skript.stagemanager.VertxSerializeStageManager
+import playwrigkt.skript.stagemanager.*
+import playwrigkt.skript.user.UserHttpTest
 
 class VertxChatroomTransactionSpec: ChatroomTransactionsSpec() {
 
@@ -31,8 +30,9 @@ class VertxChatroomTransactionSpec: ChatroomTransactionsSpec() {
         val sqlConnectionStageManager = VertxSQLStageManager(sqlClient)
         val publishStageManager = VertxPublishStageManager(vertx)
         val serializeStageManager = VertxSerializeStageManager()
+        val httpStageManager by lazy { VertxHttpRequestStageManager(HttpClientOptions().setDefaultPort(UserHttpTest.port), UserHttpTest.vertx) }
         val stageManager: ApplicationStageManager by lazy {
-            ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManager)
+            ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManager, httpStageManager)
         }
     }
 

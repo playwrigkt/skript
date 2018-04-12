@@ -5,5 +5,5 @@ import playwrigkt.skript.http.HttpClientResponse
 import playwrigkt.skript.result.AsyncResult
 
 interface HttpRequestPerformer {
-    fun perform(httpServerRequest: HttpClientRequest): AsyncResult<HttpClientResponse>
+    fun perform(httpClientRequest: HttpClientRequest): AsyncResult<HttpClientResponse>
 }

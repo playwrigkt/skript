@@ -1,7 +1,6 @@
 package playwrigkt.skript.http
 
 import playwrigkt.skript.result.AsyncResult
-import org.funktionale.option.Option
 import org.funktionale.option.getOrElse
 import org.funktionale.tries.Try
 import playwrigkt.skript.result.toAsyncResult
@@ -13,6 +12,9 @@ sealed class HttpError: Throwable() {
     data class MissingInputs(val inputs: List<HttpInput>): HttpError()
     object AlreadyStopped: HttpError()
 
+    sealed class Client: HttpError() {
+        data class UnhandledResponse(val response: HttpClientResponse) : HttpError.Client()
+    }
 
     data class HttpInput(val inputType: String, val name: String) {
         companion object {
@@ -128,12 +130,13 @@ data class HttpServerResponse(
         val responseBody: ByteArray
 )
 
-data class HttpClientRequest(val uriTemplate: String,
+data class HttpClientRequest(val method: HttpMethod,
+                             val uriTemplate: String,
                              val pathParameters: Map<String, String>,
                              val queryParameters: Map<String, String>,
                              val headers: Map<String, List<String>>,
-                             val method: HttpMethod,
                              val body: AsyncResult<ByteArray>) {
+
     fun uri(): String =
             "${uriWithPath()}?${queryParameters.map { "${it.key}=${it.value}" }.joinToString("&")}"
 

@@ -35,7 +35,7 @@ abstract class UserServiceSpec : StringSpec() {
     abstract fun queueVenue(): QueueVenue
     abstract fun closeResources()
 
-    val userService: UserService = UserService(stageManager())
+    val userService: UserService by lazy { UserService(stageManager()) }
 
     fun loginProduktion(): Produktion {
         return awaitSucceededFuture(
@@ -64,8 +64,6 @@ abstract class UserServiceSpec : StringSpec() {
     }
 
     val processedCreateEvents = LinkedBlockingQueue<UserProfile>()
-
-    abstract fun getUserHttpRequestTest()
 
     override fun beforeSpec(description: Description, spec: Spec) {
         awaitSucceededFuture(stageManager().hireTroupe().dropUserSchema())
@@ -207,10 +205,6 @@ abstract class UserServiceSpec : StringSpec() {
                     SQLError.OnCommand(
                             SQLCommand.Query(SQLStatement.Parameterized(UserSQL.selectSessionByKey, listOf(sessionKey))),
                             UserError.AuthenticationFailed))
-        }
-
-        "get a user via http" {
-            getUserHttpRequestTest()
         }
     }
 
