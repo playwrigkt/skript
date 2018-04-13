@@ -26,8 +26,12 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
     val LOG = LoggerFactory.getLogger(this.javaClass)
 
     abstract fun stageManager(): ApplicationStageManager
-    val userService = UserService(stageManager())
-    val chatRoomService = ChatRoomService(stageManager())
+    val userService by lazy {
+        UserService(stageManager())
+    }
+    val chatRoomService by lazy {
+        ChatRoomService(stageManager())
+    }
 
     abstract fun closeResources()
 

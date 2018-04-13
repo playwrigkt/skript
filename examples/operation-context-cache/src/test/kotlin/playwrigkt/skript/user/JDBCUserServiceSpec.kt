@@ -42,7 +42,7 @@ class JDBCUserServiceSpec: UserServiceSpec() {
         val stageManager: ApplicationStageManager by lazy {
             ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManager)
         }
-        val amqpVenue: QueueVenue = AMQPVenue(amqpConnection)
+        val amqpVenue: QueueVenue by lazy { AMQPVenue(amqpConnection) }
     }
 
 

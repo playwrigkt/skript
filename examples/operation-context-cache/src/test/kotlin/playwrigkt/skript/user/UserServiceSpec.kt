@@ -32,7 +32,9 @@ abstract class UserServiceSpec : StringSpec() {
     val LOG = LoggerFactory.getLogger(this.javaClass)
 
     abstract fun stageManager(): ApplicationStageManager
-    val userService: UserService = UserService(stageManager())
+    val userService: UserService by lazy {
+        UserService(stageManager())
+    }
 
     abstract fun closeResources()
 

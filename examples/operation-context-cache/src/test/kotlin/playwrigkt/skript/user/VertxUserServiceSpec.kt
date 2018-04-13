@@ -36,7 +36,7 @@ class VertxUserServiceSpec: UserServiceSpec() {
         val stageManager: ApplicationStageManager by lazy {
             ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManager)
         }
-        val vertxVenue: QueueVenue = VertxVenue(vertx)
+        val vertxVenue: QueueVenue by lazy { VertxVenue(vertx) }
     }
 
     override fun stageManager(): ApplicationStageManager = stageManager
