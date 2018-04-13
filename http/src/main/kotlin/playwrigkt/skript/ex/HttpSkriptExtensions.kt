@@ -4,7 +4,7 @@ import playwrigkt.skript.Skript
 import playwrigkt.skript.http.*
 import playwrigkt.skript.troupe.HttpRequestTroupe
 
-fun <I, O, Troupe> Skript<I, O, Troupe>.httpRequest(method: HttpMethod,
+fun <I, O, Troupe> Skript<I, O, Troupe>.httpRequest(method: Http.Method,
                                                     uri: Skript<O, String, Troupe>,
                                                     pathParameters: Skript<O, Map<String, String>, Troupe> = Skript.map { emptyMap() },
                                                     queryParameters: Skript<O, Map<String, String>, Troupe> = Skript.map { emptyMap() },

@@ -1,7 +1,7 @@
 package playwrigkt.skript.venue
 
+import playwrigkt.skript.http.Http
 import playwrigkt.skript.http.HttpEndpoint
-import playwrigkt.skript.http.HttpMethod
 import playwrigkt.skript.produktion.Produktion
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.stagemanager.ApplicationStageManager
@@ -27,19 +27,19 @@ fun userProduktions(serverVenue: HttpServerVenue, stageManager: ApplicationStage
                     HttpEndpoint(
                             "/users",
                             emptyMap(),
-                            HttpMethod.Post)),
+                            Http.Method.Post)),
             serverVenue.produktion(
                     loginUserHttpEndpointSkript,
                     stageManager,
                     HttpEndpoint(
                             "/login",
                             emptyMap(),
-                            HttpMethod.Post)),
+                            Http.Method.Post)),
             serverVenue.produktion(
                     getUserHttpEndpointSkript,
                     stageManager,
                     HttpEndpoint(
                             "/users/{userId}",
                             mapOf("Authorization" to emptyList()),
-                            HttpMethod.Get)))
+                            Http.Method.Get)))
             .lift()

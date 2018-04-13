@@ -24,7 +24,7 @@ class HttpRequestSkript: Skript<Http.Client.Request, Http.Client.Response, HttpR
         troupe.getHttpRequestPerformer().flatMap { it.perform(i) }
 
 
-    data class RequestMapping<I, Troupe>(val method: HttpMethod,
+    data class RequestMapping<I, Troupe>(val method: Http.Method,
                                          val uri: Skript<I, String, Troupe>,
                                          val pathParameters: Skript<I, Map<String, String>, Troupe> = Skript.map { emptyMap() },
                                          val queryParameters: Skript<I, Map<String, String>, Troupe> = Skript.map { emptyMap() },

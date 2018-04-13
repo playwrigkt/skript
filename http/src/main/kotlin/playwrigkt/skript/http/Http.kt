@@ -30,7 +30,7 @@ sealed class HttpError: Throwable() {
 data class HttpEndpoint(
         val path: String = "/",
         val headers: Map<String, List<String>>,
-        val method: HttpMethod) {
+        val method: Http.Method) {
     val pathRule by lazy {
         HttpPathRule(path.removePrefix("/"))
     }
@@ -48,7 +48,7 @@ data class HttpEndpoint(
 
     }
 
-    fun matches(requestMethod: HttpMethod, requestHeaders: Map<String, List<String>>, path: String): Boolean =
+    fun matches(requestMethod: Http.Method, requestHeaders: Map<String, List<String>>, path: String): Boolean =
             this.methodMatches(requestMethod) &&
                     this.headersMatch(requestHeaders) &&
                     this.pathMatches(path)
@@ -59,7 +59,7 @@ data class HttpEndpoint(
                     this.pathMatches(httpEndpoint.path)
 
     fun <T> request(requestUri: String,
-               method: HttpMethod,
+               method: Http.Method,
                headers: Map<String, List<String>>,
                body: AsyncResult<T>,
                path: String): AsyncResult<Http.Server.Request<T>> =
@@ -76,13 +76,38 @@ data class HttpEndpoint(
                 headers.get(it.key)?.containsAll(it.value)?:false
             }
 
-    private fun methodMatches(method: HttpMethod): Boolean =
+    private fun methodMatches(method: Http.Method): Boolean =
             this.method.matches(method)
 }
 
 sealed class Http {
+    sealed class Method {
+        fun matches(other: Method) =
+                when(other) {
+                    is All -> true
+                    else -> this.equals(other)
+                }
+
+        object Get: Method()
+        object Put: Method();
+        object Delete: Method();
+        object Post: Method()
+        object Head: Method()
+        object Options: Method()
+        object Trace: Method()
+        object Connect: Method()
+        object Patch: Method()
+        data class Other(val name: String): Method()
+        object All: Method() {
+            override fun equals(other: Any?): Boolean =
+                    when(other) {
+                        is Method -> true
+                        else -> false
+                    }
+        }
+    }
     sealed class Server: Http() {
-        data class Request<T>(val method: HttpMethod,
+        data class Request<T>(val method: Method,
                               val requestUri: String,
                               val pathParameters: Map<String, String>,
                               val queryParameters: Map<String, String>,
@@ -113,7 +138,7 @@ sealed class Http {
         ): Server()
     }
     sealed class Client: Http() {
-        data class Request(val method: HttpMethod,
+        data class Request(val method: Method,
                            val uriTemplate: String,
                            val pathParameters: Map<String, String>,
                            val queryParameters: Map<String, String>,
@@ -132,30 +157,4 @@ sealed class Http {
                 val responseBody: AsyncResult<ByteArray>): Client()
     }
 
-}
-
-sealed class HttpMethod {
-    fun matches(other: HttpMethod) =
-            when(other) {
-                is All -> true
-                else -> this.equals(other)
-            }
-
-    object Get: HttpMethod()
-    object Put: HttpMethod();
-    object Delete: HttpMethod();
-    object Post: HttpMethod()
-    object Head: HttpMethod()
-    object Options: HttpMethod()
-    object Trace: HttpMethod()
-    object Connect: HttpMethod()
-    object Patch: HttpMethod()
-    data class Other(val name: String): HttpMethod()
-    object All: HttpMethod() {
-        override fun equals(other: Any?): Boolean =
-                when(other) {
-                    is HttpMethod -> true
-                    else -> false
-                }
-    }
 }

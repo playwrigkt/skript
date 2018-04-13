@@ -45,18 +45,18 @@ class VertxHttpVenue(val server: HttpServer): HttpServerVenue {
     }
 
 
-    private fun io.vertx.core.http.HttpMethod.toHttpMethod(): HttpMethod =
+    private fun io.vertx.core.http.HttpMethod.toHttpMethod(): Http.Method =
             when(this) {
-                io.vertx.core.http.HttpMethod.POST -> HttpMethod.Post
-                io.vertx.core.http.HttpMethod.GET -> HttpMethod.Get
-                io.vertx.core.http.HttpMethod.PUT -> HttpMethod.Put
-                io.vertx.core.http.HttpMethod.PATCH-> HttpMethod.Patch
-                io.vertx.core.http.HttpMethod.DELETE -> HttpMethod.Delete
-                io.vertx.core.http.HttpMethod.HEAD -> HttpMethod.Head
-                io.vertx.core.http.HttpMethod.OPTIONS -> HttpMethod.Options
-                io.vertx.core.http.HttpMethod.TRACE -> HttpMethod.Trace
-                io.vertx.core.http.HttpMethod.CONNECT -> HttpMethod.Connect
-                io.vertx.core.http.HttpMethod.OTHER -> HttpMethod.Other("")
+                io.vertx.core.http.HttpMethod.POST -> Http.Method.Post
+                io.vertx.core.http.HttpMethod.GET -> Http.Method.Get
+                io.vertx.core.http.HttpMethod.PUT -> Http.Method.Put
+                io.vertx.core.http.HttpMethod.PATCH-> Http.Method.Patch
+                io.vertx.core.http.HttpMethod.DELETE -> Http.Method.Delete
+                io.vertx.core.http.HttpMethod.HEAD -> Http.Method.Head
+                io.vertx.core.http.HttpMethod.OPTIONS -> Http.Method.Options
+                io.vertx.core.http.HttpMethod.TRACE -> Http.Method.Trace
+                io.vertx.core.http.HttpMethod.CONNECT -> Http.Method.Connect
+                io.vertx.core.http.HttpMethod.OTHER -> Http.Method.Other("")
             }
 
     private fun MultiMap.toMap(): Map<String, List<String>> = this.names().map { it to this.getAll(it)}.toMap()

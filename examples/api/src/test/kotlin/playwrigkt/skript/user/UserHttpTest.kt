@@ -7,7 +7,6 @@ import io.kotlintest.specs.StringSpec
 import io.vertx.core.Future
 import io.vertx.core.Vertx
 import io.vertx.core.http.HttpClientOptions
-import io.vertx.core.http.HttpClientResponse
 import io.vertx.core.http.HttpServerOptions
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.jdbc.JDBCClient
@@ -17,12 +16,8 @@ import playwrigkt.skript.Skript
 import playwrigkt.skript.auth.TokenAndInput
 import playwrigkt.skript.ex.*
 import playwrigkt.skript.http.Http
-import playwrigkt.skript.http.HttpMethod
-import playwrigkt.skript.http.HttpRequestSkript
 import playwrigkt.skript.performer.VertxHttpRequestPerformer
-import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.VertxResult
-import playwrigkt.skript.serialize.SerializeSkript
 import playwrigkt.skript.stagemanager.*
 import playwrigkt.skript.troupe.ApplicationTroupe
 import playwrigkt.skript.user.extensions.schema.dropUserSchema
@@ -107,7 +102,7 @@ class UserHttpTest: StringSpec() {
 
         val createUserRequestSkript = Skript.identity<UserProfileAndPassword, ApplicationTroupe>()
                 .httpRequest(
-                        method = HttpMethod.Post,
+                        method = Http.Method.Post,
                         uri = Skript.map { "http://localhost/users" },
                         body = Skript.identity<UserProfileAndPassword, ApplicationTroupe>().serialize())
                 .executeRequest()
@@ -119,7 +114,7 @@ class UserHttpTest: StringSpec() {
 
         val loginRequestSkript = Skript.identity<UserNameAndPassword, ApplicationTroupe>()
                 .httpRequest(
-                        method = HttpMethod.Post,
+                        method = Http.Method.Post,
                         uri = Skript.map { "http://localhost/login" },
                         body = Skript.identity<UserNameAndPassword, ApplicationTroupe>().serialize())
                 .executeRequest()
@@ -130,7 +125,7 @@ class UserHttpTest: StringSpec() {
 
         val getUserRequestSkript = Skript.identity<TokenAndInput<String>, ApplicationTroupe>()
                 .httpRequest(
-                    method = HttpMethod.Get,
+                    method = Http.Method.Get,
                     uri = Skript.map { "http://localhost/users/{userId}"},
                     pathParameters = Skript.map { mapOf("userId" to it.input) },
                     headers = Skript.map { mapOf("Authorization" to listOf(it.token)) }
