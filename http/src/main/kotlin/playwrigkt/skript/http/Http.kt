@@ -165,6 +165,7 @@ sealed class Http {
 
     sealed class Client: Http() {
         data class Request(val method: Method,
+                           //TODO uri builder
                            val uriTemplate: String,
                            val pathParameters: Map<String, String>,
                            val queryParameters: Map<String, String>,

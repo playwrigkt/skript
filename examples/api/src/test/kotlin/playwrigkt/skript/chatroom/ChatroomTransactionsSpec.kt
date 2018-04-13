@@ -36,7 +36,7 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
     }
 
     abstract fun stageManager(): ApplicationStageManager
-    val userService = UserService(stageManager())
+    val userService by lazy { UserService(stageManager()) }
 
     abstract fun closeResources()
 

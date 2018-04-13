@@ -28,9 +28,9 @@ class VertxChatroomTransactionSpec: ChatroomTransactionsSpec() {
         val sqlClient: SQLClient by lazy {
             JDBCClient.createShared(vertx, hikariConfig, "test_ds")
         }
-        val sqlStageManager = VertxSQLStageManager(sqlClient)
-        val publishStageManager = VertxPublishStageManager(vertx)
-        val serializeStageManager = VertxSerializeStageManager()
+        val sqlStageManager by lazy { VertxSQLStageManager(sqlClient) }
+        val publishStageManager by lazy { VertxPublishStageManager(vertx) }
+        val serializeStageManager by lazy { VertxSerializeStageManager() }
 
         val stageManager: ApplicationStageManager by lazy {
             ApplicationStageManager(publishStageManager, sqlStageManager, serializeStageManager)

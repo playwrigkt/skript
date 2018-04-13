@@ -12,24 +12,44 @@ import playwrigkt.skript.troupe.SerializeTroupe
 
 class HttpClientSkript: Skript<Http.Client.Request, Http.Client.Response, HttpClientTroupe> {
     companion object {
-
-        fun <I, O, Troupe> serialized(toRequest: RequestMapping<I, Troupe>,
-                                      fromResponse: ResponseMapping<O, Troupe>): Skript<I, O, Troupe> where Troupe: HttpClientTroupe, Troupe : SerializeTroupe =
+        fun <I, O, Troupe> serialized(toRequest: RequestMappingSkript<I, Troupe>,
+                                      fromResponse: ResponseMappingSkript<O, Troupe>): Skript<I, O, Troupe> where Troupe: HttpClientTroupe, Troupe : SerializeTroupe =
             Skript.identity<I, Troupe>()
                     .andThen(toRequest)
                     .andThen(HttpClientSkript())
                     .andThen(fromResponse)
     }
+
     override fun run(i: Http.Client.Request, troupe: HttpClientTroupe): AsyncResult<Http.Client.Response> =
         troupe.getHttpRequestPerformer().flatMap { it.perform(i) }
 
 
-    data class RequestMapping<I, Troupe>(val method: Http.Method,
-                                         val uri: Skript<I, String, Troupe>,
-                                         val pathParameters: Skript<I, Map<String, String>, Troupe> = Skript.map { emptyMap() },
-                                         val queryParameters: Skript<I, Map<String, String>, Troupe> = Skript.map { emptyMap() },
-                                         val headers: Skript<I, Map<String, List<String>>, Troupe> = Skript.map { emptyMap() },
-                                         val body:Skript<I, ByteArray, Troupe> = Skript.map { ByteArray(0) }): Skript<I, Http.Client.Request, Troupe> {
+    data class UriMappingSkript<I, Troupe>(val useSsl: Skript<I, Boolean, Troupe>,
+                                           val host: Skript<I, String, Troupe>,
+                                           val port: Skript<I, Int?, Troupe>,
+                                           val pathTemplate: Skript<I, String, Troupe>): Skript<I, String, Troupe> {
+        override fun run(i: I, troupe: Troupe): AsyncResult<String> {
+            val sslResult = useSsl.run(i, troupe)
+            val hostResult = host.run(i, troupe)
+            val portResult = port.run(i, troupe)
+            val pathTemplateResult = pathTemplate.run(i, troupe)
+
+            return sslResult.flatMap { useSsl ->
+                hostResult.flatMap { host ->
+                portResult.flatMap { port ->
+                pathTemplateResult.map { pathTemplate ->
+                    "http${if(useSsl) "s" else "" }://$host:$port/${pathTemplate.removePrefix("/").removeSuffix("/")}"
+                } } }
+            }
+        }
+    }
+
+    data class RequestMappingSkript<I, Troupe>(val method: Http.Method,
+                                               val uri: Skript<I, String, Troupe>,
+                                               val pathParameters: Skript<I, Map<String, String>, Troupe> = Skript.map { emptyMap() },
+                                               val queryParameters: Skript<I, Map<String, String>, Troupe> = Skript.map { emptyMap() },
+                                               val headers: Skript<I, Map<String, List<String>>, Troupe> = Skript.map { emptyMap() },
+                                               val body:Skript<I, ByteArray, Troupe> = Skript.map { ByteArray(0) }): Skript<I, Http.Client.Request, Troupe> {
         override fun run(i: I, troupe: Troupe): AsyncResult<Http.Client.Request> {
             val uriResult = uri.run(i, troupe)
             val headersResult = headers.run(i, troupe)
@@ -45,7 +65,7 @@ class HttpClientSkript: Skript<Http.Client.Request, Http.Client.Response, HttpCl
         }
     }
 
-    data class ResponseMapping<O, Troupe>(val mappers: List<Pair<IntRange, Skript<Http.Client.Response, O, Troupe>>>): Skript<Http.Client.Response, O, Troupe> {
+    data class ResponseMappingSkript<O, Troupe>(val mappers: List<Pair<IntRange, Skript<Http.Client.Response, O, Troupe>>>): Skript<Http.Client.Response, O, Troupe> {
 
         override fun run(i: Http.Client.Response, troupe: Troupe): AsyncResult<O> =
             mappers

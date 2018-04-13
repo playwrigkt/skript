@@ -88,6 +88,7 @@ class UserHttpTest: StringSpec() {
     override fun beforeSpec(description: Description, spec: Spec) {
         Async.awaitSucceededFuture(stageManager().hireTroupe().dropUserSchema())
         Async.awaitSucceededFuture(stageManager().hireTroupe().initUserSchema())
+        val waitForIt = produktions
     }
 
     override fun afterSpec(description: Description, spec: Spec) {
@@ -97,12 +98,14 @@ class UserHttpTest: StringSpec() {
     }
 
     init {
-        val waitForIt = produktions
-
         val createUserRequestSkript = Skript.identity<UserProfileAndPassword, ApplicationTroupe>()
                 .httpRequest(
                         method = Http.Method.Post,
-                        uri = Skript.map { "http://localhost/users" },
+                        uri = uri(
+                                useSsl = Skript.map { false },
+                                host = Skript.map { "localhost" },
+                                port = Skript.map { null },
+                                pathTemplate = Skript.map { "/users" }),
                         body = Skript.identity<UserProfileAndPassword, ApplicationTroupe>().serialize())
                 .executeRequest()
                 .httpResponse(
@@ -114,7 +117,11 @@ class UserHttpTest: StringSpec() {
         val loginRequestSkript = Skript.identity<UserNameAndPassword, ApplicationTroupe>()
                 .httpRequest(
                         method = Http.Method.Post,
-                        uri = Skript.map { "http://localhost/login" },
+                        uri = uri(
+                                useSsl = Skript.map { false },
+                                host = Skript.map { "localhost" },
+                                port = Skript.map { null },
+                                pathTemplate = Skript.map { "/login" }),
                         body = Skript.identity<UserNameAndPassword, ApplicationTroupe>().serialize())
                 .executeRequest()
                 .httpResponse(
@@ -125,7 +132,11 @@ class UserHttpTest: StringSpec() {
         val getUserRequestSkript = Skript.identity<TokenAndInput<String>, ApplicationTroupe>()
                 .httpRequest(
                     method = Http.Method.Get,
-                    uri = Skript.map { "http://localhost/users/{userId}"},
+                    uri = uri(
+                            useSsl = Skript.map { false },
+                            host = Skript.map { "localhost" },
+                            port = Skript.map { null },
+                            pathTemplate = Skript.map { "/users/{userId}" } ),
                     pathParameters = Skript.map { mapOf("userId" to it.input) },
                     headers = Skript.map { mapOf("Authorization" to listOf(it.token)) }
                 )

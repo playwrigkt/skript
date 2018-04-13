@@ -34,10 +34,10 @@ class JDBCChatroomTransactionSpec: ChatroomTransactionsSpec() {
             config
         }
 
-        val hikariDataSource = HikariDataSource(hikariDSConfig)
-        val sqlConnectionStageManager = playwrigkt.skript.stagemanager.JDBCDataSourceStageManager(hikariDataSource)
+        val hikariDataSource by lazy { HikariDataSource(hikariDSConfig) }
+        val sqlConnectionStageManager by lazy { playwrigkt.skript.stagemanager.JDBCDataSourceStageManager(hikariDataSource) }
         val publishStageManager by lazy { playwrigkt.skript.stagemanager.AMQPPublishStageManager(AMQPManager.amqpExchange, JDBCUserServiceSpec.amqpConnection, AMQPManager.basicProperties) }
-        val serializeStageManager = JacksonSerializeStageManager(objectMapper)
+        val serializeStageManager by lazy { JacksonSerializeStageManager(objectMapper) }
 
         val stageManager: ApplicationStageManager by lazy {
             ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManager)

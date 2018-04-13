@@ -23,7 +23,7 @@ val createUserHttpEndpointSkript =
                 .compose(UserSkripts.createSkript)
                 .compose(HttpServerResponseSerializationSkript(
                         Skript.map { Http.Status.Created },
-                        Skript.map { emptyMap() },
+                        Skript.map { mapOf("Content-Type" to listOf("application/json")) },
                         Skript.identity<UserProfile, ApplicationTroupe>().serialize(),
                         Skript.map(ERROR_SERVER_RESPONSE_MAPPER)))
 
@@ -34,7 +34,7 @@ val loginUserHttpEndpointSkript =
                 .compose(UserSkripts.loginSkript)
                 .compose(HttpServerResponseSerializationSkript(
                         Skript.map { Http.Status.OK },
-                        Skript.map { emptyMap() },
+                        Skript.map { mapOf("Content-Type" to listOf("application/json")) },
                         Skript.identity<UserSession, ApplicationTroupe>().serialize(),
                         Skript.map(ERROR_SERVER_RESPONSE_MAPPER)))
 
@@ -52,6 +52,6 @@ val getUserHttpEndpointSkript =
                 .compose(UserSkripts.getSkript)
                 .compose(HttpServerResponseSerializationSkript(
                         Skript.map { Http.Status.OK },
-                        Skript.map { emptyMap() },
+                        Skript.map { mapOf("Content-Type" to listOf("application/json")) },
                         Skript.identity<UserProfile, ApplicationTroupe>().serialize(),
                         Skript.map(ERROR_SERVER_RESPONSE_MAPPER)))
