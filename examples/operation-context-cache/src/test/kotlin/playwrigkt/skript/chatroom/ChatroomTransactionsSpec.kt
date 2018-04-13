@@ -37,7 +37,7 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
 
     override fun beforeSpec(description: Description, spec: Spec) {
         awaitSucceededFuture(stageManager().runWithTroupe(
-                SQLTransactionSkript.transaction<Unit, Unit, ApplicationTroupe<Unit>>(ChatRoomSchema.dropAllAction),
+                SQLTransactionSkript.transaction(ChatRoomSchema.dropAllAction),
                 Unit,
                 Unit))
         awaitSucceededFuture(stageManager().hireTroupe().dropUserSchema())

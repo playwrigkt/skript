@@ -159,7 +159,7 @@ sealed class Http {
         data class Response(
                 val status: Http.Status,
                 val headers: Map<String, List<String>>,
-                val responseBody: ByteArray
+                val responseBody: AsyncResult<ByteArray>
         ): Server()
     }
 

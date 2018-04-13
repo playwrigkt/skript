@@ -7,20 +7,20 @@ import org.funktionale.option.toOption
 import playwrigkt.skript.Skript
 import playwrigkt.skript.ex.andThen
 import playwrigkt.skript.result.AsyncResult
-import playwrigkt.skript.troupe.HttpRequestTroupe
+import playwrigkt.skript.troupe.HttpClientTroupe
 import playwrigkt.skript.troupe.SerializeTroupe
 
-class HttpRequestSkript: Skript<Http.Client.Request, Http.Client.Response, HttpRequestTroupe> {
+class HttpClientSkript: Skript<Http.Client.Request, Http.Client.Response, HttpClientTroupe> {
     companion object {
 
         fun <I, O, Troupe> serialized(toRequest: RequestMapping<I, Troupe>,
-                                      fromResponse: ResponseMapping<O, Troupe>): Skript<I, O, Troupe> where Troupe: HttpRequestTroupe, Troupe : SerializeTroupe =
+                                      fromResponse: ResponseMapping<O, Troupe>): Skript<I, O, Troupe> where Troupe: HttpClientTroupe, Troupe : SerializeTroupe =
             Skript.identity<I, Troupe>()
                     .andThen(toRequest)
-                    .andThen(HttpRequestSkript())
+                    .andThen(HttpClientSkript())
                     .andThen(fromResponse)
     }
-    override fun run(i: Http.Client.Request, troupe: HttpRequestTroupe): AsyncResult<Http.Client.Response> =
+    override fun run(i: Http.Client.Request, troupe: HttpClientTroupe): AsyncResult<Http.Client.Response> =
         troupe.getHttpRequestPerformer().flatMap { it.perform(i) }
 
 

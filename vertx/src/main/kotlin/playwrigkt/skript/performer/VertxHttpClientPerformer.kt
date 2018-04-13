@@ -10,7 +10,7 @@ import playwrigkt.skript.http.*
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.CompletableResult
 
-data class VertxHttpRequestPerformer(val httpClient: HttpClient): HttpRequestPerformer {
+data class VertxHttpClientPerformer(val httpClient: HttpClient): HttpClientPerformer {
     override fun perform(httpClientRequest: Http.Client.Request): AsyncResult<Http.Client.Response> {
         val vertxResult = CompletableResult<HttpClientResponse>()
         method(httpClientRequest)

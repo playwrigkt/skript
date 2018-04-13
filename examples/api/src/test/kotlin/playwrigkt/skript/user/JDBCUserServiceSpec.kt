@@ -4,10 +4,10 @@ import com.rabbitmq.client.ConnectionFactory
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import playwrigkt.skript.amqp.AMQPManager
-import playwrigkt.skript.performer.HttpRequestPerformer
+import playwrigkt.skript.performer.HttpClientPerformer
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.stagemanager.*
-import playwrigkt.skript.troupe.HttpRequestTroupe
+import playwrigkt.skript.troupe.HttpClientTroupe
 import playwrigkt.skript.venue.AMQPVenue
 import playwrigkt.skript.venue.QueueVenue
 
@@ -37,17 +37,17 @@ class JDBCUserServiceSpec: UserServiceSpec() {
         val sqlConnectionStageManager by lazy { JDBCDataSourceStageManager(hikariDataSource) }
         val publishStageManager by lazy { AMQPPublishStageManager(AMQPManager.amqpExchange, amqpConnection, AMQPManager.basicProperties) }
         val serializeStageManagerr by lazy { JacksonSerializeStageManager() }
-        val httpRequestStageManager: StageManager<HttpRequestTroupe> by lazy {
-            object: StageManager<HttpRequestTroupe> {
-                override fun hireTroupe(): HttpRequestTroupe =
-                    object: HttpRequestTroupe {
-                        override fun getHttpRequestPerformer(): AsyncResult<out HttpRequestPerformer> =
+        val HTTP_CLIENT_STAGE_MANAGER: StageManager<HttpClientTroupe> by lazy {
+            object: StageManager<HttpClientTroupe> {
+                override fun hireTroupe(): HttpClientTroupe =
+                    object: HttpClientTroupe {
+                        override fun getHttpRequestPerformer(): AsyncResult<out HttpClientPerformer> =
                             TODO("not implemented")
                     }
             }
         }
         val stageManager: ApplicationStageManager by lazy {
-            ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManagerr, httpRequestStageManager)
+            ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManagerr, HTTP_CLIENT_STAGE_MANAGER)
         }
 
         val amqpVenue: QueueVenue by lazy { AMQPVenue(amqpConnection) }

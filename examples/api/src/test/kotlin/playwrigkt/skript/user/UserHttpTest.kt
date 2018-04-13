@@ -16,7 +16,6 @@ import playwrigkt.skript.Skript
 import playwrigkt.skript.auth.TokenAndInput
 import playwrigkt.skript.ex.*
 import playwrigkt.skript.http.Http
-import playwrigkt.skript.performer.VertxHttpRequestPerformer
 import playwrigkt.skript.result.VertxResult
 import playwrigkt.skript.stagemanager.*
 import playwrigkt.skript.troupe.ApplicationTroupe
@@ -28,7 +27,7 @@ import playwrigkt.skript.user.models.UserProfile
 import playwrigkt.skript.user.models.UserProfileAndPassword
 import playwrigkt.skript.user.models.UserSession
 import playwrigkt.skript.venue.QueueVenue
-import playwrigkt.skript.venue.VertxHttpVenue
+import playwrigkt.skript.venue.VertxHttpServerVenue
 import playwrigkt.skript.venue.VertxVenue
 import playwrigkt.skript.venue.userProduktions
 import java.util.*
@@ -62,9 +61,9 @@ class UserHttpTest: StringSpec() {
 
         val port = floor((Math.random() * 8000)).toInt() + 2000
 
-        val httpVenue: VertxHttpVenue by lazy { VertxHttpVenue(vertx.createHttpServer(HttpServerOptions().setPort(port))) }
+        val HTTP_SERVER_VENUE: VertxHttpServerVenue by lazy { VertxHttpServerVenue(vertx.createHttpServer(HttpServerOptions().setPort(port))) }
         val produktions by lazy {
-            val future = userProduktions(httpVenue, stageManager)
+            val future = userProduktions(HTTP_SERVER_VENUE, stageManager)
             while(!future.isComplete()) {
                 Thread.sleep(100)
             }

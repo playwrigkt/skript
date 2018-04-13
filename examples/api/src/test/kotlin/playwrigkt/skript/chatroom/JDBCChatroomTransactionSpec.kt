@@ -4,12 +4,12 @@ import com.rabbitmq.client.ConnectionFactory
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import playwrigkt.skript.amqp.AMQPManager
-import playwrigkt.skript.performer.HttpRequestPerformer
+import playwrigkt.skript.performer.HttpClientPerformer
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.stagemanager.ApplicationStageManager
 import playwrigkt.skript.stagemanager.JacksonSerializeStageManager
 import playwrigkt.skript.stagemanager.StageManager
-import playwrigkt.skript.troupe.HttpRequestTroupe
+import playwrigkt.skript.troupe.HttpClientTroupe
 import playwrigkt.skript.user.JDBCUserServiceSpec
 
 class JDBCChatroomTransactionSpec: ChatroomTransactionsSpec() {
@@ -37,17 +37,17 @@ class JDBCChatroomTransactionSpec: ChatroomTransactionsSpec() {
         val sqlConnectionStageManager = playwrigkt.skript.stagemanager.JDBCDataSourceStageManager(hikariDataSource)
         val publishStageManager by lazy { playwrigkt.skript.stagemanager.AMQPPublishStageManager(AMQPManager.amqpExchange, JDBCUserServiceSpec.amqpConnection, AMQPManager.basicProperties) }
         val serializeStageManager = JacksonSerializeStageManager()
-        val httpRequestStageManager: StageManager<HttpRequestTroupe> by lazy {
-            object: StageManager<HttpRequestTroupe> {
-                override fun hireTroupe(): HttpRequestTroupe =
-                        object: HttpRequestTroupe {
-                            override fun getHttpRequestPerformer(): AsyncResult<out HttpRequestPerformer> =
+        val HTTP_CLIENT_STAGE_MANAGER: StageManager<HttpClientTroupe> by lazy {
+            object: StageManager<HttpClientTroupe> {
+                override fun hireTroupe(): HttpClientTroupe =
+                        object: HttpClientTroupe {
+                            override fun getHttpRequestPerformer(): AsyncResult<out HttpClientPerformer> =
                                     TODO("not implemented")
                         }
             }
         }
         val stageManager: ApplicationStageManager by lazy {
-            ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManager, httpRequestStageManager)
+            ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManager, HTTP_CLIENT_STAGE_MANAGER)
         }
     }
 

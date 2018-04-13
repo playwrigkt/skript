@@ -17,7 +17,7 @@ import playwrigkt.skript.result.CompletableResult
 import playwrigkt.skript.result.toAsyncResult
 import playwrigkt.skript.stagemanager.StageManager
 
-class VertxHttpVenue(val server: HttpServer): HttpServerVenue {
+class VertxHttpServerVenue(val server: HttpServer): HttpServerVenue {
     val log = LoggerFactory.getLogger(this::class.java)
 
     private val requestHandlers: MutableList<VertxHttpProduktion<*>> = mutableListOf()
@@ -36,11 +36,20 @@ class VertxHttpVenue(val server: HttpServer): HttpServerVenue {
                     .firstOption { it.endpoint.matches(method, headers, path)}
                     .orNull()
                     ?.let {produktion -> produktion.endpoint.request(uri, method, headers, body, path).flatMap(produktion::invoke) }
-                    ?.map { serverRequest.response()
-                            .setStatusCode(it.status.code)
-                            .setStatusMessage(it.status.message)
-                            .putHeaders(it.headers)
-                            .end(Buffer.buffer(it.responseBody))
+                    ?.flatMap {
+                        val result = CompletableResult<Unit>()
+                        val request = serverRequest.response()
+                                .bodyEndHandler { result.succeed(Unit) }
+                                .exceptionHandler(result::fail)
+                                .setStatusCode(it.status.code)
+                                .setStatusMessage(it.status.message)
+                                .putHeaders(it.headers)
+
+                                it.responseBody.map {
+                                    request.end(Buffer.buffer(it))
+                                }
+
+                        result
                     }
                     ?.recover {
                         log.debug("error handling request: {}", it)
