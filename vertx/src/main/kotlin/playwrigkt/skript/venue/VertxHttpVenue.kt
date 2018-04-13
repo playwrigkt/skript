@@ -81,7 +81,7 @@ class VertxHttpVenue(val server: HttpServer): HttpServerVenue {
 
     override fun <Troupe> produktion(skript: Skript<Http.Server.Request<ByteArray>, Http.Server.Response, Troupe>,
                                      stageManager: StageManager<Troupe>,
-                                     rule: HttpEndpoint): AsyncResult<VertxHttpProduktion<Troupe>> =
+                                     rule: Http.Server.Endpoint): AsyncResult<VertxHttpProduktion<Troupe>> =
         Try {
             requestHandlers
                     .find { it.endpoint.matches(rule) }
@@ -91,13 +91,13 @@ class VertxHttpVenue(val server: HttpServer): HttpServerVenue {
                 .onSuccess { requestHandlers.add(it) }
                 .toAsyncResult()
 
-    fun removeHandler(httpEndpoint: HttpEndpoint): Try<Unit> =
+    fun removeHandler(httpEndpoint: Http.Server.Endpoint): Try<Unit> =
         Try {
             if(!requestHandlers.removeAll { it.endpoint.matches(httpEndpoint) }) {
                 throw HttpError.EndpointNotHandled(httpEndpoint)
             }
         }
 
-    fun handles(httpEndpoint: HttpEndpoint): Boolean =
+    fun handles(httpEndpoint: Http.Server.Endpoint): Boolean =
         requestHandlers.any { it.endpoint.matches(httpEndpoint) }
 }

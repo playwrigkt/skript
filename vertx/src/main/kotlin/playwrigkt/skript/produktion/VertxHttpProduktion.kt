@@ -9,7 +9,7 @@ import playwrigkt.skript.stagemanager.StageManager
 import playwrigkt.skript.venue.VertxHttpVenue
 
 class VertxHttpProduktion<Troupe>(
-        val endpoint: HttpEndpoint,
+        val endpoint: Http.Server.Endpoint,
         val httpVenue: VertxHttpVenue,
         val skript: Skript<Http.Server.Request<ByteArray>, Http.Server.Response, Troupe>,
         val provider: StageManager<Troupe>
