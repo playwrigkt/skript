@@ -103,8 +103,9 @@ sealed class Http {
             val BadGateway = Status(502, "Bad Gateway")
             val ServiceUnavailable = Status(503, "Service Unavailable")
             val GatewayTimeout = Status(504, "GatewayTimeout")
+
+            //Todo implement status messages
         }
-        //Todo implement status messages
     }
     sealed class Method {
         fun matches(other: Method) =
@@ -157,12 +158,12 @@ sealed class Http {
                             body.map(parse))
         }
         data class Response(
-                val status: Int,
-                val statusText: String,
+                val status: Http.Status,
                 val headers: Map<String, List<String>>,
                 val responseBody: ByteArray
         ): Server()
     }
+
     sealed class Client: Http() {
         data class Request(val method: Method,
                            val uriTemplate: String,
@@ -178,9 +179,9 @@ sealed class Http {
                     pathParameters.toList().fold(uriTemplate) { uri, parameter -> uri.replace("{${parameter.first}}", parameter.second) }
         }
 
-        //TODO headers and statusMessage
         data class Response(
-                val status: Int,
+                val status: Http.Status,
+                val headders: Map<String, List<String>>,
                 val responseBody: AsyncResult<ByteArray>): Client()
     }
 

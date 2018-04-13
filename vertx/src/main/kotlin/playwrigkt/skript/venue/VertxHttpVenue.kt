@@ -1,6 +1,5 @@
 package playwrigkt.skript.venue
 
-import io.vertx.core.MultiMap
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.HttpMethod
 import io.vertx.core.http.HttpServer
@@ -10,6 +9,7 @@ import org.funktionale.option.firstOption
 import org.funktionale.tries.Try
 import org.slf4j.LoggerFactory
 import playwrigkt.skript.Skript
+import playwrigkt.skript.vertx.ex.toMap
 import playwrigkt.skript.http.*
 import playwrigkt.skript.produktion.VertxHttpProduktion
 import playwrigkt.skript.result.AsyncResult
@@ -37,8 +37,8 @@ class VertxHttpVenue(val server: HttpServer): HttpServerVenue {
                     .orNull()
                     ?.let {produktion -> produktion.endpoint.request(uri, method, headers, body, path).flatMap(produktion::invoke) }
                     ?.map { serverRequest.response()
-                            .setStatusCode(it.status)
-                            .setStatusMessage(it.statusText)
+                            .setStatusCode(it.status.code)
+                            .setStatusMessage(it.status.message)
                             .putHeaders(it.headers)
                             .end(Buffer.buffer(it.responseBody))
                     }
@@ -72,7 +72,6 @@ class VertxHttpVenue(val server: HttpServer): HttpServerVenue {
                 HttpMethod.OTHER -> Http.Method.Other("")
             }
 
-    private fun MultiMap.toMap(): Map<String, List<String>> = this.names().map { it to this.getAll(it)}.toMap()
 
     private fun HttpServerRequest.body(): AsyncResult<ByteArray> {
         val result = CompletableResult<Buffer>()

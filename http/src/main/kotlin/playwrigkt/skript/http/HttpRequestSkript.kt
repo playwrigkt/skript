@@ -56,7 +56,7 @@ class HttpRequestSkript: Skript<Http.Client.Request, Http.Client.Response, HttpR
         private fun firstMatch(httpClientResponse: Http.Client.Response): (Option<Skript<Http.Client.Response, O, Troupe>>, Pair<IntRange, Skript<Http.Client.Response, O, Troupe>>) -> Option<Skript<Http.Client.Response, O, Troupe>> = {
             skript, candidate ->
             skript.orElse {
-                if(candidate.first.contains(httpClientResponse.status)) {
+                if(candidate.first.contains(httpClientResponse.status.code)) {
                     candidate.second.toOption()
                 }    else {
                     Option.empty()

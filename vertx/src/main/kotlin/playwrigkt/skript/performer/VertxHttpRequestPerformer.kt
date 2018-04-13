@@ -5,6 +5,7 @@ import io.vertx.core.http.HttpClient
 import io.vertx.core.http.HttpClientRequest
 import io.vertx.core.http.HttpClientResponse
 import io.vertx.core.http.HttpMethod
+import playwrigkt.skript.vertx.ex.toMap
 import playwrigkt.skript.http.*
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.CompletableResult
@@ -22,10 +23,12 @@ data class VertxHttpRequestPerformer(val httpClient: HttpClient): HttpRequestPer
             val result = CompletableResult<Buffer>()
             it.bodyHandler(result::succeed)
             Http.Client.Response(
-                    it.statusCode(),
+                    Http.Status(it.statusCode(), it.statusMessage()),
+                    it.headers().toMap(),
                     result.map { it.bytes })
         }
     }
+
     fun method(httpClientRequest: Http.Client.Request):  HttpClientRequest =
         when(httpClientRequest.method) {
             Http.Method.Get -> httpClient.get(httpClientRequest.uri())
