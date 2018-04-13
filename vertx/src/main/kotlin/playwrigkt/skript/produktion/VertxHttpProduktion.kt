@@ -1,7 +1,8 @@
 package playwrigkt.skript.produktion
 
 import playwrigkt.skript.Skript
-import playwrigkt.skript.http.*
+import playwrigkt.skript.http.Http
+import playwrigkt.skript.http.HttpError
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.CompletableResult
 import playwrigkt.skript.result.toAsyncResult

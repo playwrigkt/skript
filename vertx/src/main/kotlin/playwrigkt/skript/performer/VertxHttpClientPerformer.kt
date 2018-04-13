@@ -5,10 +5,10 @@ import io.vertx.core.http.HttpClient
 import io.vertx.core.http.HttpClientRequest
 import io.vertx.core.http.HttpClientResponse
 import io.vertx.core.http.HttpMethod
-import playwrigkt.skript.vertx.ex.toMap
-import playwrigkt.skript.http.*
+import playwrigkt.skript.http.Http
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.CompletableResult
+import playwrigkt.skript.vertx.ex.toMap
 
 data class VertxHttpClientPerformer(val httpClient: HttpClient): HttpClientPerformer {
     override fun perform(httpClientRequest: Http.Client.Request): AsyncResult<Http.Client.Response> {

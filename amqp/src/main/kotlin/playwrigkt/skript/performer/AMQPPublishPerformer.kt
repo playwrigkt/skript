@@ -3,7 +3,6 @@ package playwrigkt.skript.performer
 import com.rabbitmq.client.AMQP
 import com.rabbitmq.client.Channel
 import org.funktionale.tries.Try
-import playwrigkt.skript.performer.QueuePublishPerformer
 import playwrigkt.skript.queue.QueueMessage
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.toAsyncResult

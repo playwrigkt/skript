@@ -1,9 +1,9 @@
 package playwrigkt.skript.http
 
-import playwrigkt.skript.result.AsyncResult
 import org.funktionale.option.getOrElse
 import org.funktionale.option.toOption
 import org.funktionale.tries.Try
+import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.toAsyncResult
 
 sealed class HttpError: Throwable() {
