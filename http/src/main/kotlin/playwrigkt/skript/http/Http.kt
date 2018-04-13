@@ -81,6 +81,31 @@ data class HttpEndpoint(
 }
 
 sealed class Http {
+    data class Status(val code: Int, val message: String) {
+        companion object {
+
+            val OK = Status(200, "OK")
+            val Created = Status(201, "Created")
+            val Accepted = Status(202, "Accepted")
+            val NonAuthoritativeInformation = Status(203, "Non-Authoritative Information")
+            val NoContent = Status(204, "No Content")
+
+            val BadRequest = Status(400, "Bad Request")
+            val Unauthorized = Status(401, "Unauthorized")
+            val PaymentRequest = Status(402, "Payment Required")
+            val Forbidden = Status(403, "Forbidden")
+            val NotFound = Status(404, "Not Found")
+            val MethodNotAlowed = Status(405, "Method Not Allowed")
+            val ImATeapot = Status(418, "I'm a teapot")
+
+            val InternalServerError = Status(500, "Internal Server Error")
+            val NotImplemented = Status(501, "Not Implemented")
+            val BadGateway = Status(502, "Bad Gateway")
+            val ServiceUnavailable = Status(503, "Service Unavailable")
+            val GatewayTimeout = Status(504, "GatewayTimeout")
+        }
+        //Todo implement status messages
+    }
     sealed class Method {
         fun matches(other: Method) =
                 when(other) {
@@ -113,7 +138,6 @@ sealed class Http {
                               val queryParameters: Map<String, String>,
                               val headers: Map<String, List<String>>,
                               val body: AsyncResult<T>): Server() {
-
             fun <U> flatMapBody(parse: (T) -> AsyncResult<U>): Request<U> =
                     Request(
                             method,
@@ -134,6 +158,8 @@ sealed class Http {
         }
         data class Response(
                 val status: Int,
+                val statusText: String,
+                val headers: Map<String, List<String>>,
                 val responseBody: ByteArray
         ): Server()
     }
@@ -152,6 +178,7 @@ sealed class Http {
                     pathParameters.toList().fold(uriTemplate) { uri, parameter -> uri.replace("{${parameter.first}}", parameter.second) }
         }
 
+        //TODO headers and statusMessage
         data class Response(
                 val status: Int,
                 val responseBody: AsyncResult<ByteArray>): Client()

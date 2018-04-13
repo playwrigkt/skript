@@ -136,7 +136,6 @@ class UserHttpTest: StringSpec() {
                         .deserialize(UserProfile::class.java))
 
         "get a user via http" {
-            val performer = VertxHttpRequestPerformer(vertx.createHttpClient(HttpClientOptions().setDefaultPort(port)))
             val userId = UUID.randomUUID().toString()
             val password = "pass10"
             val userName = "sally10"

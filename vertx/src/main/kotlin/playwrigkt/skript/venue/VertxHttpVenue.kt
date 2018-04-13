@@ -2,8 +2,10 @@ package playwrigkt.skript.venue
 
 import io.vertx.core.MultiMap
 import io.vertx.core.buffer.Buffer
+import io.vertx.core.http.HttpMethod
 import io.vertx.core.http.HttpServer
 import io.vertx.core.http.HttpServerRequest
+import io.vertx.core.http.HttpServerResponse
 import org.funktionale.option.firstOption
 import org.funktionale.tries.Try
 import org.slf4j.LoggerFactory
@@ -34,7 +36,12 @@ class VertxHttpVenue(val server: HttpServer): HttpServerVenue {
                     .firstOption { it.endpoint.matches(method, headers, path)}
                     .orNull()
                     ?.let {produktion -> produktion.endpoint.request(uri, method, headers, body, path).flatMap(produktion::invoke) }
-                    ?.map { serverRequest.response().setStatusCode(it.status).end(Buffer.buffer(it.responseBody)) }
+                    ?.map { serverRequest.response()
+                            .setStatusCode(it.status)
+                            .setStatusMessage(it.statusText)
+                            .putHeaders(it.headers)
+                            .end(Buffer.buffer(it.responseBody))
+                    }
                     ?.recover {
                         log.debug("error handling request: {}", it)
                         Try { serverRequest.response().setStatusCode(500).end() }.toAsyncResult()
@@ -45,18 +52,24 @@ class VertxHttpVenue(val server: HttpServer): HttpServerVenue {
     }
 
 
-    private fun io.vertx.core.http.HttpMethod.toHttpMethod(): Http.Method =
+    private fun HttpServerResponse.putHeaders(headers: Map<String, List<String>>): HttpServerResponse {
+        headers.forEach { k, v ->
+            this.putHeader(k, v)
+        }
+        return this
+    }
+    private fun HttpMethod.toHttpMethod(): Http.Method =
             when(this) {
-                io.vertx.core.http.HttpMethod.POST -> Http.Method.Post
-                io.vertx.core.http.HttpMethod.GET -> Http.Method.Get
-                io.vertx.core.http.HttpMethod.PUT -> Http.Method.Put
-                io.vertx.core.http.HttpMethod.PATCH-> Http.Method.Patch
-                io.vertx.core.http.HttpMethod.DELETE -> Http.Method.Delete
-                io.vertx.core.http.HttpMethod.HEAD -> Http.Method.Head
-                io.vertx.core.http.HttpMethod.OPTIONS -> Http.Method.Options
-                io.vertx.core.http.HttpMethod.TRACE -> Http.Method.Trace
-                io.vertx.core.http.HttpMethod.CONNECT -> Http.Method.Connect
-                io.vertx.core.http.HttpMethod.OTHER -> Http.Method.Other("")
+                HttpMethod.POST -> Http.Method.Post
+                HttpMethod.GET -> Http.Method.Get
+                HttpMethod.PUT -> Http.Method.Put
+                HttpMethod.PATCH-> Http.Method.Patch
+                HttpMethod.DELETE -> Http.Method.Delete
+                HttpMethod.HEAD -> Http.Method.Head
+                HttpMethod.OPTIONS -> Http.Method.Options
+                HttpMethod.TRACE -> Http.Method.Trace
+                HttpMethod.CONNECT -> Http.Method.Connect
+                HttpMethod.OTHER -> Http.Method.Other("")
             }
 
     private fun MultiMap.toMap(): Map<String, List<String>> = this.names().map { it to this.getAll(it)}.toMap()

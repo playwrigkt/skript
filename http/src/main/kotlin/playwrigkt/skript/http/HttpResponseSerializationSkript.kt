@@ -13,6 +13,6 @@ data class HttpResponseSerializationSkript<I, Troupe>(
     override fun run(i: I, troupe: Troupe): AsyncResult<Http.Server.Response> =
             troupe.getSerializePerformer()
                     .flatMap { serializePerformer -> serializePerformer.serialize(SerializeCommand.Serialize(i)) }
-                    .map { Http.Server.Response(200, it) }
+                    .map { Http.Server.Response(200, "OK", emptyMap(), it) }
                     .recover { Try { errorMappig(it) }.toAsyncResult() }
 }

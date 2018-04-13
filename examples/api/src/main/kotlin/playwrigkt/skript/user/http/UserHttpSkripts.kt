@@ -10,7 +10,7 @@ import playwrigkt.skript.user.UserSkripts
 import playwrigkt.skript.user.models.UserNameAndPassword
 import playwrigkt.skript.user.models.UserProfileAndPassword
 
-val ERROR_SERVER_RESPONSE_MAPPER: (Throwable) -> Http.Server.Response = { Http.Server.Response(500, "error".toByteArray()) }
+val ERROR_SERVER_RESPONSE_MAPPER: (Throwable) -> Http.Server.Response = { Http.Server.Response(500, "Internal Server Error", emptyMap(), "error".toByteArray()) }
 
 val createUserHttpEndpointSkript =
         Skript.identity<Http.Server.Request<ByteArray>, ApplicationTroupe>()
