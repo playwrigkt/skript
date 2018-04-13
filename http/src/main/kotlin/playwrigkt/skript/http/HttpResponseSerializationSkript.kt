@@ -8,11 +8,11 @@ import playwrigkt.skript.result.toAsyncResult
 import playwrigkt.skript.troupe.SerializeTroupe
 
 data class HttpResponseSerializationSkript<I, Troupe>(
-        val errorMappig: (Throwable) -> HttpServerResponse
-): Skript<I, HttpServerResponse, Troupe> where Troupe: SerializeTroupe {
-    override fun run(i: I, troupe: Troupe): AsyncResult<HttpServerResponse> =
+        val errorMappig: (Throwable) -> Http.Server.Response
+): Skript<I, Http.Server.Response, Troupe> where Troupe: SerializeTroupe {
+    override fun run(i: I, troupe: Troupe): AsyncResult<Http.Server.Response> =
             troupe.getSerializePerformer()
                     .flatMap { serializePerformer -> serializePerformer.serialize(SerializeCommand.Serialize(i)) }
-                    .map { HttpServerResponse(200, it) }
+                    .map { Http.Server.Response(200, it) }
                     .recover { Try { errorMappig(it) }.toAsyncResult() }
 }

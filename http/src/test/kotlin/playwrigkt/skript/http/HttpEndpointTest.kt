@@ -30,7 +30,7 @@ class HttpEndpointTest: StringSpec() {
             request?.headers shouldBe emptyMap()
             request?.body?.result()?.let { String(it) } shouldBe ""
             request?.pathParameters shouldBe mapOf("path" to "path", "param1" to "value1")
-            request?.queryParams shouldBe emptyMap<String, String>()
+            request?.queryParameters shouldBe emptyMap<String, String>()
         }
 
         "Match an endpoint that requires a header" {
@@ -68,7 +68,7 @@ class HttpEndpointTest: StringSpec() {
                     "Host" to listOf("localhost"))
             request?.body?.result()?.let { String(it) } shouldBe ""
             request?.pathParameters shouldBe mapOf("path" to "path", "param1" to "value1")
-            request?.queryParams shouldBe emptyMap<String, String>()
+            request?.queryParameters shouldBe emptyMap<String, String>()
         }
 
 

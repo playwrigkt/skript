@@ -16,6 +16,7 @@ import playwrigkt.skript.Async
 import playwrigkt.skript.Skript
 import playwrigkt.skript.auth.TokenAndInput
 import playwrigkt.skript.ex.*
+import playwrigkt.skript.http.Http
 import playwrigkt.skript.http.HttpMethod
 import playwrigkt.skript.http.HttpRequestSkript
 import playwrigkt.skript.performer.VertxHttpRequestPerformer
@@ -111,7 +112,7 @@ class UserHttpTest: StringSpec() {
                         body = Skript.identity<UserProfileAndPassword, ApplicationTroupe>().serialize())
                 .executeRequest()
                 .httpResponse(
-                        Skript.identity<playwrigkt.skript.http.HttpClientResponse, ApplicationTroupe>()
+                        Skript.identity<Http.Client.Response, ApplicationTroupe>()
                                 .flatMap { it.responseBody }
                                 .deserialize(UserProfile::class.java))
 
@@ -123,7 +124,7 @@ class UserHttpTest: StringSpec() {
                         body = Skript.identity<UserNameAndPassword, ApplicationTroupe>().serialize())
                 .executeRequest()
                 .httpResponse(
-                        Skript.identity<playwrigkt.skript.http.HttpClientResponse, ApplicationTroupe>()
+                        Skript.identity<Http.Client.Response, ApplicationTroupe>()
                                 .flatMap { it.responseBody }
                                 .deserialize(UserSession::class.java))
 
@@ -135,9 +136,10 @@ class UserHttpTest: StringSpec() {
                     headers = Skript.map { mapOf("Authorization" to listOf(it.token)) }
                 )
                 .executeRequest()
-                .httpResponse(Skript.identity<playwrigkt.skript.http.HttpClientResponse, ApplicationTroupe>()
+                .httpResponse(Skript.identity<Http.Client.Response, ApplicationTroupe>()
                         .flatMap { it.responseBody }
                         .deserialize(UserProfile::class.java))
+
         "get a user via http" {
             val performer = VertxHttpRequestPerformer(vertx.createHttpClient(HttpClientOptions().setDefaultPort(port)))
             val userId = UUID.randomUUID().toString()

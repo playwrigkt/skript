@@ -67,7 +67,7 @@ class VertxHttpVenue(val server: HttpServer): HttpServerVenue {
         return result.map { it.bytes }
     }
 
-    override fun <Troupe> produktion(skript: Skript<playwrigkt.skript.http.HttpServerRequest<ByteArray>, HttpServerResponse, Troupe>,
+    override fun <Troupe> produktion(skript: Skript<Http.Server.Request<ByteArray>, Http.Server.Response, Troupe>,
                                      stageManager: StageManager<Troupe>,
                                      rule: HttpEndpoint): AsyncResult<VertxHttpProduktion<Troupe>> =
         Try {
