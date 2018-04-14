@@ -114,9 +114,7 @@ abstract class UserServiceSpec : StringSpec() {
                     userService.createUser(UserProfileAndPassword(user, password)),
                     user)
 
-            val expectedError = SQLError.OnCommand(
-                    SQLCommand.Query(SQLStatement.Parameterized(ValidatePasswordForUserId.selectUserPassword, listOf(userId, "bad"))),
-                    UserError.AuthenticationFailed)
+            val expectedError = UserError.AuthenticationFailed
             awaitFailedFuture(
                     userService.loginUser(userAndPassword.copy(password = "bad")),
                     expectedError)
@@ -134,9 +132,7 @@ abstract class UserServiceSpec : StringSpec() {
                     user)
 
             awaitSucceededFuture(userService.loginUser(userAndPassword))?.userId shouldBe userId
-            val expectedError = SQLError.OnCommand(
-                    SQLCommand.Query(SQLStatement.Parameterized(EnsureNoSessionExists.selectUserSessionExists, listOf(userId))),
-                    UserError.SessionAlreadyExists(userId))
+            val expectedError = UserError.SessionAlreadyExists(userId)
             awaitFailedFuture(
                     userService.loginUser(userAndPassword.copy(password = password)),
                     expectedError)
@@ -183,9 +179,7 @@ abstract class UserServiceSpec : StringSpec() {
 
             awaitFailedFuture(
                     userService.getUser(userId2, session.sessionKey),
-                    SQLError.OnCommand(
-                            SQLCommand.Query(SQLStatement.Parameterized(UserSQL.selectSessionByKey, listOf(session.sessionKey))),
-                            UserError.AuthenticationFailed))
+                    UserError.AuthenticationFailed)
         }
 
         "Not Allow a user with a bogus key to select another user" {
@@ -202,9 +196,7 @@ abstract class UserServiceSpec : StringSpec() {
 
             awaitFailedFuture(
                     userService.getUser(userId, sessionKey),
-                    SQLError.OnCommand(
-                            SQLCommand.Query(SQLStatement.Parameterized(UserSQL.selectSessionByKey, listOf(sessionKey))),
-                            UserError.AuthenticationFailed))
+                    UserError.AuthenticationFailed)
         }
     }
 

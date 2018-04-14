@@ -7,13 +7,13 @@ import playwrigkt.skript.troupe.SQLTroupe
 fun <Troupe> Skript<Unit, Unit, Troupe>.dropTableIfExists(tableName: String) where Troupe: SQLTroupe =
         this.andThen(SQLSkript.exec(SQLMapping.exec("DROP TABLE IF EXISTS $tableName")))
 
-fun dropTableIfExists(tableName: String): SQLSkript<Unit, Unit> =
+fun dropTableIfExists(tableName: String): Skript<Unit, Unit, SQLTroupe> =
         SQLSkript.exec(SQLMapping.exec("DROP TABLE IF EXISTS $tableName"))
 
 fun <Troupe> Skript<Unit, Unit, Troupe>.deleteAll(tableName: String): Skript<Unit, Unit, Troupe> where Troupe: SQLTroupe =
         this.andThen(SQLSkript.exec(SQLMapping.exec("DELETE FROM $tableName")))
 
-fun deleteAll(tableName: String): SQLSkript<Unit, Unit> =
+fun deleteAll(tableName: String): Skript<Unit, Unit, SQLTroupe> =
         SQLSkript.exec(SQLMapping.exec("DELETE FROM $tableName"))
 
 fun <I, O, J, Troupe> Skript<I, O, Troupe>.query(mapping: SQLQueryMapping<O, J>) where Troupe: SQLTroupe =

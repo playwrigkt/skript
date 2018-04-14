@@ -7,11 +7,8 @@ import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
 import org.slf4j.LoggerFactory
 import playwrigkt.skript.Skript
-import playwrigkt.skript.chatrooom.sql.query.authorizeChatroomSelectStatement
 import playwrigkt.skript.common.models.Reference
 import playwrigkt.skript.result.AsyncResult
-import playwrigkt.skript.sql.SQLCommand
-import playwrigkt.skript.sql.SQLError
 import playwrigkt.skript.sql.transaction.SQLTransactionSkript
 import playwrigkt.skript.stagemanager.ApplicationStageManager
 import playwrigkt.skript.troupe.ApplicationTroupe
@@ -166,9 +163,7 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
                                             playwrigkt.skript.chatrooom.models.ChatRoomPermissionKey.AddUserPermission.key,
                                             playwrigkt.skript.chatrooom.models.ChatRoomPermissionKey.RemoveUserPermission.key
                                     )))),
-                    SQLError.OnCommand(
-                            SQLCommand.Query(authorizeChatroomSelectStatement(chatRoomId, session.userId, playwrigkt.skript.chatrooom.models.ChatRoomPermissionKey.AddUserPermission.key)),
-                            UserError.AuthorizationFailed))
+                            UserError.AuthorizationFailed)
 
             awaitSucceededFuture(
                     stageManager().runWithTroupe(

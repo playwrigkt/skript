@@ -8,18 +8,12 @@ import playwrigkt.skript.ex.deserialize
 import playwrigkt.skript.produktion.Produktion
 import playwrigkt.skript.queue.QueueMessage
 import playwrigkt.skript.result.AsyncResult
-import playwrigkt.skript.sql.SQLCommand
-import playwrigkt.skript.sql.SQLError
-import playwrigkt.skript.sql.SQLStatement
 import playwrigkt.skript.stagemanager.ApplicationStageManager
 import playwrigkt.skript.troupe.ApplicationTroupe
 import playwrigkt.skript.user.extensions.schema.dropUserSchema
 import playwrigkt.skript.user.extensions.schema.initUserSchema
 import playwrigkt.skript.user.extensions.transaction.deleteAllUsers
 import playwrigkt.skript.user.models.*
-import playwrigkt.skript.user.sql.EnsureNoSessionExists
-import playwrigkt.skript.user.sql.UserSQL
-import playwrigkt.skript.user.sql.ValidatePasswordForUserId
 import playwrigkt.skript.venue.QueueVenue
 import java.util.*
 import java.util.concurrent.BlockingQueue
@@ -117,9 +111,7 @@ abstract class UserServiceSpec : StringSpec() {
                     userService.createUser(UserProfileAndPassword(user, password)),
                     user)
 
-            val expectedError = SQLError.OnCommand(
-                    SQLCommand.Query(SQLStatement.Parameterized(ValidatePasswordForUserId.selectUserPassword, listOf(userId, "bad"))),
-                    UserError.AuthenticationFailed)
+            val expectedError = UserError.AuthenticationFailed
             awaitFailedFuture(
                     userService.loginUser(userAndPassword.copy(password = "bad")),
                     expectedError)
@@ -137,9 +129,8 @@ abstract class UserServiceSpec : StringSpec() {
                     user)
 
             awaitSucceededFuture(userService.loginUser(userAndPassword))?.userId shouldBe userId
-            val expectedError = SQLError.OnCommand(
-                    SQLCommand.Query(SQLStatement.Parameterized(EnsureNoSessionExists.selectUserSessionExists, listOf(userId))),
-                    UserError.SessionAlreadyExists(userId))
+            val expectedError = UserError.SessionAlreadyExists(userId)
+
             awaitFailedFuture(
                     userService.loginUser(userAndPassword.copy(password = password)),
                     expectedError)
@@ -203,9 +194,7 @@ abstract class UserServiceSpec : StringSpec() {
 
             awaitFailedFuture(
                     userService.getUser(userId, sessionKey),
-                    SQLError.OnCommand(
-                            SQLCommand.Query(SQLStatement.Parameterized(UserSQL.selectSessionByKey, listOf(sessionKey))),
-                            UserError.AuthenticationFailed))
+                    UserError.AuthenticationFailed)
         }
     }
 

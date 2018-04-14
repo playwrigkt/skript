@@ -2,49 +2,72 @@ package playwrigkt.skript.sql
 
 import org.funktionale.tries.Try
 import playwrigkt.skript.Skript
+import playwrigkt.skript.ex.andThen
 import playwrigkt.skript.result.AsyncResult
+import playwrigkt.skript.result.toAsyncResult
 import playwrigkt.skript.troupe.SQLTroupe
 
 sealed class SQLSkript<IN, OUT>: Skript<IN, OUT, SQLTroupe> {
 
     companion object {
-        fun <IN, OUT> query(mapping: SQLMapping<IN, OUT, SQLCommand.Query, SQLResult.Query>): SQLSkript<IN, OUT> = Query(mapping)
-        fun <IN, OUT> update(mapping: SQLMapping<IN, OUT, SQLCommand.Update, SQLResult.Update>): SQLSkript<IN, OUT> = Update(mapping)
-        fun <IN, OUT> exec(mapping: SQLMapping<IN, OUT, SQLCommand.Exec, SQLResult.Void>): SQLSkript<IN, OUT> = Exec(mapping)
+
+        private fun <IN, OUT, C: SQLCommand, R: SQLResult, Troupe> sql(toSql: Skript<IN, C, Troupe>,
+                                                                       sql: SQLSkript<C, R>,
+                                                                       mapResult: Skript<Pair<IN, R>, OUT, Troupe>): Skript<IN, OUT, Troupe> where Troupe: SQLTroupe =
+                Skript
+                        .both(
+                                Skript.identity(),
+                                toSql.andThen(sql))
+                        .andThen(mapResult)
+
+        fun <IN, OUT, Troupe> query(toSql: Skript<IN, SQLCommand.Query, Troupe>,
+                                    mapResult: Skript<Pair<IN, SQLResult.Query>, OUT, Troupe>): Skript<IN, OUT, Troupe> where Troupe: SQLTroupe =
+                sql(toSql, Query, mapResult)
+
+        fun <IN, OUT, Troupe> update(toSql: Skript<IN, SQLCommand.Update, Troupe>,
+                                     mapResult: Skript<Pair<IN, SQLResult.Update>, OUT, Troupe>): Skript<IN, OUT, Troupe> where Troupe: SQLTroupe =
+                sql(toSql, Update, mapResult)
+
+        fun <IN, OUT, Troupe> exec(toSql: Skript<IN, SQLCommand.Exec, Troupe>,
+                                   mapResult: Skript<Pair<IN, SQLResult.Void>, OUT, Troupe>): Skript<IN, OUT, Troupe> where Troupe: SQLTroupe =
+                sql(toSql, Exec, mapResult)
+
+        fun <IN, OUT> query(mapping: SQLMapping<IN, OUT, SQLCommand.Query, SQLResult.Query>): Skript<IN, OUT, SQLTroupe> =
+                query(Skript.map(mapping::toSql), Skript.mapTry { mapping.mapResult(it.first, it.second) })
+
+
+
+        fun <IN, OUT> update(mapping: SQLMapping<IN, OUT, SQLCommand.Update, SQLResult.Update>): Skript<IN, OUT, SQLTroupe> =
+                update(Skript.map(mapping::toSql), Skript.mapTry { mapping.mapResult(it.first, it.second) })
+
+
+
+        fun <IN, OUT> exec(mapping: SQLMapping<IN, OUT, SQLCommand.Exec, SQLResult.Void>): Skript<IN, OUT, SQLTroupe> =
+                exec(Skript.map(mapping::toSql), Skript.mapTry { mapping.mapResult(it.first, it.second) })
     }
 
-    abstract val mapping: SQLMapping<IN, OUT, *, *>
 
-    private data class Query<IN, OUT>(override val mapping: SQLMapping<IN, OUT, SQLCommand.Query, SQLResult.Query>): SQLSkript<IN, OUT>() {
-        override fun run(i: IN, troupe: SQLTroupe): AsyncResult<OUT> {
-            val sqlCommand = mapping.toSql(i)
+    private object Query: SQLSkript<SQLCommand.Query, SQLResult.Query>() {
+        override fun run(i: SQLCommand.Query, troupe: SQLTroupe): AsyncResult<SQLResult.Query> {
             return troupe.getSQLPerformer()
-                    .flatMap { sqlPerformer -> sqlPerformer.query(sqlCommand) }
-                    .map { mapping.mapResult(i, it) }
-                    .flatMap(this::handleFailure)
-                    .recover { AsyncResult.failed(SQLError.OnCommand(sqlCommand, it)) }
+                    .flatMap { sqlPerformer -> sqlPerformer.query(i) }
+                    .recover { AsyncResult.failed(SQLError.OnCommand(i, it)) }
         }
     }
 
-    private data class Update<IN, OUT>(override val mapping: SQLMapping<IN, OUT, SQLCommand.Update, SQLResult.Update>): SQLSkript<IN, OUT>() {
-        override fun run(i: IN, troupe: SQLTroupe): AsyncResult<OUT> {
-            val sqlCommand = mapping.toSql(i)
+    private object Update: SQLSkript<SQLCommand.Update, SQLResult.Update>() {
+        override fun run(i: SQLCommand.Update, troupe: SQLTroupe): AsyncResult<SQLResult.Update> {
             return troupe.getSQLPerformer()
-                    .flatMap { sqlPerformer -> sqlPerformer.update(sqlCommand) }
-                    .map { mapping.mapResult(i, it) }
-                    .flatMap(this::handleFailure)
-                    .recover { AsyncResult.failed(SQLError.OnCommand(sqlCommand, it)) }
+                    .flatMap { sqlPerformer -> sqlPerformer.update(i) }
+                    .recover { AsyncResult.failed(SQLError.OnCommand(i, it)) }
         }
     }
 
-    private data class Exec<IN, OUT>(override val mapping: SQLMapping<IN, OUT, SQLCommand.Exec, SQLResult.Void>): SQLSkript<IN, OUT>() {
-        override fun run(i: IN, troupe: SQLTroupe): AsyncResult<OUT> {
-            val sqlCommand = mapping.toSql(i)
+    private object Exec: SQLSkript<SQLCommand.Exec, SQLResult.Void>() {
+        override fun run(i: SQLCommand.Exec, troupe: SQLTroupe): AsyncResult<SQLResult.Void> {
             return troupe.getSQLPerformer()
-                    .flatMap { sqlPerformer -> sqlPerformer.exec(sqlCommand) }
-                    .map { mapping.mapResult(i, it) }
-                    .flatMap(this::handleFailure)
-                    .recover { AsyncResult.failed(SQLError.OnCommand(sqlCommand, it)) }
+                    .flatMap { sqlPerformer -> sqlPerformer.exec(i) }
+                    .recover { AsyncResult.failed(SQLError.OnCommand(i, it)) }
         }
     }
 
