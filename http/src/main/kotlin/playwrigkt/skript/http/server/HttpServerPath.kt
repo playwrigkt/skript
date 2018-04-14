@@ -1,4 +1,4 @@
-package playwrigkt.skript.http
+package playwrigkt.skript.http.server
 
 import org.funktionale.option.Option
 import org.funktionale.option.toOption

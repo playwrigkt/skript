@@ -1,5 +1,5 @@
 package playwrigkt.skript.venue
 
-import playwrigkt.skript.http.Http
+import playwrigkt.skript.http.server.HttpServer
 
-typealias HttpServerVenue = Venue<Http.Server.Endpoint, Http.Server.Request<ByteArray>, Http.Server.Response>
+typealias HttpServerVenue = Venue<HttpServer.Endpoint, HttpServer.Request<ByteArray>, HttpServer.Response>

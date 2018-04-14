@@ -89,9 +89,9 @@ class VertxHttpServerVenue(val server: HttpServer): HttpServerVenue {
         return result.map { it.bytes }
     }
 
-    override fun <Troupe> produktion(skript: Skript<Http.Server.Request<ByteArray>, Http.Server.Response, Troupe>,
+    override fun <Troupe> produktion(skript: Skript<playwrigkt.skript.http.server.HttpServer.Request<ByteArray>, playwrigkt.skript.http.server.HttpServer.Response, Troupe>,
                                      stageManager: StageManager<Troupe>,
-                                     rule: Http.Server.Endpoint): AsyncResult<VertxHttpProduktion<Troupe>> =
+                                     rule: playwrigkt.skript.http.server.HttpServer.Endpoint): AsyncResult<VertxHttpProduktion<Troupe>> =
         Try {
             requestHandlers
                     .find { it.endpoint.matches(rule) }
@@ -101,13 +101,13 @@ class VertxHttpServerVenue(val server: HttpServer): HttpServerVenue {
                 .onSuccess { requestHandlers.add(it) }
                 .toAsyncResult()
 
-    fun removeHandler(httpEndpoint: Http.Server.Endpoint): Try<Unit> =
+    fun removeHandler(httpEndpoint: playwrigkt.skript.http.server.HttpServer.Endpoint): Try<Unit> =
         Try {
             if(!requestHandlers.removeAll { it.endpoint.matches(httpEndpoint) }) {
                 throw HttpError.EndpointNotHandled(httpEndpoint)
             }
         }
 
-    fun handles(httpEndpoint: Http.Server.Endpoint): Boolean =
+    fun handles(httpEndpoint: playwrigkt.skript.http.server.HttpServer.Endpoint): Boolean =
         requestHandlers.any { it.endpoint.matches(httpEndpoint) }
 }

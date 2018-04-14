@@ -5,10 +5,10 @@ import playwrigkt.skript.Skript
 import playwrigkt.skript.auth.TokenAndInput
 import playwrigkt.skript.ex.andThen
 import playwrigkt.skript.ex.serialize
-import playwrigkt.skript.http.Http
-import playwrigkt.skript.http.HttpError
-import playwrigkt.skript.http.HttpServerRequestDeserializationSkript
-import playwrigkt.skript.http.HttpServerResponseSerializationSkript
+import playwrigkt.skript.http.*
+import playwrigkt.skript.http.server.HttpServer
+import playwrigkt.skript.http.server.HttpServerRequestDeserializationSkript
+import playwrigkt.skript.http.server.HttpServerResponseSerializationSkript
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.troupe.ApplicationTroupe
 import playwrigkt.skript.user.UserSkripts
@@ -17,10 +17,10 @@ import playwrigkt.skript.user.models.UserProfile
 import playwrigkt.skript.user.models.UserProfileAndPassword
 import playwrigkt.skript.user.models.UserSession
 
-val ERROR_SERVER_RESPONSE_MAPPER: (Throwable) -> Http.Server.Response = { Http.Server.Response(Http.Status.InternalServerError, emptyMap(), AsyncResult.succeeded("Unhandled error".toByteArray())) }
+val ERROR_SERVER_RESPONSE_MAPPER: (Throwable) -> HttpServer.Response = { HttpServer.Response(Http.Status.InternalServerError, emptyMap(), AsyncResult.succeeded("Unhandled error".toByteArray())) }
 
 val createUserHttpEndpointSkript =
-        Skript.identity<Http.Server.Request<ByteArray>, ApplicationTroupe>()
+        Skript.identity<HttpServer.Request<ByteArray>, ApplicationTroupe>()
                 .andThen(HttpServerRequestDeserializationSkript(UserProfileAndPassword::class.java))
                 .flatMapWithTroupe { request, _ -> request.body }
                 .compose(UserSkripts.createSkript)
@@ -31,7 +31,7 @@ val createUserHttpEndpointSkript =
                         Skript.map(ERROR_SERVER_RESPONSE_MAPPER)))
 
 val loginUserHttpEndpointSkript =
-        Skript.identity<Http.Server.Request<ByteArray>, ApplicationTroupe>()
+        Skript.identity<HttpServer.Request<ByteArray>, ApplicationTroupe>()
                 .andThen(HttpServerRequestDeserializationSkript(UserNameAndPassword::class.java))
                 .flatMapWithTroupe { request, _ -> request.body }
                 .compose(UserSkripts.loginSkript)
@@ -42,7 +42,7 @@ val loginUserHttpEndpointSkript =
                         Skript.map(ERROR_SERVER_RESPONSE_MAPPER)))
 
 val getUserHttpEndpointSkript =
-        Skript.identity<Http.Server.Request<ByteArray>, ApplicationTroupe>()
+        Skript.identity<HttpServer.Request<ByteArray>, ApplicationTroupe>()
                 .mapTry {
                     Try {it.headers.get("Authorization")
                         ?.firstOrNull()

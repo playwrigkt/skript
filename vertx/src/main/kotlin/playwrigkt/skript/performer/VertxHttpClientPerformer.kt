@@ -11,7 +11,7 @@ import playwrigkt.skript.result.CompletableResult
 import playwrigkt.skript.vertx.ex.toMap
 
 data class VertxHttpClientPerformer(val httpClient: HttpClient): HttpClientPerformer {
-    override fun perform(httpClientRequest: Http.Client.Request): AsyncResult<Http.Client.Response> {
+    override fun perform(httpClientRequest: playwrigkt.skript.http.client.HttpClient.Request): AsyncResult<playwrigkt.skript.http.client.HttpClient.Response> {
         val vertxResult = CompletableResult<HttpClientResponse>()
         method(httpClientRequest)
                 .applyHeaders(httpClientRequest)
@@ -22,14 +22,14 @@ data class VertxHttpClientPerformer(val httpClient: HttpClient): HttpClientPerfo
         return vertxResult.map {
             val result = CompletableResult<Buffer>()
             it.bodyHandler(result::succeed)
-            Http.Client.Response(
+            playwrigkt.skript.http.client.HttpClient.Response(
                     Http.Status(it.statusCode(), it.statusMessage()),
                     it.headers().toMap(),
                     result.map { it.bytes })
         }
     }
 
-    fun method(httpClientRequest: Http.Client.Request):  HttpClientRequest =
+    fun method(httpClientRequest: playwrigkt.skript.http.client.HttpClient.Request):  HttpClientRequest =
         when(httpClientRequest.method) {
             Http.Method.Get -> httpClient.get(httpClientRequest.uri())
             Http.Method.Put -> httpClient.put(httpClientRequest.uri())
@@ -44,10 +44,10 @@ data class VertxHttpClientPerformer(val httpClient: HttpClient): HttpClientPerfo
             Http.Method.All -> httpClient.get(httpClientRequest.uri())
         }
 
-    private fun HttpClientRequest.applyHeaders(clientRequest: Http.Client.Request): HttpClientRequest =
+    private fun HttpClientRequest.applyHeaders(clientRequest: playwrigkt.skript.http.client.HttpClient.Request): HttpClientRequest =
             clientRequest.headers.toList().fold(this) { vertxRequest, header -> vertxRequest.putHeader(header.first, header.second) }
 
-    private fun HttpClientRequest.body(clientRequest: Http.Client.Request): AsyncResult<Unit> =
+    private fun HttpClientRequest.body(clientRequest: playwrigkt.skript.http.client.HttpClient.Request): AsyncResult<Unit> =
             clientRequest.body.map { body ->
                 this
                         .putHeader("Content-Length", body.size.toString())

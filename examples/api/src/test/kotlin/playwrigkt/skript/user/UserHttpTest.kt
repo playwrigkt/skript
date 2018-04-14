@@ -16,6 +16,7 @@ import playwrigkt.skript.Skript
 import playwrigkt.skript.auth.TokenAndInput
 import playwrigkt.skript.ex.*
 import playwrigkt.skript.http.Http
+import playwrigkt.skript.http.client.HttpClient
 import playwrigkt.skript.result.VertxResult
 import playwrigkt.skript.stagemanager.*
 import playwrigkt.skript.troupe.ApplicationTroupe
@@ -109,7 +110,7 @@ class UserHttpTest: StringSpec() {
                         body = Skript.identity<UserProfileAndPassword, ApplicationTroupe>().serialize())
                 .executeRequest()
                 .httpResponse(
-                        Skript.identity<Http.Client.Response, ApplicationTroupe>()
+                        Skript.identity<HttpClient.Response, ApplicationTroupe>()
                                 .flatMap { it.responseBody }
                                 .deserialize(UserProfile::class.java))
 
@@ -125,7 +126,7 @@ class UserHttpTest: StringSpec() {
                         body = Skript.identity<UserNameAndPassword, ApplicationTroupe>().serialize())
                 .executeRequest()
                 .httpResponse(
-                        Skript.identity<Http.Client.Response, ApplicationTroupe>()
+                        Skript.identity<HttpClient.Response, ApplicationTroupe>()
                                 .flatMap { it.responseBody }
                                 .deserialize(UserSession::class.java))
 
@@ -141,7 +142,7 @@ class UserHttpTest: StringSpec() {
                     headers = Skript.map { mapOf("Authorization" to listOf(it.token)) }
                 )
                 .executeRequest()
-                .httpResponse(Skript.identity<Http.Client.Response, ApplicationTroupe>()
+                .httpResponse(Skript.identity<HttpClient.Response, ApplicationTroupe>()
                         .flatMap { it.responseBody }
                         .deserialize(UserProfile::class.java))
 

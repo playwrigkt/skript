@@ -1,8 +1,8 @@
 package playwrigkt.skript.performer
 
-import playwrigkt.skript.http.Http
+import playwrigkt.skript.http.client.HttpClient
 import playwrigkt.skript.result.AsyncResult
 
 interface HttpClientPerformer {
-    fun perform(httpClientRequest: Http.Client.Request): AsyncResult<Http.Client.Response>
+    fun perform(httpClientRequest: HttpClient.Request): AsyncResult<HttpClient.Response>
 }

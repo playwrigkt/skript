@@ -3,23 +3,24 @@ package playwrigkt.skript.http
 import io.kotlintest.fail
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
+import playwrigkt.skript.http.server.HttpServer
 import playwrigkt.skript.result.AsyncResult
 import java.util.*
 
 class HttpEndpointTest: StringSpec() {
     init {
         "Match an endopint with an identical path literal" {
-            Http.Server.Endpoint("/path", emptyMap(), Http.Method.Get)
+            HttpServer.Endpoint("/path", emptyMap(), Http.Method.Get)
                     .matches(Http.Method.Get, emptyMap(), "/path") shouldBe true
         }
 
         "Match an endpoint with a parameterized path literal" {
-            Http.Server.Endpoint("/path/{param1}", emptyMap(), Http.Method.Get)
+            HttpServer.Endpoint("/path/{param1}", emptyMap(), Http.Method.Get)
                     .matches(Http.Method.Get, emptyMap(), "/path/value1") shouldBe true
         }
 
         "create a request from endpoint with a parameterized path literal" {
-            val request = Http.Server.Endpoint("/path/{param1}", emptyMap(), Http.Method.Get)
+            val request = HttpServer.Endpoint("/path/{param1}", emptyMap(), Http.Method.Get)
                     .request("http://localhost/path/value1",
                             Http.Method.Get, emptyMap(),
                             AsyncResult.succeeded("".toByteArray()),
@@ -34,12 +35,12 @@ class HttpEndpointTest: StringSpec() {
         }
 
         "Match an endpoint that requires a header" {
-            Http.Server.Endpoint("/path", mapOf("Authorization" to emptyList()), Http.Method.Get)
+            HttpServer.Endpoint("/path", mapOf("Authorization" to emptyList()), Http.Method.Get)
                     .matches(Http.Method.Get, mapOf("Authorization" to listOf(UUID.randomUUID().toString())), "/path") shouldBe true
         }
 
         "Match an endpoint that requires a header when there are extra headers" {
-            Http.Server.Endpoint("/path", mapOf("Authorization" to emptyList()), Http.Method.Get)
+            HttpServer.Endpoint("/path", mapOf("Authorization" to emptyList()), Http.Method.Get)
                     .matches(
                             Http.Method.Get,
                             mapOf(
@@ -50,7 +51,7 @@ class HttpEndpointTest: StringSpec() {
 
         "create a request from an endpoint with path parameters and headers" {
             val authHeaderValue = UUID.randomUUID().toString()
-            val result =  Http.Server.Endpoint("/path/{param1}", mapOf("Authorization" to emptyList()), Http.Method.Get)
+            val result =  HttpServer.Endpoint("/path/{param1}", mapOf("Authorization" to emptyList()), Http.Method.Get)
                     .request("http://localhost/path/value1",
                             Http.Method.Get,
                             mapOf(
