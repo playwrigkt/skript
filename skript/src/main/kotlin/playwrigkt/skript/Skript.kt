@@ -37,6 +37,8 @@ interface Skript<in I, O, Troupe> {
 
     fun <L, R> both(left: Skript<O, L, Troupe>, right: Skript<O, R, Troupe>): Skript<I, Pair<L, R>, Troupe> = this.compose(Both(left, right))
 
+    fun <O2> split(other: Skript<O, O2, Troupe>): Skript<I, Pair<O, O2>, Troupe> = this.compose(Both(identity<O, Troupe>(), other))
+
     fun <J, O2>whenRight(doOptionally: Skript<J, O2, Troupe>, control: Skript<O, Either<O2, J>, Troupe>): Skript<I, O2, Troupe> =
         this.compose(Branch(control, identity(), doOptionally))
 
