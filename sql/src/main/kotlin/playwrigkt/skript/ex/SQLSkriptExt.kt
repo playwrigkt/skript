@@ -24,3 +24,12 @@ fun <I, O, J, Troupe> Skript<I, O, Troupe>.update(mapping: SQLUpdateMapping<O, J
 
 fun <I, O, J, Troupe> Skript<I, O, Troupe>.exec(mapping: SQLExecMapping<O, J>) where Troupe: SQLTroupe =
         this.andThen(SQLSkript.exec(mapping))
+
+fun <I, Troupe> Skript<I, SQLCommand.Query, Troupe>.query() where Troupe: SQLTroupe =
+        this.andThen(SQLSkript.Query)
+
+fun <I, Troupe> Skript<I, SQLCommand.Update, Troupe>.update() where Troupe: SQLTroupe =
+        this.andThen(SQLSkript.Update)
+
+fun <I, Troupe> Skript<I, SQLCommand.Exec, Troupe>.exec() where Troupe: SQLTroupe =
+        this.andThen(SQLSkript.Exec)

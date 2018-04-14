@@ -47,7 +47,7 @@ sealed class SQLSkript<IN, OUT>: Skript<IN, OUT, SQLTroupe> {
     }
 
 
-    private object Query: SQLSkript<SQLCommand.Query, SQLResult.Query>() {
+    object Query: SQLSkript<SQLCommand.Query, SQLResult.Query>() {
         override fun run(i: SQLCommand.Query, troupe: SQLTroupe): AsyncResult<SQLResult.Query> {
             return troupe.getSQLPerformer()
                     .flatMap { sqlPerformer -> sqlPerformer.query(i) }
@@ -55,7 +55,7 @@ sealed class SQLSkript<IN, OUT>: Skript<IN, OUT, SQLTroupe> {
         }
     }
 
-    private object Update: SQLSkript<SQLCommand.Update, SQLResult.Update>() {
+    object Update: SQLSkript<SQLCommand.Update, SQLResult.Update>() {
         override fun run(i: SQLCommand.Update, troupe: SQLTroupe): AsyncResult<SQLResult.Update> {
             return troupe.getSQLPerformer()
                     .flatMap { sqlPerformer -> sqlPerformer.update(i) }
@@ -63,7 +63,7 @@ sealed class SQLSkript<IN, OUT>: Skript<IN, OUT, SQLTroupe> {
         }
     }
 
-    private object Exec: SQLSkript<SQLCommand.Exec, SQLResult.Void>() {
+    object Exec: SQLSkript<SQLCommand.Exec, SQLResult.Void>() {
         override fun run(i: SQLCommand.Exec, troupe: SQLTroupe): AsyncResult<SQLResult.Void> {
             return troupe.getSQLPerformer()
                     .flatMap { sqlPerformer -> sqlPerformer.exec(i) }
