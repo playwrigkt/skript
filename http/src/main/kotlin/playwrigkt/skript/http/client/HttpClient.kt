@@ -9,19 +9,19 @@ sealed class HttpClient {
                    val port: Int?,
                    val pathTemplate: String,
                    val pathParameters: Map<String, String>,
+                   //TODO should be map<String, List<String>>
                    val queryParameters: Map<String, String>) {
         val materialized: String by lazy {
-            "${uriBase}/${pathString.removePrefix("/")}?${queryString}"
+            "${uriBase}/${pathParts.joinToString("/")}?${queryString}"
         }
 
         private val uriBase: String = "http${if(ssl) "s" else "" }://$host${port?.let{":$it"}}"
 
-        private val pathString: String by lazy {
-            pathParameters
-                    .toList()
-                    .fold(pathTemplate) { uri, parameter ->
-                        uri.replace("{${parameter.first}}", parameter.second)
-                    }
+        val pathParts: List<String> by lazy {
+            pathTemplate
+                    .split("/")
+                    .filter { it.isNotBlank() }
+                    .map { pathParameters.get(it.removePrefix("{").removeSuffix("}"))?:it }
         }
 
         val queryString: String by lazy {
@@ -34,9 +34,7 @@ sealed class HttpClient {
     data class Request(val method: Http.Method,
                        val uri: URI,
                        val headers: Map<String, List<String>>,
-                       val body: AsyncResult<ByteArray>): HttpClient() {
-
-    }
+                       val body: AsyncResult<ByteArray>): HttpClient()
 
     data class Response(
             val status: Http.Status,

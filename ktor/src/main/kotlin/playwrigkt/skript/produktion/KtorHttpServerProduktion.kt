@@ -1,25 +1,24 @@
-package playwrigkt.skript.http
+package playwrigkt.skript.produktion
 
+import io.ktor.application.ApplicationCall
+import io.ktor.application.call
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
+import io.ktor.pipeline.PipelineContext
+import io.ktor.request.httpMethod
+import io.ktor.request.path
+import io.ktor.request.queryString
+import io.ktor.request.uri
+import io.ktor.response.header
+import io.ktor.response.respondWrite
+import io.ktor.util.toMap
 import playwrigkt.skript.Skript
+import playwrigkt.skript.coroutine.ex.mapSuspend
+import playwrigkt.skript.http.Http
 import playwrigkt.skript.http.server.HttpServer
-import playwrigkt.skript.produktion.Produktion
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.stagemanager.StageManager
-import playwrigkt.skript.venue.HttpServerVenue
-import io.ktor.application.*
-import io.ktor.http.*
-import io.ktor.pipeline.PipelineContext
-import io.ktor.request.*
-import io.ktor.response.*
-import io.ktor.routing.*
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
-import io.ktor.util.toMap
-import org.funktionale.tries.Try
-import playwrigkt.skript.coroutine.ex.mapSuspend
-import playwrigkt.skript.result.CompletableResult
-import playwrigkt.skript.result.LightweightSynchronized
-import java.util.concurrent.TimeUnit
+import playwrigkt.skript.venue.KtorHttpServerVenue
 
 class KtorHttpServerProduktion<Troupe>(val endpoint: HttpServer.Endpoint,
                                        val httpServerVenue: KtorHttpServerVenue,
@@ -35,7 +34,8 @@ class KtorHttpServerProduktion<Troupe>(val endpoint: HttpServer.Endpoint,
                         context.call.request.queryString(),
                         context.call.request.headers.toMap(),
                         //TODO use channel, read asynchronously
-                        AsyncResult.succeeded(context.call.request.receiveContent().inputStream().readAllBytes()))
+                        AsyncResult.succeeded(context.call.request)
+                                .mapSuspend { it.receiveContent().inputStream().readAllBytes() })
                 .flatMap { skript.run(it, stageManager.hireTroupe()) }
                 .flatMap(respond(context))
     }
@@ -84,62 +84,4 @@ class KtorHttpServerProduktion<Troupe>(val endpoint: HttpServer.Endpoint,
     override fun stop(): AsyncResult<Unit> = httpServerVenue.stop()
 
     override fun result(): AsyncResult<Unit> = httpServerVenue.result()
-}
-
-class KtorHttpServerVenue(val port: Int): HttpServerVenue, LightweightSynchronized() {
-    private val routing: Routing
-    private val server: NettyApplicationEngine
-    private val result = CompletableResult<Unit>()
-
-    init {
-
-        server = embeddedServer(Netty, port) { }
-
-        routing = Routing(server.application)
-
-        Try { server.start(wait = true) }
-                .onFailure(result::fail)
-    }
-
-
-    override fun <Troupe> produktion(skript: Skript<HttpServer.Request<ByteArray>, HttpServer.Response, Troupe>, stageManager: StageManager<Troupe>, rule: HttpServer.Endpoint): AsyncResult<out Produktion> =
-        AsyncResult.succeeded(KtorHttpServerProduktion(rule, this, skript, stageManager))
-                .mapSuspend {
-                    this.routeTo(it)
-                    it
-                }
-
-
-    fun result(): AsyncResult<Unit> = result
-
-    fun stop(): AsyncResult<Unit> =
-        lock {
-            if(!result.isComplete()) {
-                Try { server.stop(1000, 5000, TimeUnit.SECONDS) }
-                        .onSuccess(result::succeed)
-                        .onFailure(result::fail)
-            }
-            AsyncResult.failed(HttpError.AlreadyStopped)
-        }
-
-    private fun <Troupe> routeTo(produktion: KtorHttpServerProduktion<Troupe>) {
-       routing
-               .method(method(produktion)) {}
-                .route(produktion.endpoint.path) { }
-                .addHeaders(produktion)
-                .handle { produktion.handle(this) }
-    }
-
-    private fun Route.addHeaders(rule: KtorHttpServerProduktion<*>): Route {
-        return rule.endpoint.headers
-                .toList()
-                .flatMap { entry -> entry.second.map { entry.first to it } }
-                .fold(this) { route, header ->
-                    route.header(header.first, header.second) { }
-                }
-    }
-
-    private fun method(produktion: KtorHttpServerProduktion<*>): HttpMethod {
-        return method(produktion.endpoint.method)
-    }
 }
