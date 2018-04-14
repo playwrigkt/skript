@@ -31,17 +31,17 @@ data class VertxHttpClientPerformer(val httpClient: HttpClient): HttpClientPerfo
 
     fun method(httpClientRequest: playwrigkt.skript.http.client.HttpClient.Request):  HttpClientRequest =
         when(httpClientRequest.method) {
-            Http.Method.Get -> httpClient.get(httpClientRequest.uri())
-            Http.Method.Put -> httpClient.put(httpClientRequest.uri())
-            Http.Method.Delete -> httpClient.delete(httpClientRequest.uri())
-            Http.Method.Post -> httpClient.post(httpClientRequest.uri())
-            Http.Method.Head -> httpClient.head(httpClientRequest.uri())
-            Http.Method.Options -> httpClient.options(httpClientRequest.uri())
-            Http.Method.Trace -> httpClient.request(HttpMethod.TRACE, httpClientRequest.uri())
-            Http.Method.Connect -> httpClient.request(HttpMethod.CONNECT, httpClientRequest.uri())
-            Http.Method.Patch -> httpClient.request(HttpMethod.PATCH, httpClientRequest.uri())
-            is Http.Method.Other -> httpClient.request(HttpMethod.OTHER, httpClientRequest.uri())
-            Http.Method.All -> httpClient.get(httpClientRequest.uri())
+            Http.Method.Get -> httpClient.get(httpClientRequest.uri.materialized)
+            Http.Method.Put -> httpClient.put(httpClientRequest.uri.materialized)
+            Http.Method.Delete -> httpClient.delete(httpClientRequest.uri.materialized)
+            Http.Method.Post -> httpClient.post(httpClientRequest.uri.materialized)
+            Http.Method.Head -> httpClient.head(httpClientRequest.uri.materialized)
+            Http.Method.Options -> httpClient.options(httpClientRequest.uri.materialized)
+            Http.Method.Trace -> httpClient.request(HttpMethod.TRACE, httpClientRequest.uri.materialized)
+            Http.Method.Connect -> httpClient.request(HttpMethod.CONNECT, httpClientRequest.uri.materialized)
+            Http.Method.Patch -> httpClient.request(HttpMethod.PATCH, httpClientRequest.uri.materialized)
+            is Http.Method.Other -> httpClient.request(HttpMethod.OTHER, httpClientRequest.uri.materialized)
+            Http.Method.All -> httpClient.get(httpClientRequest.uri.materialized)
         }
 
     private fun HttpClientRequest.applyHeaders(clientRequest: playwrigkt.skript.http.client.HttpClient.Request): HttpClientRequest =

@@ -106,7 +106,9 @@ class UserHttpTest: StringSpec() {
                                 useSsl = Skript.map { false },
                                 host = Skript.map { "localhost" },
                                 port = Skript.map { null },
-                                pathTemplate = Skript.map { "/users" }),
+                                pathTemplate = Skript.map { "/users" },
+                                pathParameters = Skript.map { emptyMap() },
+                                queryParameters = Skript.map { emptyMap() }),
                         body = Skript.identity<UserProfileAndPassword, ApplicationTroupe>().serialize())
                 .executeRequest()
                 .httpResponse(
@@ -122,7 +124,9 @@ class UserHttpTest: StringSpec() {
                                 useSsl = Skript.map { false },
                                 host = Skript.map { "localhost" },
                                 port = Skript.map { null },
-                                pathTemplate = Skript.map { "/login" }),
+                                pathTemplate = Skript.map { "/login" },
+                                pathParameters = Skript.map { emptyMap() },
+                                queryParameters = Skript.map { emptyMap() }),
                         body = Skript.identity<UserNameAndPassword, ApplicationTroupe>().serialize())
                 .executeRequest()
                 .httpResponse(
@@ -137,8 +141,9 @@ class UserHttpTest: StringSpec() {
                             useSsl = Skript.map { false },
                             host = Skript.map { "localhost" },
                             port = Skript.map { null },
-                            pathTemplate = Skript.map { "/users/{userId}" } ),
-                    pathParameters = Skript.map { mapOf("userId" to it.input) },
+                            pathTemplate = Skript.map { "/users/{userId}" },
+                            pathParameters = Skript.map { mapOf("userId" to it.input) },
+                            queryParameters = Skript.map { emptyMap() }),
                     headers = Skript.map { mapOf("Authorization" to listOf(it.token)) }
                 )
                 .executeRequest()

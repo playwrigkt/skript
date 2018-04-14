@@ -1,2 +1,2 @@
-include 'skript', 'produktion', 'serialize', 'sql', 'publisher', 'http', 'queue', 'jackson', 'coroutine-jdbc', 'vertx', 'amqp', 'examples:api', 'examples:operation-context-cache', 'pkrase'
+include 'skript', 'produktion', 'serialize', 'sql', 'publisher', 'http', 'queue', 'jackson', 'coroutine-jdbc', 'ktor', 'javalin', 'vertx', 'amqp', 'examples:api', 'examples:operation-context-cache', 'pkrase'
 rootProject.name = "skript"

@@ -1,5 +1,6 @@
 package playwrigkt.skript.performer
 
+import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
 import org.funktionale.tries.Try
 import playwrigkt.skript.result.AsyncResult

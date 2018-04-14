@@ -6,7 +6,7 @@ import playwrigkt.skript.http.client.*
 import playwrigkt.skript.troupe.HttpClientTroupe
 
 fun <I, O, Troupe> Skript<I, O, Troupe>.httpRequest(method: Http.Method,
-                                                    uri: Skript<O, String, Troupe>,
+                                                    uri: Skript<O, HttpClient.URI, Troupe>,
                                                     pathParameters: Skript<O, Map<String, String>, Troupe> = Skript.map { emptyMap() },
                                                     queryParameters: Skript<O, Map<String, String>, Troupe> = Skript.map { emptyMap() },
                                                     headers: Skript<O, Map<String, List<String>>, Troupe> = Skript.map { emptyMap() },
@@ -25,11 +25,15 @@ fun <I, O, Troupe> Skript<I, HttpClient.Response, Troupe>.httpResponse(skript: S
 fun <I, Troupe> uri(useSsl: Skript<I, Boolean, Troupe>,
                     host: Skript<I, String, Troupe>,
                     port: Skript<I, Int?, Troupe>,
-                    pathTemplate: Skript<I, String, Troupe>): Skript<I, String, Troupe> =
-        HttpClientUriMappingSkript(useSsl, host, port, pathTemplate)
+                    pathTemplate: Skript<I, String, Troupe>,
+                    pathParameters: Skript<I, Map<String, String>, Troupe>,
+                    queryParameters: Skript<I, Map<String, String>, Troupe>): Skript<I, HttpClient.URI, Troupe> =
+        HttpClientUriMappingSkript(useSsl, host, port, pathTemplate, pathParameters, queryParameters)
 
 fun <I, O, Troupe> Skript<I, O, Troupe>.uri(useSsl: Skript<O, Boolean, Troupe>,
-                    host: Skript<O, String, Troupe>,
-                    port: Skript<O, Int?, Troupe>,
-                    pathTemplate: Skript<O, String, Troupe>): Skript<I, String, Troupe> =
-        this.andThen(HttpClientUriMappingSkript(useSsl, host, port, pathTemplate))
+                                            host: Skript<O, String, Troupe>,
+                                            port: Skript<O, Int?, Troupe>,
+                                            pathTemplate: Skript<O, String, Troupe>,
+                                            pathParameters: Skript<O, Map<String, String>, Troupe>,
+                                            queryParameters: Skript<O, Map<String, String>, Troupe>): Skript<I, HttpClient.URI, Troupe> =
+        this.andThen(HttpClientUriMappingSkript(useSsl, host, port, pathTemplate, pathParameters, queryParameters))

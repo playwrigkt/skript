@@ -17,8 +17,8 @@ sealed class HttpServer {
             HttpPathRule(path.removePrefix("/"))
         }
         companion object {
-            fun queryParams(uri: String): Map<String, String> =
-                    uri.substringAfter("?").toOption()
+            fun queryParams(query: String): Map<String, String> =
+                    query.removePrefix("?").toOption()
                             .filter { it.isNotBlank() }
                             .map { it.split("&")
                                     .map { it.split("=") }
@@ -42,11 +42,12 @@ sealed class HttpServer {
 
         fun <T> request(requestUri: String,
                         method: Http.Method,
+                        path: String,
+                        query: String,
                         headers: Map<String, List<String>>,
-                        body: AsyncResult<T>,
-                        path: String): AsyncResult<Request<T>> =
+                        body: AsyncResult<T>): AsyncResult<Request<T>> =
                 pathRule.apply(path.removePrefix("/").removeSuffix("/"))
-                        .map { Try { Request<T>(method, requestUri, it, queryParams(requestUri), headers, body) } }
+                        .map { Try { Request<T>(method, requestUri, it, queryParams(query), headers, body) } }
                         .getOrElse { Try.Failure(HttpError.PathUnparsable(path, this)) }
                         .toAsyncResult()
 

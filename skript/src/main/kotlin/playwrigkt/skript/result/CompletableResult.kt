@@ -47,6 +47,18 @@ interface Completable<T> {
     }
 }
 
+abstract class LightweightSynchronized {
+    private val lock: ReentrantLock = ReentrantLock()
+
+    protected fun <T> lock(fn: () -> T): T {
+        lock.lockInterruptibly()
+        try {
+            return fn()
+        } finally {
+            lock.unlock()
+        }
+    }
+}
 interface CompletableResult<T>: AsyncResult<T>, Completable<T> {
     companion object {
         operator fun <T> invoke(): CompletableResult<T> = CompletableResultImpl()
@@ -63,10 +75,9 @@ interface CompletableResult<T>: AsyncResult<T>, Completable<T> {
         }
     }
 
-    private class CompletableResultImpl<T>: CompletableResult<T> {
+    private class CompletableResultImpl<T>: CompletableResult<T>, LightweightSynchronized() {
         @Volatile private var result: Result<T>? = null
         @Volatile private var handlers: Queue<ResultHandler<T>> = LinkedBlockingQueue()
-        private val lock: ReentrantLock = ReentrantLock()
 
         override fun <U> map(f: (T) -> U): AsyncResult<U> {
             val newResult = CompletableResultImpl<U>()
@@ -117,15 +128,6 @@ interface CompletableResult<T>: AsyncResult<T>, Completable<T> {
                 }
             }
             return newResult
-        }
-
-        private fun <T> lock(fn: () -> T) {
-            lock.lockInterruptibly()
-            try {
-                fn()
-            } finally {
-                lock.unlock()
-            }
         }
 
         override fun addHandler(handler: (Result<T>) -> Unit): Unit = lock {

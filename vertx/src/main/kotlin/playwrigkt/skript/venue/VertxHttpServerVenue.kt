@@ -30,13 +30,13 @@ class VertxHttpServerVenue(val server: HttpServer): HttpServerVenue {
             val uri = serverRequest.absoluteURI()
             val body = serverRequest.body()
             val path = serverRequest.path()
-
+            val query = serverRequest.query()
             log.debug("handling request \n\tmethod: {}\n\theaders: {}\n\turi: {}\n\tbody: {}\n\t: path", method, headers, uri, body, path)
 
             requestHandlers
                     .firstOption { it.endpoint.matches(method, headers, path)}
                     .orNull()
-                    ?.let {produktion -> produktion.endpoint.request(uri, method, headers, body, path).flatMap(produktion::invoke) }
+                    ?.let {produktion -> produktion.endpoint.request(uri, method, path, query, headers, body).flatMap(produktion::invoke) }
                     ?.flatMap {
                         val result = CompletableResult<Unit>()
                         val request = serverRequest.response()

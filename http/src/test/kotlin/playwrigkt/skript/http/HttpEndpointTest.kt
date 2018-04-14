@@ -22,9 +22,8 @@ class HttpEndpointTest: StringSpec() {
         "create a request from endpoint with a parameterized path literal" {
             val request = HttpServer.Endpoint("/path/{param1}", emptyMap(), Http.Method.Get)
                     .request("http://localhost/path/value1",
-                            Http.Method.Get, emptyMap(),
-                            AsyncResult.succeeded("".toByteArray()),
-                            "/path/value1").result()
+                            Http.Method.Get, "/path/value1", "", emptyMap(),
+                            AsyncResult.succeeded("".toByteArray())).result()
 
             request?.requestUri shouldBe "http://localhost/path/value1"
             request?.method shouldBe Http.Method.Get
@@ -54,11 +53,12 @@ class HttpEndpointTest: StringSpec() {
             val result =  HttpServer.Endpoint("/path/{param1}", mapOf("Authorization" to emptyList()), Http.Method.Get)
                     .request("http://localhost/path/value1",
                             Http.Method.Get,
+                            "/path/value1",
+                            "",
                             mapOf(
                                     "Authorization" to listOf(authHeaderValue),
                                     "Host" to listOf("localhost")),
-                            AsyncResult.succeeded("".toByteArray()),
-                            "/path/value1")
+                            AsyncResult.succeeded("".toByteArray()))
             if(!result.isSuccess()) fail("Expected success: ${result.error()}")
             val request = result.result()
 

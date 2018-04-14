@@ -5,6 +5,9 @@ buildscript {
   ext.docker_plugin_version = '3.0.0'
   ext.vertxVersion = '3.4.2'
   ext.dokka_version = "0.9.16"
+  ext.netty_version = "4.1.8.Final"
+  ext.ktor_version = '0.9.1'
+  ext.javalin_version = '1.5.0'
 
   repositories {
     mavenCentral()
@@ -62,7 +65,7 @@ allprojects {
   dependencies {
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.6'
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
     compile "org.funktionale:funktionale-all:1.2"
     compile group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.9.+'
