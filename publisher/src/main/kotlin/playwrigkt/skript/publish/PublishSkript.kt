@@ -4,18 +4,17 @@ import playwrigkt.skript.Skript
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.troupe.PublishTroupe
 
-sealed class PublishSkript<I, Message>: Skript<I, I, PublishTroupe<Message>> {
+sealed class PublishSkript<Message>: Skript<Message, Unit, PublishTroupe<Message>> {
 
     companion object {
-        fun<I, Message>publish(mapping: (I) -> Message): PublishSkript<I, Message> {
-            return Publish(mapping)
+        fun<Message>publish(): PublishSkript<Message> {
+            return Publish()
         }
     }
-    data class Publish<I, Message>(val mapping: (I) -> Message): PublishSkript<I, Message>() {
-        override fun run(i: I, troupe: PublishTroupe<Message>): AsyncResult<I> {
+    class Publish<Message>(): PublishSkript<Message>() {
+        override fun run(i: Message, troupe: PublishTroupe<Message>): AsyncResult<Unit> {
             return troupe.getPublishPerformer()
-                    .flatMap { publishPerformer -> publishPerformer.publish(mapping(i)) }
-                    .map { i }
+                    .flatMap { publishPerformer -> publishPerformer.publish(i) }
         }
     }
 }

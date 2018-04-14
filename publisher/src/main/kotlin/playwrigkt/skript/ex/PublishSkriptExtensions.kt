@@ -1,8 +1,13 @@
 package playwrigkt.skript.ex
 
+import org.funktionale.tries.Try
 import playwrigkt.skript.Skript
 import playwrigkt.skript.publish.PublishSkript
 import playwrigkt.skript.troupe.PublishTroupe
 
-fun <I, O, Troupe, Message> Skript<I, O, Troupe>.publish(mapping: (O) -> Message) where Troupe: PublishTroupe<Message> =
-        this.andThen(PublishSkript.publish(mapping))
+fun <I, Message, Troupe> Skript<I, Message, Troupe>.publish(): Skript<I, Unit, Troupe> where Troupe: PublishTroupe<Message> = this.andThen(PublishSkript.publish())
+
+fun <I, O, Troupe, Message> Skript<I, O, Troupe>.publish(mapping: (O) -> Message): Skript<I, O, Troupe> where Troupe: PublishTroupe<Message> =
+        this
+                .split(Skript.identity<O, Troupe>().map(mapping).publish())
+                .join { Try.Success(it.first) }
