@@ -8,8 +8,8 @@ publishing to queues.
 More functionality is added to this api as it is implemented.
 
 Currently showcased features:
-* [SQL Mapping](https://github.com/dgoetsch/skript/blob/master/examples/api/src/main/kotlin/playwright/skript/user/sql/UserQueries.kt)
-* [Service call](https://github.com/dgoetsch/skript/blob/master/examples/api/src/main/kotlin/playwrigkt/skript/user/UserSkripts.kt)
+* [SQL Mapping](https://github.com/dgoetsch/skript/blob/master/examples/api/src/main/kotlin/playwrigkt/skript/user/sql/UserQueries.kt)
+* [Service Transactions](https://github.com/dgoetsch/skript/blob/master/examples/api/src/main/kotlin/playwrigkt/skript/user/UserSkripts.kt)
 * Http
   * [Http Server](https://github.com/dgoetsch/skript/blob/master/examples/api/src/main/kotlin/playwrigkt/skript/venue/ExampleHttpVenue.kt)
   * [Mappings](https://github.com/dgoetsch/skript/blob/master/examples/api/src/main/kotlin/playwrigkt/skript/user/http/UserHttpSkripts.kt)
