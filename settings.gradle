@@ -1,2 +1,9 @@
-include 'skript', 'serialize', 'sql', 'publisher', 'consumer', 'jackson', 'coroutine-jdbc', 'vertx', 'amqp', 'examples:api', 'examples:operation-context-cache'
-rootProject.name = "vertx-sql-composer"
+include 'skript', 'produktion',
+        //api
+        'serialize', 'sql', 'publisher', 'http', 'queue',
+        //implementation libraries
+        'jackson', 'coroutine-jdbc', 'ktor', 'amqp',
+        'vertx',
+        //examples
+        'examples:api'
+rootProject.name = "skript"
