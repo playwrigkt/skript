@@ -1,0 +1,4 @@
+dependencies {
+    compile project(":http")
+    compile "io.javalin:javalin:$javalin_version"
+}
