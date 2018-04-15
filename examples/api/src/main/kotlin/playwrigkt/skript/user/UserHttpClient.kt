@@ -11,14 +11,15 @@ import playwrigkt.skript.user.models.UserProfile
 import playwrigkt.skript.user.models.UserProfileAndPassword
 import playwrigkt.skript.user.models.UserSession
 
-object UserHttpClient {
+//TODO get port from configuration
+class UserHttpClient(val port: Int?) {
     val createUserRequestSkript = Skript.identity<UserProfileAndPassword, ApplicationTroupe>()
             .httpRequest(
                     method = Http.Method.Post,
                     uri = uri(
                             useSsl = Skript.map { false },
                             host = Skript.map { "localhost" },
-                            port = Skript.map { null },
+                            port = Skript.map { port },
                             pathTemplate = Skript.map { "/users" },
                             pathParameters = Skript.map { emptyMap() },
                             queryParameters = Skript.map { emptyMap() }),
@@ -36,7 +37,7 @@ object UserHttpClient {
                     uri = uri(
                             useSsl = Skript.map { false },
                             host = Skript.map { "localhost" },
-                            port = Skript.map { null },
+                            port = Skript.map { port },
                             pathTemplate = Skript.map { "/login" },
                             pathParameters = Skript.map { emptyMap() },
                             queryParameters = Skript.map { emptyMap() }),
@@ -53,7 +54,7 @@ object UserHttpClient {
                     uri = uri(
                             useSsl = Skript.map { false },
                             host = Skript.map { "localhost" },
-                            port = Skript.map { null },
+                            port = Skript.map { port },
                             pathTemplate = Skript.map { "/users/{userId}" },
                             pathParameters = Skript.map { mapOf("userId" to it.input) },
                             queryParameters = Skript.map { emptyMap() }),

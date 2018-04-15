@@ -3,13 +3,17 @@ package playwrigkt.skript.user
 import io.vertx.core.Future
 import io.vertx.core.Vertx
 import io.vertx.core.http.HttpClientOptions
+import io.vertx.core.http.HttpServerOptions
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.jdbc.JDBCClient
 import io.vertx.ext.sql.SQLClient
 import playwrigkt.skript.result.VertxResult
 import playwrigkt.skript.stagemanager.*
 import playwrigkt.skript.venue.QueueVenue
+import playwrigkt.skript.venue.VertxHttpServerVenue
 import playwrigkt.skript.venue.VertxVenue
+import playwrigkt.skript.venue.userProduktions
+import kotlin.math.floor
 
 class VertxUserServiceSpec: UserServiceSpec() {
     companion object {
@@ -30,14 +34,24 @@ class VertxUserServiceSpec: UserServiceSpec() {
         val sqlConnectionStageManager by lazy { VertxSQLStageManager(sqlClient) }
         val publishStageManager by lazy { VertxPublishStageManager(vertx)  }
         val serializeStageManager by lazy { VertxSerializeStageManager() }
-        val httpStageManager by lazy { VertxHttpRequestStageManager(HttpClientOptions().setDefaultPort(UserHttpTest.port), UserHttpTest.vertx) }
+        val httpStageManager by lazy { VertxHttpRequestStageManager(HttpClientOptions().setDefaultPort(port), vertx) }
         val stageManager: ApplicationStageManager by lazy {
             ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManager, httpStageManager)
         }
 
         val vertxVenue by lazy { VertxVenue(vertx) }
+
+        val port = floor((Math.random() * 8000)).toInt() + 2000
+
+        val httpServerVenue: VertxHttpServerVenue by lazy { VertxHttpServerVenue(vertx.createHttpServer(HttpServerOptions().setPort(port))) }
+        val produktions by lazy {
+            userProduktions(httpServerVenue, stageManager)
+        }
+        val userHttpClient by lazy { UserHttpClient(port) }
     }
 
+    override fun produktions() = produktions
+    override fun userHttpClient(): UserHttpClient = userHttpClient
     override fun stageManager(): ApplicationStageManager = VertxUserServiceSpec.stageManager
     override fun queueVenue(): QueueVenue = vertxVenue
 
@@ -48,5 +62,6 @@ class VertxUserServiceSpec: UserServiceSpec() {
         val future = Future.future<Void>()
         vertx.close(future.completer())
         awaitSucceededFuture(VertxResult(future))
+
     }
 }

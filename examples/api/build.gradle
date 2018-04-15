@@ -1,4 +1,8 @@
-
+kotlin {
+    experimental {
+        coroutines "enable"
+    }
+}
 dependencies {
     compile project(':publisher')
     compile project(':queue')
@@ -10,4 +14,5 @@ dependencies {
     testCompile project(':coroutine-jdbc')
     testCompile project(':amqp')
     testCompile project(':jackson')
+    testCompile project(':ktor')
 }

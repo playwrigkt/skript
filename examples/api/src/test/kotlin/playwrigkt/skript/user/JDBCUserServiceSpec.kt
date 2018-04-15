@@ -3,13 +3,17 @@ package playwrigkt.skript.user
 import com.rabbitmq.client.ConnectionFactory
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.apache.Apache
+import io.ktor.routing.routing
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
 import playwrigkt.skript.amqp.AMQPManager
-import playwrigkt.skript.performer.HttpClientPerformer
+import playwrigkt.skript.produktion.Produktion
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.stagemanager.*
-import playwrigkt.skript.troupe.HttpClientTroupe
-import playwrigkt.skript.venue.AMQPVenue
-import playwrigkt.skript.venue.QueueVenue
+import playwrigkt.skript.venue.*
+import kotlin.math.floor
 
 class JDBCUserServiceSpec: UserServiceSpec() {
     companion object {
@@ -33,31 +37,36 @@ class JDBCUserServiceSpec: UserServiceSpec() {
         }
 
         val hikariDataSource by lazy { HikariDataSource(hikariDSConfig) }
-
         val sqlConnectionStageManager by lazy { JDBCDataSourceStageManager(hikariDataSource) }
         val publishStageManager by lazy { AMQPPublishStageManager(AMQPManager.amqpExchange, amqpConnection, AMQPManager.basicProperties) }
         val serializeStageManagerr by lazy { JacksonSerializeStageManager() }
-        val HTTP_CLIENT_STAGE_MANAGER: StageManager<HttpClientTroupe> by lazy {
-            object: StageManager<HttpClientTroupe> {
-                override fun hireTroupe(): HttpClientTroupe =
-                    object: HttpClientTroupe {
-                        override fun getHttpRequestPerformer(): AsyncResult<out HttpClientPerformer> =
-                            TODO("not implemented")
-                    }
-            }
-        }
+        val httpClient = HttpClient(Apache)
+        val httpClientStageManager by lazy { KtorHttpClientStageManager(httpClient) }
+
         val stageManager: ApplicationStageManager by lazy {
-            ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManagerr, HTTP_CLIENT_STAGE_MANAGER)
+            ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManagerr, httpClientStageManager)
         }
 
+        val port = floor((Math.random() * 8000)).toInt() + 2000
+
         val amqpVenue: QueueVenue by lazy { AMQPVenue(amqpConnection) }
+        val httpServerVenue: KtorHttpServerVenue by lazy { KtorHttpServerVenue(port, 10000) }
+        val produktions by lazy {
+            userProduktions(httpServerVenue, stageManager)
+        }
+        val userHttpClient by lazy { UserHttpClient(port) }
     }
+
+    override fun produktions(): AsyncResult<List<Produktion>> = produktions
+    override fun userHttpClient(): UserHttpClient = userHttpClient
 
     override fun stageManager(): ApplicationStageManager = stageManager
     override fun queueVenue(): QueueVenue = amqpVenue
     override fun closeResources() {
         hikariDataSource.close()
         amqpConnection.close()
+        httpClient.close()
+        awaitSucceededFuture(httpServerVenue.stop())
     }
 
 

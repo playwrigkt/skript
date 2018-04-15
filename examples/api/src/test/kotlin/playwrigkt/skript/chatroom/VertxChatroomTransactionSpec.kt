@@ -9,6 +9,7 @@ import io.vertx.ext.sql.SQLClient
 import playwrigkt.skript.result.VertxResult
 import playwrigkt.skript.stagemanager.*
 import playwrigkt.skript.user.UserHttpTest
+import kotlin.math.floor
 
 class VertxChatroomTransactionSpec: ChatroomTransactionsSpec() {
 
@@ -30,7 +31,9 @@ class VertxChatroomTransactionSpec: ChatroomTransactionsSpec() {
         val sqlConnectionStageManager by lazy { VertxSQLStageManager(sqlClient) }
         val publishStageManager by lazy { VertxPublishStageManager(vertx) }
         val serializeStageManager by lazy { VertxSerializeStageManager() }
-        val httpStageManager by lazy { VertxHttpRequestStageManager(HttpClientOptions().setDefaultPort(UserHttpTest.port), UserHttpTest.vertx) }
+
+        val port = floor((Math.random() * 8000)).toInt() + 2000
+        val httpStageManager by lazy { VertxHttpRequestStageManager(HttpClientOptions().setDefaultPort(port), vertx) }
         val stageManager: ApplicationStageManager by lazy {
             ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManager, httpStageManager)
         }

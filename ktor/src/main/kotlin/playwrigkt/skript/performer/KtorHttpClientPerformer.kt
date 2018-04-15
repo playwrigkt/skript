@@ -1,8 +1,9 @@
 package playwrigkt.skript.performer
 
 import io.ktor.client.HttpClient
-import io.ktor.client.call.call
 import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.request.request
+import io.ktor.client.response.HttpResponse
 import io.ktor.client.response.readBytes
 import io.ktor.content.ByteArrayContent
 import io.ktor.http.HeadersBuilder
@@ -15,8 +16,6 @@ import playwrigkt.skript.http.method
 import playwrigkt.skript.result.AsyncResult
 
 class KtorHttpClientPerformer(val client: HttpClient): HttpClientPerformer {
-
-
     override fun perform(httpClientRequest: playwrigkt.skript.http.client.HttpClient.Request): AsyncResult<playwrigkt.skript.http.client.HttpClient.Response> {
         val requestBuilder = HttpRequestBuilder()
         requestBuilder.method = method(httpClientRequest.method)
@@ -30,24 +29,30 @@ class KtorHttpClientPerformer(val client: HttpClient): HttpClientPerformer {
         }
 
         return httpClientRequest.body
-                .map { requestBuilder.body = ByteArrayContent(it) }
-                .mapSuspend { client.call(requestBuilder) }
-                .map {
+                .mapSuspend {
+                    requestBuilder.body = ByteArrayContent(it)
+                    client.request<HttpResponse>(requestBuilder)
+                }
+                .map { response ->
                     playwrigkt.skript.http.client.HttpClient.Response(
-                            Http.Status(it.response.status.value, it.response.status.description),
-                            it.response.headers.toMap(),
-                            AsyncResult.succeeded(it.response).mapSuspend { it.readBytes() })
+                            Http.Status(response.status.value, response.status.description),
+                            response.headers.toMap(),
+                            AsyncResult.succeeded(response).mapSuspend { it.readBytes() })
                 }
     }
-    fun HeadersBuilder.appendAll(headers: Map<String, List<String>>) {
+
+    fun HeadersBuilder.appendAll(headers: Map<String, List<String>>): HeadersBuilder {
         headers.forEach { k, v ->
             this.appendAll(k, v)
         }
+        return this
     }
-    fun ParametersBuilder.appendAll(parameters: Map<String, String>) {
+
+    fun ParametersBuilder.appendAll(parameters: Map<String, String>): ParametersBuilder {
         parameters.forEach { k, v ->
             this.append(k, v)
         }
+        return this
     }
 
 }

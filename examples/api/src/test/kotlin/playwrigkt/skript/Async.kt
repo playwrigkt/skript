@@ -17,6 +17,7 @@ object Async {
             Thread.sleep(100)
         }
         if(!future.isComplete()) fail("Timeout")
+        future.error()?.printStackTrace()
         if(future.isFailure()) fail("Expected Success, ${future.error()}")
         future.isSuccess() shouldBe true
         result?.let { future.result() shouldBe it }

@@ -3,7 +3,9 @@ package  playwrigkt.skript.user
 import io.kotlintest.*
 import io.kotlintest.specs.StringSpec
 import org.slf4j.LoggerFactory
+import playwrigkt.skript.Async
 import playwrigkt.skript.Skript
+import playwrigkt.skript.auth.TokenAndInput
 import playwrigkt.skript.ex.deserialize
 import playwrigkt.skript.produktion.Produktion
 import playwrigkt.skript.queue.QueueMessage
@@ -34,9 +36,9 @@ abstract class UserServiceSpec : StringSpec() {
     abstract fun stageManager(): ApplicationStageManager
     abstract fun queueVenue(): QueueVenue
     abstract fun closeResources()
-
+    abstract fun produktions(): AsyncResult<List<Produktion>>
+    abstract fun userHttpClient(): UserHttpClient
     val userService: UserService by lazy { UserService(stageManager()) }
-
     fun loginProduktion(): Produktion {
         return awaitSucceededFuture(
                 userLoginProduktion(
@@ -68,11 +70,16 @@ abstract class UserServiceSpec : StringSpec() {
     override fun beforeSpec(description: Description, spec: Spec) {
         awaitSucceededFuture(stageManager().hireTroupe().dropUserSchema())
         awaitSucceededFuture(stageManager().hireTroupe().initUserSchema())
+        awaitSucceededFuture(produktions())
     }
 
     override fun afterSpec(description: Description, spec: Spec) {
         awaitSucceededFuture(stageManager().hireTroupe().deleteAllUsers())
         awaitSucceededFuture(stageManager().hireTroupe().dropUserSchema())
+        awaitSucceededFuture(produktions()
+                .flatMap { it
+                        .map { it.stop() }
+                        .fold(AsyncResult.succeeded(Unit)) {a, b -> a.flatMap { b } } })
         closeResources()
     }
 
@@ -197,6 +204,20 @@ abstract class UserServiceSpec : StringSpec() {
             awaitFailedFuture(
                     userService.getUser(userId, sessionKey),
                     UserError.AuthenticationFailed)
+        }
+
+        "get a user via http" {
+            val userId = UUID.randomUUID().toString()
+            val password = "pass10"
+            val userName = "sally10"
+            val user = UserProfile(userId, userName, false)
+            val userAndPassword = UserNameAndPassword(userName, password)
+
+            Async.awaitSucceededFuture(userHttpClient().createUserRequestSkript.run(UserProfileAndPassword(user, password), stageManager().hireTroupe())) shouldBe user
+
+            val session = Async.awaitSucceededFuture(userHttpClient().loginRequestSkript.run(userAndPassword, stageManager().hireTroupe()))!!
+
+            Async.awaitSucceededFuture(userHttpClient().getUserRequestSkript.run(TokenAndInput(session.sessionKey, userId), stageManager().hireTroupe())) shouldBe user
         }
     }
 
