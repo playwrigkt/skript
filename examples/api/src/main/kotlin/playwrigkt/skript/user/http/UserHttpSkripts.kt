@@ -5,7 +5,8 @@ import playwrigkt.skript.Skript
 import playwrigkt.skript.auth.TokenAndInput
 import playwrigkt.skript.ex.andThen
 import playwrigkt.skript.ex.serialize
-import playwrigkt.skript.http.*
+import playwrigkt.skript.http.Http
+import playwrigkt.skript.http.HttpError
 import playwrigkt.skript.http.server.HttpServer
 import playwrigkt.skript.http.server.HttpServerRequestDeserializationSkript
 import playwrigkt.skript.http.server.HttpServerResponseSerializationSkript

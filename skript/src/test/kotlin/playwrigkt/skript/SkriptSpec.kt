@@ -4,6 +4,7 @@ import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
 import org.funktionale.either.Either
 import playwrigkt.skript.ex.andThen
+import playwrigkt.skript.ex.join
 
 class SkriptSpec : StringSpec() {
     init {
@@ -67,6 +68,27 @@ class SkriptSpec : StringSpec() {
 
             skript.run(5, Unit).result() shouldBe 10L
             skript.run(16, Unit).result() shouldBe 2L
+        }
+
+        "Two skripts can be run concurrently" {
+            val sum: Skript<List<Int>, Int, Unit> = Skript.map { it.sum() }
+            val length: Skript<List<*>, Int, Unit> = Skript.map { it.size }
+
+            val average = Skript.both(sum, length).join { sum, length -> sum.toDouble() / length }
+
+            val input = listOf(1, 3, 5, 6, 3)
+            average.run(input, Unit).result() shouldBe input.average()
+        }
+
+        "A skript can split and join" {
+            val initialSkript = Skript.identity<String, Unit>()
+            val mapping: Skript<String, Int, Unit> = Skript.map { it.length }
+
+            val skript = initialSkript
+                    .split(mapping)
+                    .join { str, length -> "$str is $length characters long" }
+
+            skript.run("abcde", Unit).result() shouldBe "abcde is 5 characters long"
         }
     }
 }

@@ -10,4 +10,4 @@ fun <I, Message, Troupe> Skript<I, Message, Troupe>.publish(): Skript<I, Unit, T
 fun <I, O, Troupe, Message> Skript<I, O, Troupe>.publish(mapping: (O) -> Message): Skript<I, O, Troupe> where Troupe: PublishTroupe<Message> =
         this
                 .split(Skript.identity<O, Troupe>().map(mapping).publish())
-                .join { input, _ -> Try.Success(input) }
+                .joinTry { input, _ -> Try.Success(input) }

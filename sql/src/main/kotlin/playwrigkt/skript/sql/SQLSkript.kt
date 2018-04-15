@@ -3,9 +3,8 @@ package playwrigkt.skript.sql
 import org.funktionale.tries.Try
 import playwrigkt.skript.Skript
 import playwrigkt.skript.ex.andThen
-import playwrigkt.skript.ex.join
+import playwrigkt.skript.ex.joinTry
 import playwrigkt.skript.result.AsyncResult
-import playwrigkt.skript.result.toAsyncResult
 import playwrigkt.skript.troupe.SQLTroupe
 
 sealed class SQLSkript<IN, OUT>: Skript<IN, OUT, SQLTroupe> {
@@ -33,17 +32,17 @@ sealed class SQLSkript<IN, OUT>: Skript<IN, OUT, SQLTroupe> {
         fun <IN, OUT> query(mapping: SQLMapping<IN, OUT, SQLCommand.Query, SQLResult.Query>): Skript<IN, OUT, SQLTroupe> =
                 Skript.identity<IN, SQLTroupe>()
                         .split(query(Skript.map(mapping::toSql), Skript.identity()))
-                        .join(mapping::mapResult)
+                        .joinTry(mapping::mapResult)
 
         fun <IN, OUT> update(mapping: SQLMapping<IN, OUT, SQLCommand.Update, SQLResult.Update>): Skript<IN, OUT, SQLTroupe> =
                 Skript.identity<IN, SQLTroupe>()
                         .split(update(Skript.map(mapping::toSql), Skript.identity()))
-                        .join(mapping::mapResult)
+                        .joinTry(mapping::mapResult)
 
         fun <IN, OUT> exec(mapping: SQLMapping<IN, OUT, SQLCommand.Exec, SQLResult.Void>): Skript<IN, OUT, SQLTroupe> =
                 Skript.identity<IN, SQLTroupe>()
                         .split(exec(Skript.map(mapping::toSql), Skript.identity()))
-                        .join(mapping::mapResult)
+                        .joinTry(mapping::mapResult)
     }
 
 

@@ -1,7 +1,7 @@
 package playwrigkt.skript.ex
 
 import playwrigkt.skript.Skript
-import playwrigkt.skript.http.*
+import playwrigkt.skript.http.Http
 import playwrigkt.skript.http.client.*
 import playwrigkt.skript.troupe.HttpClientTroupe
 

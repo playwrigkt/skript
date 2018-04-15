@@ -2,7 +2,6 @@ package playwrigkt.skript
 
 import org.funktionale.either.Either
 import org.funktionale.tries.Try
-import playwrigkt.skript.ex.andThen
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.CompletableResult
 

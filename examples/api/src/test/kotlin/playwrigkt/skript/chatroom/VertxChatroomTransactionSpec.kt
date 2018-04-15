@@ -8,7 +8,6 @@ import io.vertx.ext.jdbc.JDBCClient
 import io.vertx.ext.sql.SQLClient
 import playwrigkt.skript.result.VertxResult
 import playwrigkt.skript.stagemanager.*
-import playwrigkt.skript.user.UserHttpTest
 import kotlin.math.floor
 
 class VertxChatroomTransactionSpec: ChatroomTransactionsSpec() {
