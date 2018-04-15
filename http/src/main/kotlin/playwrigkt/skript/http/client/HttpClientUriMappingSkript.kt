@@ -8,7 +8,7 @@ data class HttpClientUriMappingSkript<I, Troupe>(val useSsl: Skript<I, Boolean, 
                                                  val port: Skript<I, Int?, Troupe>,
                                                  val pathTemplate: Skript<I, String, Troupe>,
                                                  val pathParameters: Skript<I, Map<String, String>, Troupe>,
-                                                 val queryParameters: Skript<I, Map<String, String>, Troupe>): Skript<I, HttpClient.URI, Troupe> {
+                                                 val queryParameters: Skript<I, Map<String, List<String>>, Troupe>): Skript<I, HttpClient.URI, Troupe> {
     override fun run(i: I, troupe: Troupe): AsyncResult<HttpClient.URI> {
         val sslResult = useSsl.run(i, troupe)
         val hostResult = host.run(i, troupe)

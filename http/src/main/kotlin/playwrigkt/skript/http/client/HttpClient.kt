@@ -9,8 +9,7 @@ sealed class HttpClient {
                    val port: Int?,
                    val pathTemplate: String,
                    val pathParameters: Map<String, String>,
-                   //TODO should be map<String, List<String>>
-                   val queryParameters: Map<String, String>) {
+                   val queryParameters: Map<String, List<String>>) {
         val materialized: String by lazy {
             "${uriBase}/${pathParts.joinToString("/")}?${queryString}"
         }
@@ -26,7 +25,7 @@ sealed class HttpClient {
 
         val queryString: String by lazy {
             queryParameters
-                    .map { "${it.key}=${it.value}" }
+                    .flatMap { entry -> entry.value.map { "${entry.key}=$it" }}
                     .joinToString("&")
         }
     }
