@@ -1,0 +1,10 @@
+kotlin {
+    experimental {
+        coroutines 'enable'
+    }
+}
+
+dependencies {
+    compile project(':api:sql')
+    compile project(':api:coroutine')
+}

@@ -4,15 +4,14 @@ kotlin {
     }
 }
 dependencies {
-    compile project(':publisher')
-    compile project(':queue')
-    compile project(':sql')
-    compile project(':serialize')
-    compile project(':http')
+    compile project(':api:queue')
+    compile project(':api:sql')
+    compile project(':api:serialize')
+    compile project(':api:http')
 
-    testCompile project(':vertx')
-    testCompile project(':coroutine-jdbc')
-    testCompile project(':amqp')
-    testCompile project(':jackson')
-    testCompile project(':ktor')
+    testCompile project(':impl:vertx')
+    testCompile project(':impl:coroutine-jdbc')
+    testCompile project(':impl:amqp')
+    testCompile project(':impl:jackson')
+    testCompile project(':impl:ktor')
 }

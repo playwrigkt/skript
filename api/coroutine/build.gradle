@@ -1,0 +1,10 @@
+kotlin {
+    experimental {
+        coroutines 'enable'
+    }
+}
+
+dependencies {
+    compile project(':api:core')
+    compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutine_version"
+}

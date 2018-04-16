@@ -1,4 +1,0 @@
-dependencies {
-    compile project(':serialize')
-    compile project(':produktion')
-}
