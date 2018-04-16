@@ -1,10 +1,9 @@
 package playwrigkt.skript.performer
 
-import kotlinx.coroutines.experimental.launch
 import org.funktionale.tries.Try
 import playwrigkt.skript.coroutine.runAsync
+import playwrigkt.skript.coroutine.runTryAsync
 import playwrigkt.skript.result.AsyncResult
-import playwrigkt.skript.result.CompletableResult
 import playwrigkt.skript.sql.*
 import java.sql.Connection
 import java.sql.ResultSet
@@ -17,51 +16,53 @@ import java.util.concurrent.LinkedBlockingQueue
 class CoroutineJDBCPerformer(val connection: Connection): playwrigkt.skript.performer.SQLPerformer() {
     override fun query(query: SQLCommand.Query): AsyncResult<SQLResult.Query> {
         val statement = query.statement
-        return runAsync { Try { when (statement) {
-            is SQLStatement.Simple ->
-                connection.createStatement().executeQuery(statement.query)
-            is SQLStatement.Parameterized -> {
-                val preparedStatement = connection.prepareStatement(statement.query)
-                statement.params.forEachIndexed { idx, value -> preparedStatement.setObject(idx + 1, value) }
-                preparedStatement.executeQuery()
-            } } }
-                .map { SQLResult.Query(playwrigkt.skript.performer.CoroutineJDBCPerformer.JDBCIterator(it)) } }
+        return runAsync {
+            when (statement) {
+                is SQLStatement.Simple ->
+                    connection.createStatement().executeQuery(statement.query)
+                is SQLStatement.Parameterized -> {
+                    val preparedStatement = connection.prepareStatement(statement.query)
+                    statement.params.forEachIndexed { idx, value -> preparedStatement.setObject(idx + 1, value) }
+                    preparedStatement.executeQuery()
+                } } }
+                .map { SQLResult.Query(playwrigkt.skript.performer.CoroutineJDBCPerformer.JDBCIterator(it)) }
     }
 
     override fun update(update: SQLCommand.Update): AsyncResult<SQLResult.Update> {
         val statement = update.statement
-        return runAsync { Try { when(statement) {
-            is SQLStatement.Simple -> connection.createStatement().executeUpdate(statement.query)
-            is SQLStatement.Parameterized -> {
-                val preparedStatement = connection.prepareStatement(statement.query)
-                statement.params.forEachIndexed { idx, value -> preparedStatement.setObject(idx + 1, value) }
-                preparedStatement.executeUpdate()
-            } } }
-                .map { SQLResult.Update(it) } }
+        return runAsync {
+            when(statement) {
+                is SQLStatement.Simple -> connection.createStatement().executeUpdate(statement.query)
+                is SQLStatement.Parameterized -> {
+                    val preparedStatement = connection.prepareStatement(statement.query)
+                    statement.params.forEachIndexed { idx, value -> preparedStatement.setObject(idx + 1, value) }
+                    preparedStatement.executeUpdate()
+                } } }
+                .map { SQLResult.Update(it) }
     }
 
     override fun exec(exec: SQLCommand.Exec): AsyncResult<SQLResult.Void> {
         val statement = exec.statement
-        return runAsync { Try { when(statement) {
-            is SQLStatement.Simple ->
-                connection.createStatement().execute(statement.query)
-            is SQLStatement.Parameterized -> {
-                val preparedStatement = connection.prepareStatement(statement.query)
-                statement.params.forEachIndexed { idx, value -> preparedStatement.setObject(idx + 1, value) }
-                preparedStatement.execute()
-            } } } }
+        return runAsync { when(statement) {
+                is SQLStatement.Simple ->
+                    connection.createStatement().execute(statement.query)
+                is SQLStatement.Parameterized -> {
+                    val preparedStatement = connection.prepareStatement(statement.query)
+                    statement.params.forEachIndexed { idx, value -> preparedStatement.setObject(idx + 1, value) }
+                    preparedStatement.execute()
+                } } }
                 .map { SQLResult.Void }
     }
 
     override fun <T> close(): (T) -> AsyncResult<T> = { t ->
         runAsync {
-            Try { connection.close() }
-                    .map { t }
+            connection.close()
+            t
         }
     }
 
     override fun <T> closeOnFailure(): (Throwable) -> AsyncResult<T> = { f ->
-        runAsync {
+        runTryAsync {
             Try { connection.close() }
                     .flatMap { Try.Failure<T>(f) }
         }
@@ -69,13 +70,13 @@ class CoroutineJDBCPerformer(val connection: Connection): playwrigkt.skript.perf
 
     override fun <T> commit(): (T) -> AsyncResult<T> = { t ->
         runAsync {
-            Try { connection.commit() }
-                    .map { t }
+            connection.commit()
+            t
         }
     }
 
     override fun <T> rollback(): (Throwable) -> AsyncResult<T> = { f ->
-        runAsync {
+        runTryAsync {
             Try { connection.rollback() }
                     .flatMap { Try.Failure<T>(f) }
         }
@@ -83,7 +84,7 @@ class CoroutineJDBCPerformer(val connection: Connection): playwrigkt.skript.perf
 
     override fun setAutoCommit(autoCommit: Boolean): AsyncResult<Unit> {
         return runAsync {
-            Try { connection.setAutoCommit(autoCommit) }
+            connection.setAutoCommit(autoCommit)
         }
     }
 

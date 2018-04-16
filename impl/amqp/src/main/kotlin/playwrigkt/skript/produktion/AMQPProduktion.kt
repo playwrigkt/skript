@@ -3,6 +3,8 @@ package playwrigkt.skript.produktion
 import com.rabbitmq.client.*
 import org.funktionale.tries.Try
 import playwrigkt.skript.Skript
+import playwrigkt.skript.coroutine.ex.suspendMap
+import playwrigkt.skript.coroutine.runAsync
 import playwrigkt.skript.queue.QueueMessage
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.CompletableResult
@@ -28,11 +30,10 @@ data class AMQPProduktion<O, Troupe>(
 
     fun handleMessage(consumerTag: String, envelope: Envelope, properties: BasicProperties, body: ByteArray) {
         skript.run(QueueMessage(envelope.routingKey, body), provider.hireTroupe())
-                .map { channel.basicAck(envelope.deliveryTag, false) }
-                .recover {
-                    Try {
-                        channel.basicNack(envelope.deliveryTag, false, true)
-                    }.toAsyncResult()
+                .suspendMap { channel.basicAck(envelope.deliveryTag, false) }
+                .recover { error ->
+                    runAsync { channel.basicNack(envelope.deliveryTag, false, true) }
+                            .flatMap { AsyncResult.failed<Unit>(error) }
                 }
     }
 
@@ -45,8 +46,8 @@ data class AMQPProduktion<O, Troupe>(
             Try { channel.basicCancel(consumerTag) }
                     .onFailure { channel.close() }
                     .map { channel.close() }
-                    .onFailure { result.fail(it) }
-                    .onSuccess { result.succeed(it) }
+                    .onFailure(result::fail)
+                    .onSuccess(result::succeed)
         }
         return result
     }

@@ -12,12 +12,24 @@ sealed class CoroutineError {
     data class Timeout(val result: AsyncResult<*>): CoroutineError()
 }
 
-fun <T> runAsync(action: () -> Try<T>): AsyncResult<T> {
+fun <T> runTryAsync(action: () -> Try<T>): AsyncResult<T> {
     val asyncResult = CompletableResult<T>()
     launch {
         action()
                 .onSuccess(asyncResult::succeed)
                 .onFailure(asyncResult::fail)
+    }
+    return asyncResult
+}
+
+fun <T> runAsync(action: () -> T): AsyncResult<T> {
+    val asyncResult = CompletableResult<T>()
+    launch {
+        try {
+            asyncResult.succeed(action())
+        } catch(error: Throwable) {
+            asyncResult.fail(error)
+        }
     }
     return asyncResult
 }

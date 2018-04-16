@@ -3,6 +3,7 @@ package playwrigkt.skript.venue
 import com.rabbitmq.client.Connection
 import org.funktionale.tries.Try
 import playwrigkt.skript.Skript
+import playwrigkt.skript.coroutine.runAsync
 import playwrigkt.skript.produktion.AMQPProduktion
 import playwrigkt.skript.produktion.Produktion
 import playwrigkt.skript.queue.QueueMessage
@@ -14,10 +15,7 @@ data class AMQPVenue(val amqpConnection: Connection): QueueVenue {
     override fun <Troupe> produktion(skript: Skript<QueueMessage, Unit, Troupe>,
                                         stageManager: StageManager<Troupe>,
                                         queue: String): AsyncResult<Produktion> {
-        return Try {
-            AMQPProduktion(amqpConnection.createChannel(), queue, skript, stageManager)
-        }
-                .toAsyncResult()
+        return runAsync { AMQPProduktion(amqpConnection.createChannel(), queue, skript, stageManager) }
                 .map { it as Produktion }
     }
 }
