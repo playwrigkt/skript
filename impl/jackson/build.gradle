@@ -1,4 +1,5 @@
 dependencies {
     compile project(':api:serialize')
+    compile project(':api:coroutine')
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.9.0'
 }
