@@ -1,9 +1,4 @@
-include 'skript', 'produktion',
-        //api
-        'serialize', 'sql', 'publisher', 'http', 'queue',
-        //implementation libraries
-        'jackson', 'coroutine-jdbc', 'ktor', 'amqp',
-        'vertx',
-        //examples
+include 'api:core', 'api:serialize', 'api:sql', 'api:http', 'api:queue', 'api:coroutine',
+        'impl:jackson', 'impl:coroutine-jdbc', 'impl:ktor', 'impl:amqp', 'impl:vertx',
         'examples:api'
 rootProject.name = "skript"

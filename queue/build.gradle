@@ -1,5 +1,0 @@
-dependencies {
-
-    compile project(':produktion')
-    compile project(':publisher')
-}
