@@ -55,6 +55,8 @@ class KtorHttpServerVenue(val port: Int, val maxConnectionMillis: Long): HttpSer
 
     fun result(): AsyncResult<Unit> = result
 
+    override fun teardown(): AsyncResult<Unit> = stop()
+
     fun stop(): AsyncResult<Unit> =
         lock {
             if(!result.isComplete()) {
