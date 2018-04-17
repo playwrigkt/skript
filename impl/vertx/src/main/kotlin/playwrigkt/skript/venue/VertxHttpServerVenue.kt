@@ -1,10 +1,8 @@
 package playwrigkt.skript.venue
 
+import io.vertx.core.Vertx
 import io.vertx.core.buffer.Buffer
-import io.vertx.core.http.HttpMethod
-import io.vertx.core.http.HttpServer
-import io.vertx.core.http.HttpServerRequest
-import io.vertx.core.http.HttpServerResponse
+import io.vertx.core.http.*
 import org.funktionale.option.firstOption
 import org.funktionale.tries.Try
 import org.slf4j.LoggerFactory
@@ -19,8 +17,12 @@ import playwrigkt.skript.stagemanager.StageManager
 import playwrigkt.skript.vertx.ex.toMap
 import playwrigkt.skript.vertx.ex.vertxHandler
 
-class VertxHttpServerVenue(val server: HttpServer): HttpServerVenue {
+class VertxHttpServerVenue(val vertx: Vertx, val httpServerOptions: HttpServerOptions): HttpServerVenue {
     private val log = LoggerFactory.getLogger(this::class.java)
+
+    private val server by lazy {
+        vertx.createHttpServer(httpServerOptions)
+    }
 
     //TODO use a tree structure or otherwise optimize lookup
     private val requestHandlers: MutableList<VertxHttpProduktion<*>> = mutableListOf()
@@ -86,7 +88,7 @@ class VertxHttpServerVenue(val server: HttpServer): HttpServerVenue {
             requestHandlers.any { it.endpoint.matches(httpEndpoint) }
 
     override fun teardown(): AsyncResult<Unit> {
-        val result = CompletableResult<Void>()
+        val result = CompletableResult<Unit>()
         log.info("closing vertx http server")
         server.close(result.vertxHandler())
         return result.map { Unit }

@@ -6,5 +6,8 @@ build/
 http/sets/
 http/cards
 */out/
+api/*/out/
+impl/*/out/
+*.class
 examples/*/build/
 examples/*/out/

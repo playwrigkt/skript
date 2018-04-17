@@ -1,18 +1,15 @@
 package playwrigkt.skript.user
 
+import io.kotlintest.Description
+import io.kotlintest.Spec
 import io.vertx.core.Future
 import io.vertx.core.Vertx
 import io.vertx.core.http.HttpClientOptions
 import io.vertx.core.http.HttpServerOptions
 import io.vertx.core.json.JsonObject
-import io.vertx.ext.jdbc.JDBCClient
-import io.vertx.ext.sql.SQLClient
 import playwrigkt.skript.result.VertxResult
 import playwrigkt.skript.stagemanager.*
-import playwrigkt.skript.venue.QueueVenue
-import playwrigkt.skript.venue.VertxHttpServerVenue
-import playwrigkt.skript.venue.VertxVenue
-import playwrigkt.skript.venue.userProduktions
+import playwrigkt.skript.venue.*
 import kotlin.math.floor
 
 class VertxUserServiceSpec: UserServiceSpec() {
@@ -27,12 +24,12 @@ class VertxUserServiceSpec: UserServiceSpec() {
                 .put("driver_class", "org.postgresql.Driver")
                 .put("maximumPoolSize", 30)
                 .put("poolName", "test_pool")
-        val sqlClient: SQLClient by lazy {
-            JDBCClient.createShared(vertx, hikariConfig, "test_ds")
-        }
 
-        val sqlConnectionStageManager by lazy { VertxSQLStageManager(sqlClient) }
-        val publishStageManager by lazy { VertxPublishStageManager(vertx)  }
+        val port = floor((Math.random() * 8000)).toInt() + 2000
+
+
+        val sqlConnectionStageManager by lazy { VertxSQLStageManager(vertx, hikariConfig, "test_datasource") }
+        val publishStageManager by lazy { VertxPublishStageManager(vertx.eventBus())  }
         val serializeStageManager by lazy { VertxSerializeStageManager() }
         val httpStageManager by lazy { VertxHttpRequestStageManager(HttpClientOptions().setDefaultPort(port), vertx) }
         val stageManager: ApplicationStageManager by lazy {
@@ -41,12 +38,9 @@ class VertxUserServiceSpec: UserServiceSpec() {
 
         val vertxVenue by lazy { VertxVenue(vertx) }
 
-        val port = floor((Math.random() * 8000)).toInt() + 2000
 
-        val httpServerVenue: VertxHttpServerVenue by lazy { VertxHttpServerVenue(vertx.createHttpServer(HttpServerOptions().setPort(port))) }
-        val produktions by lazy {
-            userProduktions(httpServerVenue, stageManager)
-        }
+        val httpServerVenue: VertxHttpServerVenue by lazy { VertxHttpServerVenue(vertx, HttpServerOptions().setPort(port)) }
+        val produktions by lazy { userProduktions(httpServerVenue, stageManager) }
         val userHttpClient by lazy { UserHttpClient(port) }
     }
 
@@ -54,14 +48,12 @@ class VertxUserServiceSpec: UserServiceSpec() {
     override fun userHttpClient(): UserHttpClient = userHttpClient
     override fun stageManager(): ApplicationStageManager = VertxUserServiceSpec.stageManager
     override fun queueVenue(): QueueVenue = vertxVenue
+    override fun httpServerVenue(): HttpServerVenue = httpServerVenue
 
-    override fun closeResources() {
-        val clientF = Future.future<Void>()
-        sqlClient.close(clientF.completer())
-        awaitSucceededFuture(VertxResult(clientF))
+    override fun afterSpec(description: Description, spec: Spec) {
+        super.afterSpec(description, spec)
         val future = Future.future<Void>()
         vertx.close(future.completer())
         awaitSucceededFuture(VertxResult(future))
-
     }
 }

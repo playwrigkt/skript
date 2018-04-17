@@ -16,6 +16,7 @@ import playwrigkt.skript.user.extensions.schema.dropUserSchema
 import playwrigkt.skript.user.extensions.schema.initUserSchema
 import playwrigkt.skript.user.extensions.transaction.deleteAllUsers
 import playwrigkt.skript.user.models.*
+import playwrigkt.skript.venue.HttpServerVenue
 import playwrigkt.skript.venue.QueueVenue
 import java.util.*
 import java.util.concurrent.BlockingQueue
@@ -29,9 +30,11 @@ abstract class UserServiceSpec : StringSpec() {
 
     abstract fun stageManager(): ApplicationStageManager
     abstract fun queueVenue(): QueueVenue
-    abstract fun closeResources()
+    abstract fun httpServerVenue(): HttpServerVenue
     abstract fun produktions(): AsyncResult<List<Produktion>>
+
     abstract fun userHttpClient(): UserHttpClient
+
     val userService: UserService by lazy { UserService(stageManager()) }
     fun loginProduktion(): Produktion {
         return awaitSucceededFuture(
@@ -70,11 +73,9 @@ abstract class UserServiceSpec : StringSpec() {
     override fun afterSpec(description: Description, spec: Spec) {
         awaitSucceededFuture(stageManager().hireTroupe().deleteAllUsers())
         awaitSucceededFuture(stageManager().hireTroupe().dropUserSchema())
-        awaitSucceededFuture(produktions()
-                .flatMap { it
-                        .map { it.stop() }
-                        .fold(AsyncResult.succeeded(Unit)) {a, b -> a.flatMap { b } } })
-        closeResources()
+        awaitSucceededFuture(stageManager().tearDown())
+        awaitSucceededFuture(httpServerVenue().teardown())
+        awaitSucceededFuture(queueVenue().teardown())
     }
 
     init {

@@ -7,11 +7,11 @@ import playwrigkt.skript.result.CompletableResult
 
 fun MultiMap.toMap(): Map<String, List<String>> = this.names().map { it to this.getAll(it)}.toMap()
 
-fun <T> CompletableResult<T>.vertxHandler(): Handler<AsyncResult<T>> {
+fun CompletableResult<Unit>.vertxHandler(): Handler<AsyncResult<Void>> {
     val result = this
-    return object : Handler<AsyncResult<T>> {
-        override fun handle(event: AsyncResult<T>) {
-            event.map(result::succeed)
+    return object : Handler<AsyncResult<Void>> {
+        override fun handle(event: AsyncResult<Void>) {
+            event.map { result.succeed(Unit) }
                     .otherwise(result::fail)
         }
     }
