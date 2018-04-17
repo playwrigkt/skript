@@ -10,8 +10,8 @@ dependencies {
     compile project(':api:http')
 
     testCompile project(':impl:vertx')
-    testCompile project(':impl:coroutine-jdbc')
-    testCompile project(':impl:amqp')
-    testCompile project(':impl:jackson')
-    testCompile project(':impl:ktor')
+    testCompile project(':impl:coroutine-jdbc-sql')
+    testCompile project(':impl:coroutine-amqp-queue')
+    testCompile project(':impl:coroutine-jackson-serialize')
+    testCompile project(':impl:coroutine-ktor-http')
 }

@@ -1,4 +1,8 @@
 include 'api:core', 'api:serialize', 'api:sql', 'api:http', 'api:queue', 'api:coroutine',
-        'impl:jackson', 'impl:coroutine-jdbc', 'impl:ktor', 'impl:amqp', 'impl:vertx',
+        'impl:coroutine-jackson-serialize',
+        'impl:coroutine-jdbc-sql',
+        'impl:coroutine-ktor-http',
+        'impl:coroutine-amqp-queue',
+        'impl:vertx',
         'examples:api'
 rootProject.name = "skript"
