@@ -1,5 +1,7 @@
 dependencies {
     compile project(':api:serialize')
     compile project(':api:coroutine')
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.9.0'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.9.+'
+    compile group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.9.+'
+    compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.+"
 }

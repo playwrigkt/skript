@@ -64,18 +64,10 @@ allprojects {
   }
 
   dependencies {
-    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.6'
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
     compile "org.funktionale:funktionale-all:1.2"
-    compile group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.9.+'
-    compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.+"
-    compile 'com.natpryce:konfig:1.5.0.0'
-
-    compile "com.zaxxer:HikariCP:2.7.1"
-    compile 'org.postgresql:postgresql:42.1.4'
-
     compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
 
     testCompile("org.junit.jupiter:junit-jupiter-api:5.1.0")
