@@ -1,10 +1,8 @@
 package playwrigkt.skript.venue
 
+import io.vertx.core.Vertx
 import io.vertx.core.buffer.Buffer
-import io.vertx.core.http.HttpMethod
-import io.vertx.core.http.HttpServer
-import io.vertx.core.http.HttpServerRequest
-import io.vertx.core.http.HttpServerResponse
+import io.vertx.core.http.*
 import org.funktionale.option.firstOption
 import org.funktionale.tries.Try
 import org.slf4j.LoggerFactory
@@ -17,10 +15,16 @@ import playwrigkt.skript.result.CompletableResult
 import playwrigkt.skript.result.toAsyncResult
 import playwrigkt.skript.stagemanager.StageManager
 import playwrigkt.skript.vertx.ex.toMap
+import playwrigkt.skript.vertx.ex.vertxHandler
 
-class VertxHttpServerVenue(val server: HttpServer): HttpServerVenue {
-    val log = LoggerFactory.getLogger(this::class.java)
+class VertxHttpServerVenue(val vertx: Vertx, val httpServerOptions: HttpServerOptions): HttpServerVenue {
+    private val log = LoggerFactory.getLogger(this::class.java)
 
+    private val server by lazy {
+        vertx.createHttpServer(httpServerOptions)
+    }
+
+    //TODO use a tree structure or otherwise optimize lookup
     private val requestHandlers: MutableList<VertxHttpProduktion<*>> = mutableListOf()
 
     init {
@@ -61,6 +65,34 @@ class VertxHttpServerVenue(val server: HttpServer): HttpServerVenue {
         server.listen()
     }
 
+    override fun <Troupe> produktion(skript: Skript<playwrigkt.skript.http.server.HttpServer.Request<ByteArray>, playwrigkt.skript.http.server.HttpServer.Response, Troupe>,
+                                     stageManager: StageManager<Troupe>,
+                                     rule: playwrigkt.skript.http.server.HttpServer.Endpoint): AsyncResult<VertxHttpProduktion<Troupe>> =
+            Try {
+                requestHandlers
+                        .find { it.endpoint.matches(rule) }
+                        ?.let { throw HttpError.EndpointAlreadyMatches(it.endpoint, rule) }
+                        ?:VertxHttpProduktion(rule, this, skript, stageManager)
+            }
+                    .onSuccess { requestHandlers.add(it) }
+                    .toAsyncResult()
+
+    fun removeHandler(httpEndpoint: playwrigkt.skript.http.server.HttpServer.Endpoint): Try<Unit> =
+            Try {
+                if(!requestHandlers.removeAll { it.endpoint.matches(httpEndpoint) }) {
+                    throw HttpError.EndpointNotHandled(httpEndpoint)
+                }
+            }
+
+    fun handles(httpEndpoint: playwrigkt.skript.http.server.HttpServer.Endpoint): Boolean =
+            requestHandlers.any { it.endpoint.matches(httpEndpoint) }
+
+    override fun teardown(): AsyncResult<Unit> {
+        val result = CompletableResult<Unit>()
+        log.info("closing vertx http server")
+        server.close(result.vertxHandler())
+        return result.map { Unit }
+    }
 
     private fun HttpServerResponse.putHeaders(headers: Map<String, List<String>>): HttpServerResponse {
         headers.forEach { k, v ->
@@ -88,26 +120,4 @@ class VertxHttpServerVenue(val server: HttpServer): HttpServerVenue {
         this.bodyHandler(result::succeed)
         return result.map { it.bytes }
     }
-
-    override fun <Troupe> produktion(skript: Skript<playwrigkt.skript.http.server.HttpServer.Request<ByteArray>, playwrigkt.skript.http.server.HttpServer.Response, Troupe>,
-                                     stageManager: StageManager<Troupe>,
-                                     rule: playwrigkt.skript.http.server.HttpServer.Endpoint): AsyncResult<VertxHttpProduktion<Troupe>> =
-        Try {
-            requestHandlers
-                    .find { it.endpoint.matches(rule) }
-                    ?.let { throw HttpError.EndpointAlreadyMatches(it.endpoint, rule) }
-                    ?:VertxHttpProduktion(rule, this, skript, stageManager)
-        }
-                .onSuccess { requestHandlers.add(it) }
-                .toAsyncResult()
-
-    fun removeHandler(httpEndpoint: playwrigkt.skript.http.server.HttpServer.Endpoint): Try<Unit> =
-        Try {
-            if(!requestHandlers.removeAll { it.endpoint.matches(httpEndpoint) }) {
-                throw HttpError.EndpointNotHandled(httpEndpoint)
-            }
-        }
-
-    fun handles(httpEndpoint: playwrigkt.skript.http.server.HttpServer.Endpoint): Boolean =
-        requestHandlers.any { it.endpoint.matches(httpEndpoint) }
 }

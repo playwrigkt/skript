@@ -1,5 +1,7 @@
 package playwrigkt.skript.chatroom
 
+import io.kotlintest.Description
+import io.kotlintest.Spec
 import io.vertx.core.Future
 import io.vertx.core.Vertx
 import io.vertx.core.http.HttpClientOptions
@@ -24,14 +26,12 @@ class VertxChatroomTransactionSpec: ChatroomTransactionsSpec() {
 
         val vertx by lazy { Vertx.vertx() }
 
-        val sqlClient: SQLClient by lazy {
-            JDBCClient.createShared(vertx, hikariConfig, "test_ds")
-        }
-        val sqlConnectionStageManager by lazy { VertxSQLStageManager(sqlClient) }
-        val publishStageManager by lazy { VertxPublishStageManager(vertx) }
-        val serializeStageManager by lazy { VertxSerializeStageManager() }
-
         val port = floor((Math.random() * 8000)).toInt() + 2000
+
+
+        val sqlConnectionStageManager by lazy { VertxSQLStageManager(vertx, hikariConfig, "test_datasource") }
+        val publishStageManager by lazy { VertxPublishStageManager(vertx.eventBus()) }
+        val serializeStageManager by lazy { VertxSerializeStageManager() }
         val httpStageManager by lazy { VertxHttpRequestStageManager(HttpClientOptions().setDefaultPort(port), vertx) }
         val stageManager: ApplicationStageManager by lazy {
             ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManager, httpStageManager)
@@ -40,13 +40,10 @@ class VertxChatroomTransactionSpec: ChatroomTransactionsSpec() {
 
     override fun stageManager(): ApplicationStageManager = VertxChatroomTransactionSpec.stageManager
 
-    override fun closeResources() {
-        val clientF = Future.future<Void>()
-        sqlClient.close(clientF.completer())
-        awaitSucceededFuture(VertxResult(clientF))
+    override fun afterSpec(description: Description, spec: Spec) {
+        super.afterSpec(description, spec)
         val future = Future.future<Void>()
         vertx.close(future.completer())
         awaitSucceededFuture(VertxResult(future))
-
     }
 }

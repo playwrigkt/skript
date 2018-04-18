@@ -38,8 +38,6 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
     abstract fun stageManager(): ApplicationStageManager
     val userService by lazy { UserService(stageManager()) }
 
-    abstract fun closeResources()
-
     override fun beforeSpec(description: Description, spec: Spec) {
         awaitSucceededFuture(stageManager().runWithTroupe(
                 SQLTransactionSkript.transaction(playwrigkt.skript.chatrooom.sql.ChatRoomSchema.dropAllAction),
@@ -56,7 +54,7 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
                 SQLTransactionSkript.transaction<Unit, Unit, ApplicationTroupe>(playwrigkt.skript.chatrooom.sql.ChatRoomSchema.dropAllAction),
                 Unit))
         awaitSucceededFuture(stageManager().hireTroupe().dropUserSchema())
-        closeResources()
+        awaitSucceededFuture(stageManager().tearDown())
     }
 
     init {
