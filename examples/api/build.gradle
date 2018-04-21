@@ -8,10 +8,4 @@ dependencies {
     compile project(':api:sql')
     compile project(':api:serialize')
     compile project(':api:http')
-
-    testCompile project(':impl:vertx')
-    testCompile project(':impl:coroutine-jdbc-sql')
-    testCompile project(':impl:coroutine-amqp-queue')
-    testCompile project(':impl:coroutine-jackson-serialize')
-    testCompile project(':impl:coroutine-ktor-http')
 }

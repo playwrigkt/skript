@@ -48,7 +48,7 @@ class VertxUserServiceSpec: UserServiceSpec() {
     }
 
     override fun userHttpClient(): UserHttpClient = userHttpClient
-    override fun stageManager(): ApplicationStageManager = VertxUserServiceSpec.stageManager
+    override fun stageManager(): ApplicationStageManager = stageManager
     override fun queueVenue(): QueueVenue = vertxVenue
     override fun httpServerVenue(): HttpServerVenue = httpServerVenue
 

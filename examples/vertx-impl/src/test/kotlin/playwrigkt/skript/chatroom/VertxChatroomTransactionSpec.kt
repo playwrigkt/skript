@@ -9,7 +9,6 @@ import io.vertx.core.http.HttpServerOptions
 import io.vertx.core.json.JsonObject
 import playwrigkt.skript.result.VertxResult
 import playwrigkt.skript.stagemanager.*
-import playwrigkt.skript.user.VertxUserServiceSpec
 import playwrigkt.skript.venue.HttpServerVenue
 import playwrigkt.skript.venue.QueueVenue
 import playwrigkt.skript.venue.VertxHttpServerVenue
@@ -32,8 +31,8 @@ class VertxChatroomTransactionSpec: ChatroomTransactionsSpec() {
 
         val port = floor((Math.random() * 8000)).toInt() + 2000
 
-        val vertxVenue by lazy { VertxVenue(VertxUserServiceSpec.vertx) }
-        val httpServerVenue: VertxHttpServerVenue by lazy { VertxHttpServerVenue(VertxUserServiceSpec.vertx, HttpServerOptions().setPort(VertxUserServiceSpec.port)) }
+        val vertxVenue by lazy { VertxVenue(vertx) }
+        val httpServerVenue: VertxHttpServerVenue by lazy { VertxHttpServerVenue(vertx, HttpServerOptions().setPort(port)) }
 
         val sqlConnectionStageManager by lazy { VertxSQLStageManager(vertx, hikariConfig, "test_datasource") }
         val publishStageManager by lazy { VertxPublishStageManager(vertx.eventBus()) }
