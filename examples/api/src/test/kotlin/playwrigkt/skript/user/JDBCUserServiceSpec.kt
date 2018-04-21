@@ -2,17 +2,15 @@ package playwrigkt.skript.user
 
 import com.rabbitmq.client.ConnectionFactory
 import com.zaxxer.hikari.HikariConfig
-import com.zaxxer.hikari.HikariDataSource
 import io.kotlintest.Description
 import io.kotlintest.Spec
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.apache.Apache
 import playwrigkt.skript.amqp.AMQPManager
 import playwrigkt.skript.chatroom.JDBCChatroomTransactionSpec
-import playwrigkt.skript.produktion.Produktion
-import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.stagemanager.*
-import playwrigkt.skript.venue.*
+import playwrigkt.skript.venue.AMQPVenue
+import playwrigkt.skript.venue.HttpServerVenue
+import playwrigkt.skript.venue.KtorHttpServerVenue
+import playwrigkt.skript.venue.QueueVenue
 import kotlin.math.floor
 
 class JDBCUserServiceSpec: UserServiceSpec() {
@@ -43,11 +41,16 @@ class JDBCUserServiceSpec: UserServiceSpec() {
         val serializeStageManagerr by lazy { JacksonSerializeStageManager() }
         val httpClientStageManager by lazy { KtorHttpClientStageManager() }
         val stageManager: ApplicationStageManager by lazy {
-            ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManagerr, httpClientStageManager, httpServerVenue, amqpVenue)
+            ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManagerr, httpClientStageManager)
         }
 
         val userHttpClient by lazy { UserHttpClient(port) }
     }
+
+    override fun userHttpClient(): UserHttpClient = userHttpClient
+    override fun stageManager(): ApplicationStageManager = stageManager
+    override fun queueVenue(): QueueVenue = amqpVenue
+    override fun httpServerVenue(): HttpServerVenue = httpServerVenue
 
     override fun beforeSpec(description: Description, spec: Spec) {
         super.beforeSpec(description, spec)
@@ -57,7 +60,4 @@ class JDBCUserServiceSpec: UserServiceSpec() {
         super.afterSpec(description, spec)
         AMQPManager.cleanConnection(JDBCChatroomTransactionSpec.amqpConnectionFactory).close()
     }
-
-    override fun userHttpClient(): UserHttpClient = userHttpClient
-    override fun stageManager(): ApplicationStageManager = stageManager
 }

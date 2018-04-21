@@ -3,6 +3,25 @@ package playwrigkt.skript.result
 import io.vertx.core.Future
 
 class VertxResult<T>(val future: Future<T>): AsyncResult<T> {
+    override fun onSuccess(f: (T) -> Unit): AsyncResult<T> {
+        future.setHandler {
+            when {
+                it.succeeded() -> f(it.result())
+                else -> {}
+            }
+        }
+        return this
+    }
+
+    override fun onFailure(f: (Throwable) -> Unit): AsyncResult<T> {
+        future.setHandler {
+            when {
+                it.succeeded() -> {}
+                else -> f(it.cause())
+            }
+        }
+        return this
+    }
 
     override fun addHandler(handler: (Result<T>) -> Unit) {
         future.setHandler {

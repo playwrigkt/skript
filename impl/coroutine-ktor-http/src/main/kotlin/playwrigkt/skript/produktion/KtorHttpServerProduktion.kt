@@ -20,12 +20,14 @@ import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.CompletableResult
 import playwrigkt.skript.result.LightweightSynchronized
 import playwrigkt.skript.stagemanager.StageManager
+import java.util.concurrent.locks.ReentrantLock
 
-class KtorHttpServerProduktion<Troupe>(val endpoint: HttpServer.Endpoint,
+data class KtorHttpServerProduktion<Troupe>(val endpoint: HttpServer.Endpoint,
                                        val route: Route,
                                        val maxConnectionMillis: Long,
                                        val skript: Skript<HttpServer.Request<ByteArray>, HttpServer.Response, Troupe>,
-                                       val stageManager: StageManager<Troupe>): Produktion, LightweightSynchronized() {
+                                       val stageManager: StageManager<Troupe>): Produktion, LightweightSynchronized {
+    override val lock: ReentrantLock = ReentrantLock()
     val log = LoggerFactory.getLogger(this::class.java)
     val result = CompletableResult<Unit>()
 

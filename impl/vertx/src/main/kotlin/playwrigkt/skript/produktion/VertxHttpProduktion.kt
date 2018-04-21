@@ -9,7 +9,7 @@ import playwrigkt.skript.result.toAsyncResult
 import playwrigkt.skript.stagemanager.StageManager
 import playwrigkt.skript.venue.VertxHttpServerVenue
 
-class VertxHttpProduktion<Troupe>(
+data class VertxHttpProduktion<Troupe>(
         val endpoint: HttpServer.Endpoint,
         val httpServerVenue: VertxHttpServerVenue,
         val skript: Skript<HttpServer.Request<ByteArray>, HttpServer.Response, Troupe>,

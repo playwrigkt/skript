@@ -2,10 +2,12 @@ package playwrigkt.skript.venue
 
 import io.vertx.core.Vertx
 import io.vertx.core.buffer.Buffer
-import io.vertx.core.http.*
+import io.vertx.core.http.HttpMethod
+import io.vertx.core.http.HttpServerOptions
+import io.vertx.core.http.HttpServerRequest
+import io.vertx.core.http.HttpServerResponse
 import org.funktionale.option.firstOption
 import org.funktionale.tries.Try
-import org.slf4j.LoggerFactory
 import playwrigkt.skript.Skript
 import playwrigkt.skript.http.Http
 import playwrigkt.skript.http.HttpError
@@ -17,9 +19,7 @@ import playwrigkt.skript.stagemanager.StageManager
 import playwrigkt.skript.vertx.ex.toMap
 import playwrigkt.skript.vertx.ex.vertxHandler
 
-class VertxHttpServerVenue(val vertx: Vertx, val httpServerOptions: HttpServerOptions): HttpServerVenue {
-    private val log = LoggerFactory.getLogger(this::class.java)
-
+data class VertxHttpServerVenue(val vertx: Vertx, val httpServerOptions: HttpServerOptions): HttpServerVenue() {
     private val server by lazy {
         vertx.createHttpServer(httpServerOptions)
     }
@@ -65,7 +65,7 @@ class VertxHttpServerVenue(val vertx: Vertx, val httpServerOptions: HttpServerOp
         server.listen()
     }
 
-    override fun <Troupe> produktion(skript: Skript<playwrigkt.skript.http.server.HttpServer.Request<ByteArray>, playwrigkt.skript.http.server.HttpServer.Response, Troupe>,
+    override fun <Troupe> createProduktion(skript: Skript<playwrigkt.skript.http.server.HttpServer.Request<ByteArray>, playwrigkt.skript.http.server.HttpServer.Response, Troupe>,
                                      stageManager: StageManager<Troupe>,
                                      rule: playwrigkt.skript.http.server.HttpServer.Endpoint): AsyncResult<VertxHttpProduktion<Troupe>> =
             Try {
@@ -87,7 +87,7 @@ class VertxHttpServerVenue(val vertx: Vertx, val httpServerOptions: HttpServerOp
     fun handles(httpEndpoint: playwrigkt.skript.http.server.HttpServer.Endpoint): Boolean =
             requestHandlers.any { it.endpoint.matches(httpEndpoint) }
 
-    override fun teardown(): AsyncResult<Unit> {
+    override fun stop(): AsyncResult<Unit> {
         val result = CompletableResult<Unit>()
         log.info("closing vertx http server")
         server.close(result.vertxHandler())

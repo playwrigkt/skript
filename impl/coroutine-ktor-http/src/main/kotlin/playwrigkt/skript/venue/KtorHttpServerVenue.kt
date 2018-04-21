@@ -7,7 +7,6 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.netty.NettyApplicationEngine
 import org.funktionale.tries.Try
-import org.slf4j.LoggerFactory
 import playwrigkt.skript.Skript
 import playwrigkt.skript.coroutine.ex.suspendMap
 import playwrigkt.skript.http.Http
@@ -19,12 +18,13 @@ import playwrigkt.skript.result.CompletableResult
 import playwrigkt.skript.result.LightweightSynchronized
 import playwrigkt.skript.stagemanager.StageManager
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.ReentrantLock
 
-class KtorHttpServerVenue(val port: Int, val maxConnectionMillis: Long): HttpServerVenue, LightweightSynchronized() {
+data class KtorHttpServerVenue(val port: Int, val maxConnectionMillis: Long): HttpServerVenue(), LightweightSynchronized {
+    override val lock: ReentrantLock = ReentrantLock()
     private val result = CompletableResult<Unit>()
     private val server: NettyApplicationEngine
     private val routing: Routing
-    private val log = LoggerFactory.getLogger(this.javaClass)
 
     init {
         server = embeddedServer(
@@ -41,7 +41,7 @@ class KtorHttpServerVenue(val port: Int, val maxConnectionMillis: Long): HttpSer
    }
 
 
-    override fun <Troupe> produktion(skript: Skript<HttpServer.Request<ByteArray>, HttpServer.Response, Troupe>, stageManager: StageManager<Troupe>, rule: HttpServer.Endpoint): AsyncResult<out Produktion> =
+    override fun <Troupe> createProduktion(skript: Skript<HttpServer.Request<ByteArray>, HttpServer.Response, Troupe>, stageManager: StageManager<Troupe>, rule: HttpServer.Endpoint): AsyncResult<out Produktion> =
         AsyncResult.succeeded(Unit)
                 .suspendMap { KtorHttpServerProduktion(rule, routing.of(rule), maxConnectionMillis, skript, stageManager) }
                 .suspendMap {
@@ -49,7 +49,7 @@ class KtorHttpServerVenue(val port: Int, val maxConnectionMillis: Long): HttpSer
                     it
                 }
 
-    override fun teardown(): AsyncResult<Unit> = lock {
+    override fun stop(): AsyncResult<Unit> = lock {
         if(!result.isComplete()) {
             log.info("stopping ktor server")
             Try { server.stop(1000, 1000, TimeUnit.MILLISECONDS) }
@@ -62,9 +62,9 @@ class KtorHttpServerVenue(val port: Int, val maxConnectionMillis: Long): HttpSer
         }
     }
 
-    private fun Route.printRoute(depth: Int = 0): String =
-        "${" ".repeat(depth)}route: $this\n" + this.children.map { it.printRoute(depth + 1)}.joinToString("\n")
-
+    private fun Route.printRoute(depth: Int = 0): String = lock {
+        "${" ".repeat(depth)}route: $this\n" + this.children.map { it.printRoute(depth + 1) }.joinToString("\n")
+    }
 
     private fun Routing.of(endpoint: HttpServer.Endpoint): Route = lock {
         this.method(method(endpoint.method)) { }

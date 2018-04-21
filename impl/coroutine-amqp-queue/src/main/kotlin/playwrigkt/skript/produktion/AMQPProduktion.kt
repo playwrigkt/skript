@@ -8,7 +8,6 @@ import playwrigkt.skript.coroutine.runAsync
 import playwrigkt.skript.queue.QueueMessage
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.CompletableResult
-import playwrigkt.skript.result.toAsyncResult
 import playwrigkt.skript.stagemanager.StageManager
 
 data class AMQPProduktion<O, Troupe>(

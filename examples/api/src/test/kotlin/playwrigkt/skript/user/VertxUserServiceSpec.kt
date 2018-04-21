@@ -9,7 +9,10 @@ import io.vertx.core.http.HttpServerOptions
 import io.vertx.core.json.JsonObject
 import playwrigkt.skript.result.VertxResult
 import playwrigkt.skript.stagemanager.*
-import playwrigkt.skript.venue.*
+import playwrigkt.skript.venue.HttpServerVenue
+import playwrigkt.skript.venue.QueueVenue
+import playwrigkt.skript.venue.VertxHttpServerVenue
+import playwrigkt.skript.venue.VertxVenue
 import kotlin.math.floor
 
 class VertxUserServiceSpec: UserServiceSpec() {
@@ -38,7 +41,7 @@ class VertxUserServiceSpec: UserServiceSpec() {
         val httpStageManager by lazy { VertxHttpRequestStageManager(HttpClientOptions().setDefaultPort(port), vertx) }
 
         val stageManager: ApplicationStageManager by lazy {
-            ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManager, httpStageManager, httpServerVenue, vertxVenue)
+            ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManager, httpStageManager)
         }
 
         val userHttpClient by lazy { UserHttpClient(port) }
@@ -46,6 +49,8 @@ class VertxUserServiceSpec: UserServiceSpec() {
 
     override fun userHttpClient(): UserHttpClient = userHttpClient
     override fun stageManager(): ApplicationStageManager = VertxUserServiceSpec.stageManager
+    override fun queueVenue(): QueueVenue = vertxVenue
+    override fun httpServerVenue(): HttpServerVenue = httpServerVenue
 
     override fun afterSpec(description: Description, spec: Spec) {
         super.afterSpec(description, spec)

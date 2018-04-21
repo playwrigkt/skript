@@ -21,6 +21,9 @@ interface AsyncResult<T> {
     fun <U> flatMap(f: (T) -> AsyncResult<U>): AsyncResult<U>
     fun recover(f: (Throwable) -> AsyncResult<T>): AsyncResult<T>
 
+    fun onSuccess(f: (T) -> Unit): AsyncResult<T>
+    fun onFailure(f: (Throwable) -> Unit): AsyncResult<T>
+
     fun addHandler(handler: (Result<T>) -> Unit)
     fun alsoComplete(completableResult: CompletableResult<T>): Unit = this.addHandler {
         it.result?.let(completableResult::succeed)
@@ -47,10 +50,10 @@ interface Completable<T> {
     }
 }
 
-abstract class LightweightSynchronized {
-    private val lock: ReentrantLock = ReentrantLock()
+interface LightweightSynchronized {
+    val lock: ReentrantLock
 
-    protected fun <T> lock(fn: () -> T): T {
+    fun <T> lock(fn: () -> T): T {
         lock.lockInterruptibly()
         try {
             return fn()
@@ -75,9 +78,10 @@ interface CompletableResult<T>: AsyncResult<T>, Completable<T> {
         }
     }
 
-    private class CompletableResultImpl<T>: CompletableResult<T>, LightweightSynchronized() {
+    private class CompletableResultImpl<T>() : CompletableResult<T>, LightweightSynchronized {
         @Volatile private var result: Result<T>? = null
         @Volatile private var handlers: Queue<ResultHandler<T>> = LinkedBlockingQueue()
+        override val lock: ReentrantLock = ReentrantLock()
 
         override fun <U> map(f: (T) -> U): AsyncResult<U> {
             val newResult = CompletableResultImpl<U>()
@@ -128,6 +132,38 @@ interface CompletableResult<T>: AsyncResult<T>, Completable<T> {
                 }
             }
             return newResult
+        }
+
+        override fun onSuccess(f: (T) -> Unit): AsyncResult<T> {
+            addHandler {
+                when (it) {
+                    is Result.Failure -> { }
+                    is Result.Success -> {
+                        try {
+                            f(it.result)
+                        } catch(e: Throwable) {
+
+                        }
+                    }
+                }
+            }
+            return this
+        }
+
+        override fun onFailure(f: (Throwable) -> Unit): AsyncResult<T> {
+            addHandler {
+                when (it) {
+                    is Result.Failure -> {
+                        try {
+                            f(it.error)
+                        } catch (e: Throwable) {
+
+                        }
+                    }
+                    is Result.Success -> { }
+                }
+            }
+            return this
         }
 
         override fun addHandler(handler: (Result<T>) -> Unit): Unit = lock {

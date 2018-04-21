@@ -1,6 +1,5 @@
 package playwrigkt.skript.troupe
 
-import io.vertx.core.Vertx
 import io.vertx.core.eventbus.EventBus
 import playwrigkt.skript.performer.VertxPublishPerformer
 import playwrigkt.skript.result.AsyncResult

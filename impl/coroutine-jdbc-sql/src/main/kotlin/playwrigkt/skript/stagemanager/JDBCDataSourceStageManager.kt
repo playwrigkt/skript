@@ -6,7 +6,6 @@ import playwrigkt.skript.coroutine.runAsync
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.troupe.JDBCSQLTroupe
 import playwrigkt.skript.troupe.SQLTroupe
-import javax.sql.DataSource
 
 data class JDBCDataSourceStageManager(val hikariConfig: HikariConfig): StageManager<SQLTroupe> {
     private val dataSource by lazy { HikariDataSource(hikariConfig) }

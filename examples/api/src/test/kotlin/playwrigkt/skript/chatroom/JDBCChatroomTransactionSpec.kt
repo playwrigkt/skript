@@ -5,9 +5,13 @@ import com.zaxxer.hikari.HikariConfig
 import io.kotlintest.Description
 import io.kotlintest.Spec
 import playwrigkt.skript.amqp.AMQPManager
-import playwrigkt.skript.stagemanager.*
+import playwrigkt.skript.stagemanager.ApplicationStageManager
+import playwrigkt.skript.stagemanager.JDBCDataSourceStageManager
+import playwrigkt.skript.stagemanager.JacksonSerializeStageManager
+import playwrigkt.skript.stagemanager.KtorHttpClientStageManager
 import playwrigkt.skript.user.JDBCUserServiceSpec
 import playwrigkt.skript.venue.AMQPVenue
+import playwrigkt.skript.venue.HttpServerVenue
 import playwrigkt.skript.venue.KtorHttpServerVenue
 import playwrigkt.skript.venue.QueueVenue
 
@@ -36,7 +40,7 @@ class JDBCChatroomTransactionSpec: ChatroomTransactionsSpec() {
         val serializeStageManager by lazy { JacksonSerializeStageManager() }
         val httpCientStageManager by lazy { KtorHttpClientStageManager() }
         val stageManager: ApplicationStageManager by lazy {
-            ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManager, httpCientStageManager, httpServerVenue, amqpVenue)
+            ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManager, httpCientStageManager)
         }
     }
 
@@ -50,5 +54,6 @@ class JDBCChatroomTransactionSpec: ChatroomTransactionsSpec() {
         AMQPManager.cleanConnection(amqpConnectionFactory).close()
     }
     override fun stageManager(): ApplicationStageManager = JDBCChatroomTransactionSpec.stageManager
-
+    override fun queueVenue(): QueueVenue = amqpVenue
+    override fun httpServerVenue(): HttpServerVenue = httpServerVenue
 }
