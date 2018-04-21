@@ -6,6 +6,10 @@ import io.kotlintest.Description
 import io.kotlintest.Spec
 import playwrigkt.skript.amqp.AMQPManager
 import playwrigkt.skript.stagemanager.*
+import playwrigkt.skript.user.JDBCUserServiceSpec
+import playwrigkt.skript.venue.AMQPVenue
+import playwrigkt.skript.venue.KtorHttpServerVenue
+import playwrigkt.skript.venue.QueueVenue
 
 class JDBCChatroomTransactionSpec: ChatroomTransactionsSpec() {
 
@@ -24,13 +28,15 @@ class JDBCChatroomTransactionSpec: ChatroomTransactionsSpec() {
             config.poolName = "test_pool"
             config
         }
+        val amqpVenue: QueueVenue by lazy { AMQPVenue(JDBCUserServiceSpec.amqpConnectionFactory) }
+        val httpServerVenue: KtorHttpServerVenue by lazy { KtorHttpServerVenue(JDBCUserServiceSpec.port, 10000) }
 
         val sqlConnectionStageManager by lazy { JDBCDataSourceStageManager(hikariDSConfig) }
         val publishStageManager by lazy { playwrigkt.skript.stagemanager.AMQPPublishStageManager(AMQPManager.amqpExchange, amqpConnectionFactory, AMQPManager.basicProperties) }
         val serializeStageManager by lazy { JacksonSerializeStageManager() }
         val httpCientStageManager by lazy { KtorHttpClientStageManager() }
         val stageManager: ApplicationStageManager by lazy {
-            ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManager, httpCientStageManager)
+            ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManager, httpCientStageManager, httpServerVenue, amqpVenue)
         }
     }
 

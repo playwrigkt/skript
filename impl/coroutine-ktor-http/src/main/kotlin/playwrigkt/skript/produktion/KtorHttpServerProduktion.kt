@@ -7,24 +7,56 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.request.*
 import io.ktor.response.header
 import io.ktor.response.respondWrite
+import io.ktor.routing.Route
 import io.ktor.util.toMap
+import org.funktionale.tries.Try
 import org.slf4j.LoggerFactory
 import playwrigkt.skript.Skript
+import playwrigkt.skript.coroutine.ex.await
 import playwrigkt.skript.coroutine.ex.suspendMap
 import playwrigkt.skript.http.Http
 import playwrigkt.skript.http.server.HttpServer
 import playwrigkt.skript.result.AsyncResult
+import playwrigkt.skript.result.CompletableResult
+import playwrigkt.skript.result.LightweightSynchronized
 import playwrigkt.skript.stagemanager.StageManager
-import playwrigkt.skript.venue.KtorHttpServerVenue
 
 class KtorHttpServerProduktion<Troupe>(val endpoint: HttpServer.Endpoint,
-                                       val httpServerVenue: KtorHttpServerVenue,
+                                       val route: Route,
+                                       val maxConnectionMillis: Long,
                                        val skript: Skript<HttpServer.Request<ByteArray>, HttpServer.Response, Troupe>,
-                                       val stageManager: StageManager<Troupe>): Produktion {
+                                       val stageManager: StageManager<Troupe>): Produktion, LightweightSynchronized() {
     val log = LoggerFactory.getLogger(this::class.java)
+    val result = CompletableResult<Unit>()
 
-    fun handle(call: ApplicationCall): AsyncResult<ApplicationCall> {
+    init {
+        route.handle {
+            handle(this.context)
+                    .await(maxConnectionMillis)
+                    .onFailure {
+                        log.info("error processing request: {}", it)
 
+                    }
+        }
+    }
+
+    override fun isRunning(): Boolean = !result.isComplete()
+
+    override fun stop(): AsyncResult<Unit> = lock {
+        if(!result.isComplete()) {
+            Try { route.handle {  } }
+                    .onSuccess(result::succeed)
+                    .onFailure(result::fail)
+        } else {
+            log.error("endpoint already stopped!")
+        }
+
+        result
+    }
+
+    override fun result(): AsyncResult<Unit> = result
+
+    private fun handle(call: ApplicationCall): AsyncResult<ApplicationCall> {
         val result = endpoint.request(
                 call.request.uri,
                 method(call.request.httpMethod),
@@ -44,25 +76,25 @@ class KtorHttpServerProduktion<Troupe>(val endpoint: HttpServer.Endpoint,
     }
 
 
-    fun respond(call: ApplicationCall): (HttpServer.Response) -> AsyncResult<ApplicationCall> = { response ->
+    private fun respond(call: ApplicationCall): (HttpServer.Response) -> AsyncResult<ApplicationCall> = { response ->
         call.status(response.status)
                 .headers(response.headers)
                 .body(response.responseBody)
     }
 
-    fun <T> respondError(call: ApplicationCall): (Throwable) -> AsyncResult<T> = { error ->
+    private fun <T> respondError(call: ApplicationCall): (Throwable) -> AsyncResult<T> = { error ->
         log.debug("error processing request, {}", error)
         call.status(Http.Status.InternalServerError)
                 .body(AsyncResult.succeeded(error.toString().toByteArray()))
                 .flatMap { AsyncResult.failed<T>(error) }
     }
 
-    fun ApplicationCall.status(status: Http.Status): ApplicationCall {
+    private fun ApplicationCall.status(status: Http.Status): ApplicationCall {
         this.response.status(HttpStatusCode(status.code, status.message))
         return this
     }
 
-    fun ApplicationCall.headers(headers: Map<String, List<String>>): ApplicationCall {
+    private fun ApplicationCall.headers(headers: Map<String, List<String>>): ApplicationCall {
         headers
                 .filterNot { k -> k.key  == "Content-Type"}
                 .forEach { key, values ->
@@ -70,7 +102,7 @@ class KtorHttpServerProduktion<Troupe>(val endpoint: HttpServer.Endpoint,
                 }
         return this
     }
-    fun ApplicationCall.body(responseBody: AsyncResult<ByteArray>): AsyncResult<ApplicationCall> =
+    private fun ApplicationCall.body(responseBody: AsyncResult<ByteArray>): AsyncResult<ApplicationCall> =
         responseBody.suspendMap { bytes ->
             this.respondWrite() {
                 bytes.forEach { write(it.toInt()) }
@@ -80,7 +112,7 @@ class KtorHttpServerProduktion<Troupe>(val endpoint: HttpServer.Endpoint,
             this
         }
 
-    fun method(httpMethod: HttpMethod): Http.Method =
+    private fun method(httpMethod: HttpMethod): Http.Method =
             when(httpMethod) {
                 HttpMethod.Get -> Http.Method.Get
                 HttpMethod.Head -> Http.Method.Head
@@ -91,10 +123,4 @@ class KtorHttpServerProduktion<Troupe>(val endpoint: HttpServer.Endpoint,
                 HttpMethod.Delete -> Http.Method.Delete
                 else -> Http.Method.Other(httpMethod.value)
             }
-
-    override fun isRunning(): Boolean = !httpServerVenue.result().isComplete()
-
-    override fun stop(): AsyncResult<Unit> = httpServerVenue.stop()
-
-    override fun result(): AsyncResult<Unit> = httpServerVenue.result()
 }

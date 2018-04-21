@@ -9,8 +9,8 @@ import io.ktor.server.netty.NettyApplicationEngine
 import org.funktionale.tries.Try
 import org.slf4j.LoggerFactory
 import playwrigkt.skript.Skript
-import playwrigkt.skript.coroutine.ex.await
 import playwrigkt.skript.coroutine.ex.suspendMap
+import playwrigkt.skript.http.Http
 import playwrigkt.skript.http.server.HttpServer
 import playwrigkt.skript.produktion.KtorHttpServerProduktion
 import playwrigkt.skript.produktion.Produktion
@@ -42,51 +42,38 @@ class KtorHttpServerVenue(val port: Int, val maxConnectionMillis: Long): HttpSer
 
 
     override fun <Troupe> produktion(skript: Skript<HttpServer.Request<ByteArray>, HttpServer.Response, Troupe>, stageManager: StageManager<Troupe>, rule: HttpServer.Endpoint): AsyncResult<out Produktion> =
-        AsyncResult.succeeded(KtorHttpServerProduktion(rule, this, skript, stageManager))
+        AsyncResult.succeeded(Unit)
+                .suspendMap { KtorHttpServerProduktion(rule, routing.of(rule), maxConnectionMillis, skript, stageManager) }
                 .suspendMap {
-                    routeTo(it)
-                    log.info("routing updated:\n${routing.printRoute()}")
+                    log.info("ROUTING UPDATED\n${".".repeat(25)}\n${this.routing.printRoute()}\n${".".repeat(25)}")
                     it
                 }
 
+    override fun teardown(): AsyncResult<Unit> = lock {
+        if(!result.isComplete()) {
+            log.info("stopping ktor server")
+            Try { server.stop(1000, 1000, TimeUnit.MILLISECONDS) }
+                    .onSuccess(result::succeed)
+                    .onFailure(result::fail)
+            result
+        } else {
+            log.error("server already stopped!")
+            result
+        }
+    }
 
     private fun Route.printRoute(depth: Int = 0): String =
         "${" ".repeat(depth)}route: $this\n" + this.children.map { it.printRoute(depth + 1)}.joinToString("\n")
 
-    fun result(): AsyncResult<Unit> = result
 
-    override fun teardown(): AsyncResult<Unit> = stop()
-
-    fun stop(): AsyncResult<Unit> =
-        lock {
-            if(!result.isComplete()) {
-                log.info("stopping ktor server")
-                Try { server.stop(1000, 1000, TimeUnit.MILLISECONDS) }
-                        .onSuccess(result::succeed)
-                        .onFailure(result::fail)
-                result
-            } else {
-                log.error("server already stopped!")
-                result
-            }
-        }
-
-    private fun <Troupe> routeTo(produktion: KtorHttpServerProduktion<Troupe>) {
-        lock {
-            routing.method(method(produktion)) { }
-                    .route(produktion.endpoint.path) { }
-                    .addHeaders(produktion)
-                    .handle { produktion.handle(this.context)
-                            .await(maxConnectionMillis)
-                            .onFailure {
-                                log.info("error processing request: {}", it)
-                            } }
-        }
+    private fun Routing.of(endpoint: HttpServer.Endpoint): Route = lock {
+        this.method(method(endpoint.method)) { }
+                .route(endpoint.path) { }
+                .addHeaders(endpoint.headers)
     }
 
-    private fun Route.addHeaders(rule: KtorHttpServerProduktion<*>): Route {
-
-        return rule.endpoint.headers
+    private fun Route.addHeaders(headers: Map<String, List<String>>): Route {
+        return headers
                 .toList()
                 .flatMap { entry -> entry.second.map { entry.first to it } }
                 .fold(this) { route, header ->
@@ -94,7 +81,9 @@ class KtorHttpServerVenue(val port: Int, val maxConnectionMillis: Long): HttpSer
                 }
     }
 
-    private fun method(produktion: KtorHttpServerProduktion<*>): HttpMethod {
-        return playwrigkt.skript.http.method(produktion.endpoint.method)
+    private fun method(method: Http.Method): HttpMethod {
+        return playwrigkt.skript.http.method(method)
     }
+
+
 }

@@ -35,18 +35,17 @@ class JDBCUserServiceSpec: UserServiceSpec() {
 
         val port = floor((Math.random() * 8000)).toInt() + 2000
 
+        val amqpVenue: QueueVenue by lazy { AMQPVenue(amqpConnectionFactory) }
+        val httpServerVenue: KtorHttpServerVenue by lazy { KtorHttpServerVenue(port, 10000) }
+
         val sqlConnectionStageManager by lazy { JDBCDataSourceStageManager(hikariDSConfig) }
         val publishStageManager by lazy { AMQPPublishStageManager(AMQPManager.amqpExchange, amqpConnectionFactory, AMQPManager.basicProperties) }
         val serializeStageManagerr by lazy { JacksonSerializeStageManager() }
         val httpClientStageManager by lazy { KtorHttpClientStageManager() }
         val stageManager: ApplicationStageManager by lazy {
-            ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManagerr, httpClientStageManager)
+            ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManagerr, httpClientStageManager, httpServerVenue, amqpVenue)
         }
 
-
-        val amqpVenue: QueueVenue by lazy { AMQPVenue(amqpConnectionFactory) }
-        val httpServerVenue: KtorHttpServerVenue by lazy { KtorHttpServerVenue(port, 10000) }
-        val produktions by lazy { userProduktions(httpServerVenue, stageManager) }
         val userHttpClient by lazy { UserHttpClient(port) }
     }
 
@@ -59,9 +58,6 @@ class JDBCUserServiceSpec: UserServiceSpec() {
         AMQPManager.cleanConnection(JDBCChatroomTransactionSpec.amqpConnectionFactory).close()
     }
 
-    override fun produktions(): AsyncResult<List<Produktion>> = produktions
     override fun userHttpClient(): UserHttpClient = userHttpClient
-    override fun httpServerVenue(): HttpServerVenue = httpServerVenue
     override fun stageManager(): ApplicationStageManager = stageManager
-    override fun queueVenue(): QueueVenue = amqpVenue
 }
