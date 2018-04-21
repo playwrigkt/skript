@@ -2,17 +2,15 @@ package playwrigkt.skript.user
 
 import com.rabbitmq.client.ConnectionFactory
 import com.zaxxer.hikari.HikariConfig
-import com.zaxxer.hikari.HikariDataSource
 import io.kotlintest.Description
 import io.kotlintest.Spec
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.apache.Apache
 import playwrigkt.skript.amqp.AMQPManager
 import playwrigkt.skript.chatroom.JDBCChatroomTransactionSpec
-import playwrigkt.skript.produktion.Produktion
-import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.stagemanager.*
-import playwrigkt.skript.venue.*
+import playwrigkt.skript.venue.AMQPVenue
+import playwrigkt.skript.venue.HttpServerVenue
+import playwrigkt.skript.venue.KtorHttpServerVenue
+import playwrigkt.skript.venue.QueueVenue
 import kotlin.math.floor
 
 class JDBCUserServiceSpec: UserServiceSpec() {
@@ -35,6 +33,9 @@ class JDBCUserServiceSpec: UserServiceSpec() {
 
         val port = floor((Math.random() * 8000)).toInt() + 2000
 
+        val amqpVenue: QueueVenue by lazy { AMQPVenue(amqpConnectionFactory) }
+        val httpServerVenue: KtorHttpServerVenue by lazy { KtorHttpServerVenue(port, 10000) }
+
         val sqlConnectionStageManager by lazy { JDBCDataSourceStageManager(hikariDSConfig) }
         val publishStageManager by lazy { AMQPPublishStageManager(AMQPManager.amqpExchange, amqpConnectionFactory, AMQPManager.basicProperties) }
         val serializeStageManagerr by lazy { JacksonSerializeStageManager() }
@@ -43,12 +44,13 @@ class JDBCUserServiceSpec: UserServiceSpec() {
             ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManagerr, httpClientStageManager)
         }
 
-
-        val amqpVenue: QueueVenue by lazy { AMQPVenue(amqpConnectionFactory) }
-        val httpServerVenue: KtorHttpServerVenue by lazy { KtorHttpServerVenue(port, 10000) }
-        val produktions by lazy { userProduktions(httpServerVenue, stageManager) }
         val userHttpClient by lazy { UserHttpClient(port) }
     }
+
+    override fun userHttpClient(): UserHttpClient = userHttpClient
+    override fun stageManager(): ApplicationStageManager = stageManager
+    override fun queueVenue(): QueueVenue = amqpVenue
+    override fun httpServerVenue(): HttpServerVenue = httpServerVenue
 
     override fun beforeSpec(description: Description, spec: Spec) {
         super.beforeSpec(description, spec)
@@ -58,10 +60,4 @@ class JDBCUserServiceSpec: UserServiceSpec() {
         super.afterSpec(description, spec)
         AMQPManager.cleanConnection(JDBCChatroomTransactionSpec.amqpConnectionFactory).close()
     }
-
-    override fun produktions(): AsyncResult<List<Produktion>> = produktions
-    override fun userHttpClient(): UserHttpClient = userHttpClient
-    override fun httpServerVenue(): HttpServerVenue = httpServerVenue
-    override fun stageManager(): ApplicationStageManager = stageManager
-    override fun queueVenue(): QueueVenue = amqpVenue
 }

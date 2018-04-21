@@ -5,7 +5,15 @@ import com.zaxxer.hikari.HikariConfig
 import io.kotlintest.Description
 import io.kotlintest.Spec
 import playwrigkt.skript.amqp.AMQPManager
-import playwrigkt.skript.stagemanager.*
+import playwrigkt.skript.stagemanager.ApplicationStageManager
+import playwrigkt.skript.stagemanager.JDBCDataSourceStageManager
+import playwrigkt.skript.stagemanager.JacksonSerializeStageManager
+import playwrigkt.skript.stagemanager.KtorHttpClientStageManager
+import playwrigkt.skript.user.JDBCUserServiceSpec
+import playwrigkt.skript.venue.AMQPVenue
+import playwrigkt.skript.venue.HttpServerVenue
+import playwrigkt.skript.venue.KtorHttpServerVenue
+import playwrigkt.skript.venue.QueueVenue
 
 class JDBCChatroomTransactionSpec: ChatroomTransactionsSpec() {
 
@@ -24,6 +32,8 @@ class JDBCChatroomTransactionSpec: ChatroomTransactionsSpec() {
             config.poolName = "test_pool"
             config
         }
+        val amqpVenue: QueueVenue by lazy { AMQPVenue(JDBCUserServiceSpec.amqpConnectionFactory) }
+        val httpServerVenue: KtorHttpServerVenue by lazy { KtorHttpServerVenue(JDBCUserServiceSpec.port, 10000) }
 
         val sqlConnectionStageManager by lazy { JDBCDataSourceStageManager(hikariDSConfig) }
         val publishStageManager by lazy { playwrigkt.skript.stagemanager.AMQPPublishStageManager(AMQPManager.amqpExchange, amqpConnectionFactory, AMQPManager.basicProperties) }
@@ -44,5 +54,6 @@ class JDBCChatroomTransactionSpec: ChatroomTransactionsSpec() {
         AMQPManager.cleanConnection(amqpConnectionFactory).close()
     }
     override fun stageManager(): ApplicationStageManager = JDBCChatroomTransactionSpec.stageManager
-
+    override fun queueVenue(): QueueVenue = amqpVenue
+    override fun httpServerVenue(): HttpServerVenue = httpServerVenue
 }

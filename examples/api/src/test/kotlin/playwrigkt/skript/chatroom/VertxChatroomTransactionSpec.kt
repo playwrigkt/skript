@@ -5,11 +5,15 @@ import io.kotlintest.Spec
 import io.vertx.core.Future
 import io.vertx.core.Vertx
 import io.vertx.core.http.HttpClientOptions
+import io.vertx.core.http.HttpServerOptions
 import io.vertx.core.json.JsonObject
-import io.vertx.ext.jdbc.JDBCClient
-import io.vertx.ext.sql.SQLClient
 import playwrigkt.skript.result.VertxResult
 import playwrigkt.skript.stagemanager.*
+import playwrigkt.skript.user.VertxUserServiceSpec
+import playwrigkt.skript.venue.HttpServerVenue
+import playwrigkt.skript.venue.QueueVenue
+import playwrigkt.skript.venue.VertxHttpServerVenue
+import playwrigkt.skript.venue.VertxVenue
 import kotlin.math.floor
 
 class VertxChatroomTransactionSpec: ChatroomTransactionsSpec() {
@@ -28,6 +32,8 @@ class VertxChatroomTransactionSpec: ChatroomTransactionsSpec() {
 
         val port = floor((Math.random() * 8000)).toInt() + 2000
 
+        val vertxVenue by lazy { VertxVenue(VertxUserServiceSpec.vertx) }
+        val httpServerVenue: VertxHttpServerVenue by lazy { VertxHttpServerVenue(VertxUserServiceSpec.vertx, HttpServerOptions().setPort(VertxUserServiceSpec.port)) }
 
         val sqlConnectionStageManager by lazy { VertxSQLStageManager(vertx, hikariConfig, "test_datasource") }
         val publishStageManager by lazy { VertxPublishStageManager(vertx.eventBus()) }
@@ -39,7 +45,8 @@ class VertxChatroomTransactionSpec: ChatroomTransactionsSpec() {
     }
 
     override fun stageManager(): ApplicationStageManager = VertxChatroomTransactionSpec.stageManager
-
+    override fun queueVenue(): QueueVenue = vertxVenue
+    override fun httpServerVenue(): HttpServerVenue = httpServerVenue
     override fun afterSpec(description: Description, spec: Spec) {
         super.afterSpec(description, spec)
         val future = Future.future<Void>()

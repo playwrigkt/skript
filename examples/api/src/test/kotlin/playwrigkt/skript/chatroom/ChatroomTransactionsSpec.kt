@@ -18,6 +18,8 @@ import playwrigkt.skript.user.extensions.schema.dropUserSchema
 import playwrigkt.skript.user.extensions.schema.initUserSchema
 import playwrigkt.skript.user.models.UserError
 import playwrigkt.skript.user.models.UserNameAndPassword
+import playwrigkt.skript.venue.HttpServerVenue
+import playwrigkt.skript.venue.QueueVenue
 
 abstract class ChatroomTransactionsSpec : StringSpec() {
 
@@ -36,6 +38,9 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
     }
 
     abstract fun stageManager(): ApplicationStageManager
+    abstract fun queueVenue(): QueueVenue
+    abstract fun httpServerVenue(): HttpServerVenue
+
     val userService by lazy { UserService(stageManager()) }
 
     override fun beforeSpec(description: Description, spec: Spec) {
@@ -51,9 +56,11 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
 
     override fun afterSpec(description: Description, spec: Spec) {
         awaitSucceededFuture(stageManager().runWithTroupe(
-                SQLTransactionSkript.transaction<Unit, Unit, ApplicationTroupe>(playwrigkt.skript.chatrooom.sql.ChatRoomSchema.dropAllAction),
+                SQLTransactionSkript.transaction(playwrigkt.skript.chatrooom.sql.ChatRoomSchema.dropAllAction),
                 Unit))
         awaitSucceededFuture(stageManager().hireTroupe().dropUserSchema())
+        awaitSucceededFuture(httpServerVenue().teardown())
+        awaitSucceededFuture(queueVenue().teardown())
         awaitSucceededFuture(stageManager().tearDown())
     }
 

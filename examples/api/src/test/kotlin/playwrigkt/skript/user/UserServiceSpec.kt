@@ -28,38 +28,36 @@ abstract class UserServiceSpec : StringSpec() {
 
     val LOG = LoggerFactory.getLogger(this.javaClass)
 
-    abstract fun stageManager(): ApplicationStageManager
     abstract fun queueVenue(): QueueVenue
     abstract fun httpServerVenue(): HttpServerVenue
-    abstract fun produktions(): AsyncResult<List<Produktion>>
-
+    abstract fun stageManager(): ApplicationStageManager
     abstract fun userHttpClient(): UserHttpClient
 
     val userService: UserService by lazy { UserService(stageManager()) }
+    val userProduktions by lazy {
+        userHttpProduktions(httpServerVenue(), stageManager())
+    }
+
     fun loginProduktion(): Produktion {
         return awaitSucceededFuture(
-                userLoginProduktion(
-                        queueVenue(),
-                        stageManager(),
+                userLoginQueueProduktion(
                         Skript.identity<QueueMessage, ApplicationTroupe>()
                                 .map { it.body }
                                 .deserialize(UserSession::class.java)
                                 .map(processedLoginEvents::add)
-                                .map { Unit }))!!
+                                .map { Unit }, queueVenue(), stageManager()))!!
     }
 
     val processedLoginEvents = LinkedBlockingQueue<UserSession>()
 
     fun createProduktion(): Produktion {
         return awaitSucceededFuture(
-                userCreateProduktion(
-                        queueVenue(),
-                        stageManager(),
+                userCreateQueueProduktion(
                         Skript.identity<QueueMessage, ApplicationTroupe>()
                                 .map { it.body }
                                 .deserialize(UserProfile::class.java)
                                 .map(processedCreateEvents::add)
-                                .map { Unit }))!!
+                                .map { Unit }, queueVenue(), stageManager()))!!
     }
 
     val processedCreateEvents = LinkedBlockingQueue<UserProfile>()
@@ -67,15 +65,15 @@ abstract class UserServiceSpec : StringSpec() {
     override fun beforeSpec(description: Description, spec: Spec) {
         awaitSucceededFuture(stageManager().hireTroupe().dropUserSchema())
         awaitSucceededFuture(stageManager().hireTroupe().initUserSchema())
-        awaitSucceededFuture(produktions())
+        awaitSucceededFuture(userProduktions)
     }
 
     override fun afterSpec(description: Description, spec: Spec) {
         awaitSucceededFuture(stageManager().hireTroupe().deleteAllUsers())
         awaitSucceededFuture(stageManager().hireTroupe().dropUserSchema())
-        awaitSucceededFuture(stageManager().tearDown())
         awaitSucceededFuture(httpServerVenue().teardown())
         awaitSucceededFuture(queueVenue().teardown())
+        awaitSucceededFuture(stageManager().tearDown())
     }
 
     init {
