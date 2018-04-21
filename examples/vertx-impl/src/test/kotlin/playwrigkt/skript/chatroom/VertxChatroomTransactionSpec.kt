@@ -7,6 +7,7 @@ import io.vertx.core.Vertx
 import io.vertx.core.http.HttpClientOptions
 import io.vertx.core.http.HttpServerOptions
 import io.vertx.core.json.JsonObject
+import playwrigkt.skript.ExampleApplication
 import playwrigkt.skript.result.VertxResult
 import playwrigkt.skript.stagemanager.*
 import playwrigkt.skript.venue.HttpServerVenue
@@ -41,11 +42,11 @@ class VertxChatroomTransactionSpec: ChatroomTransactionsSpec() {
         val stageManager: ApplicationStageManager by lazy {
             ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManager, httpStageManager)
         }
+        val application by lazy { ExampleApplication(stageManager, httpServerVenue, vertxVenue) }
     }
 
-    override fun stageManager(): ApplicationStageManager = VertxChatroomTransactionSpec.stageManager
-    override fun queueVenue(): QueueVenue = vertxVenue
-    override fun httpServerVenue(): HttpServerVenue = httpServerVenue
+    override fun application(): ExampleApplication = application
+
     override fun afterSpec(description: Description, spec: Spec) {
         super.afterSpec(description, spec)
         val future = Future.future<Void>()

@@ -4,11 +4,10 @@ import com.rabbitmq.client.ConnectionFactory
 import com.zaxxer.hikari.HikariConfig
 import io.kotlintest.Description
 import io.kotlintest.Spec
+import playwrigkt.skript.ExampleApplication
 import playwrigkt.skript.amqp.AMQPManager
-import playwrigkt.skript.chatroom.JDBCChatroomTransactionSpec
 import playwrigkt.skript.stagemanager.*
 import playwrigkt.skript.venue.AMQPVenue
-import playwrigkt.skript.venue.HttpServerVenue
 import playwrigkt.skript.venue.KtorHttpServerVenue
 import playwrigkt.skript.venue.QueueVenue
 import kotlin.math.floor
@@ -45,12 +44,12 @@ class JDBCUserServiceSpec: UserServiceSpec() {
         }
 
         val userHttpClient by lazy { UserHttpClient(port) }
+        val application by lazy { ExampleApplication(stageManager, httpServerVenue, amqpVenue) }
+
     }
 
     override fun userHttpClient(): UserHttpClient = userHttpClient
-    override fun stageManager(): ApplicationStageManager = stageManager
-    override fun queueVenue(): QueueVenue = amqpVenue
-    override fun httpServerVenue(): HttpServerVenue = httpServerVenue
+    override fun application(): ExampleApplication = application
 
     override fun beforeSpec(description: Description, spec: Spec) {
         super.beforeSpec(description, spec)
@@ -58,6 +57,6 @@ class JDBCUserServiceSpec: UserServiceSpec() {
     }
     override fun afterSpec(description: Description, spec: Spec) {
         super.afterSpec(description, spec)
-        AMQPManager.cleanConnection(JDBCChatroomTransactionSpec.amqpConnectionFactory).close()
+        AMQPManager.cleanConnection(amqpConnectionFactory).close()
     }
 }

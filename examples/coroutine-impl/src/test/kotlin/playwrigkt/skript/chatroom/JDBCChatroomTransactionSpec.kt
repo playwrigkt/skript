@@ -4,13 +4,13 @@ import com.rabbitmq.client.ConnectionFactory
 import com.zaxxer.hikari.HikariConfig
 import io.kotlintest.Description
 import io.kotlintest.Spec
+import playwrigkt.skript.ExampleApplication
 import playwrigkt.skript.amqp.AMQPManager
 import playwrigkt.skript.stagemanager.ApplicationStageManager
 import playwrigkt.skript.stagemanager.JDBCDataSourceStageManager
 import playwrigkt.skript.stagemanager.JacksonSerializeStageManager
 import playwrigkt.skript.stagemanager.KtorHttpClientStageManager
 import playwrigkt.skript.venue.AMQPVenue
-import playwrigkt.skript.venue.HttpServerVenue
 import playwrigkt.skript.venue.KtorHttpServerVenue
 import playwrigkt.skript.venue.QueueVenue
 import kotlin.math.floor
@@ -45,6 +45,8 @@ class JDBCChatroomTransactionSpec: ChatroomTransactionsSpec() {
         val stageManager: ApplicationStageManager by lazy {
             ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManager, httpCientStageManager)
         }
+
+        val application by lazy { ExampleApplication(stageManager, httpServerVenue, amqpVenue) }
     }
 
     override fun beforeSpec(description: Description, spec: Spec) {
@@ -56,7 +58,6 @@ class JDBCChatroomTransactionSpec: ChatroomTransactionsSpec() {
         super.afterSpec(description, spec)
         AMQPManager.cleanConnection(amqpConnectionFactory).close()
     }
-    override fun stageManager(): ApplicationStageManager = JDBCChatroomTransactionSpec.stageManager
-    override fun queueVenue(): QueueVenue = amqpVenue
-    override fun httpServerVenue(): HttpServerVenue = httpServerVenue
+
+    override fun application(): ExampleApplication = application
 }
