@@ -1,0 +1,14 @@
+kotlin {
+    experimental {
+        coroutines "enable"
+    }
+}
+dependencies {
+    compile project(':examples:api')
+    compile project(':impl:coroutine-jdbc-sql')
+    compile project(':impl:coroutine-amqp-queue')
+    compile project(':impl:coroutine-jackson-serialize')
+    compile project(':impl:coroutine-ktor-http')
+    compile "org.postgresql:postgresql:$postgres_version"
+    testCompile project(':examples:api').sourceSets.test.output
+}

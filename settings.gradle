@@ -4,5 +4,5 @@ include 'api:core', 'api:serialize', 'api:sql', 'api:http', 'api:queue', 'api:co
         'impl:coroutine-ktor-http',
         'impl:coroutine-amqp-queue',
         'impl:vertx',
-        'examples:api'
+        'examples:api','examples:coroutine-impl', 'examples:vertx-impl'
 rootProject.name = "skript"

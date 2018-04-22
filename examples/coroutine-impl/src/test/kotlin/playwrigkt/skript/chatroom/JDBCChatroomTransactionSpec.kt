@@ -4,16 +4,17 @@ import com.rabbitmq.client.ConnectionFactory
 import com.zaxxer.hikari.HikariConfig
 import io.kotlintest.Description
 import io.kotlintest.Spec
-import playwrigkt.skript.amqp.AMQPManager
+import playwrigkt.skript.ExampleApplication
+import playwrigkt.skript.coroutine.AMQPManager
+import playwrigkt.skript.coroutine.startApplication
 import playwrigkt.skript.stagemanager.ApplicationStageManager
 import playwrigkt.skript.stagemanager.JDBCDataSourceStageManager
 import playwrigkt.skript.stagemanager.JacksonSerializeStageManager
 import playwrigkt.skript.stagemanager.KtorHttpClientStageManager
-import playwrigkt.skript.user.JDBCUserServiceSpec
 import playwrigkt.skript.venue.AMQPVenue
-import playwrigkt.skript.venue.HttpServerVenue
 import playwrigkt.skript.venue.KtorHttpServerVenue
 import playwrigkt.skript.venue.QueueVenue
+import kotlin.math.floor
 
 class JDBCChatroomTransactionSpec: ChatroomTransactionsSpec() {
 
@@ -28,20 +29,14 @@ class JDBCChatroomTransactionSpec: ChatroomTransactionsSpec() {
             config.username = "chatty_tammy"
             config.password = "gossipy"
             config.driverClassName = "org.postgresql.Driver"
-            config.maximumPoolSize = 30
+            config.maximumPoolSize = 1
             config.poolName = "test_pool"
             config
         }
-        val amqpVenue: QueueVenue by lazy { AMQPVenue(JDBCUserServiceSpec.amqpConnectionFactory) }
-        val httpServerVenue: KtorHttpServerVenue by lazy { KtorHttpServerVenue(JDBCUserServiceSpec.port, 10000) }
 
-        val sqlConnectionStageManager by lazy { JDBCDataSourceStageManager(hikariDSConfig) }
-        val publishStageManager by lazy { playwrigkt.skript.stagemanager.AMQPPublishStageManager(AMQPManager.amqpExchange, amqpConnectionFactory, AMQPManager.basicProperties) }
-        val serializeStageManager by lazy { JacksonSerializeStageManager() }
-        val httpCientStageManager by lazy { KtorHttpClientStageManager() }
-        val stageManager: ApplicationStageManager by lazy {
-            ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManager, httpCientStageManager)
-        }
+        val port = floor((Math.random() * 8000)).toInt() + 2000
+
+        val application  by lazy { startApplication(amqpConnectionFactory, hikariDSConfig, port) }
     }
 
     override fun beforeSpec(description: Description, spec: Spec) {
@@ -53,7 +48,6 @@ class JDBCChatroomTransactionSpec: ChatroomTransactionsSpec() {
         super.afterSpec(description, spec)
         AMQPManager.cleanConnection(amqpConnectionFactory).close()
     }
-    override fun stageManager(): ApplicationStageManager = JDBCChatroomTransactionSpec.stageManager
-    override fun queueVenue(): QueueVenue = amqpVenue
-    override fun httpServerVenue(): HttpServerVenue = httpServerVenue
+
+    override fun application(): ExampleApplication = application
 }

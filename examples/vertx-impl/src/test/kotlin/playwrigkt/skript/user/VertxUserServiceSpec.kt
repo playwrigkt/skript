@@ -7,12 +7,14 @@ import io.vertx.core.Vertx
 import io.vertx.core.http.HttpClientOptions
 import io.vertx.core.http.HttpServerOptions
 import io.vertx.core.json.JsonObject
+import playwrigkt.skript.ExampleApplication
 import playwrigkt.skript.result.VertxResult
 import playwrigkt.skript.stagemanager.*
 import playwrigkt.skript.venue.HttpServerVenue
 import playwrigkt.skript.venue.QueueVenue
 import playwrigkt.skript.venue.VertxHttpServerVenue
 import playwrigkt.skript.venue.VertxVenue
+import playwrigkt.skript.vertx.createApplication
 import kotlin.math.floor
 
 class VertxUserServiceSpec: UserServiceSpec() {
@@ -25,32 +27,18 @@ class VertxUserServiceSpec: UserServiceSpec() {
                 .put("username", "chatty_tammy")
                 .put("password", "gossipy")
                 .put("driver_class", "org.postgresql.Driver")
-                .put("maximumPoolSize", 30)
+                .put("maximumPoolSize", 1)
                 .put("poolName", "test_pool")
 
         val port = floor((Math.random() * 8000)).toInt() + 2000
 
-
-
-        val vertxVenue by lazy { VertxVenue(vertx) }
-        val httpServerVenue: VertxHttpServerVenue by lazy { VertxHttpServerVenue(vertx, HttpServerOptions().setPort(port)) }
-
-        val sqlConnectionStageManager by lazy { VertxSQLStageManager(vertx, hikariConfig, "test_datasource") }
-        val publishStageManager by lazy { VertxPublishStageManager(vertx.eventBus())  }
-        val serializeStageManager by lazy { VertxSerializeStageManager() }
-        val httpStageManager by lazy { VertxHttpRequestStageManager(HttpClientOptions().setDefaultPort(port), vertx) }
-
-        val stageManager: ApplicationStageManager by lazy {
-            ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManager, httpStageManager)
-        }
+        val application by lazy { createApplication(vertx, hikariConfig, port) }
 
         val userHttpClient by lazy { UserHttpClient(port) }
     }
 
     override fun userHttpClient(): UserHttpClient = userHttpClient
-    override fun stageManager(): ApplicationStageManager = VertxUserServiceSpec.stageManager
-    override fun queueVenue(): QueueVenue = vertxVenue
-    override fun httpServerVenue(): HttpServerVenue = httpServerVenue
+    override fun application(): ExampleApplication = application
 
     override fun afterSpec(description: Description, spec: Spec) {
         super.afterSpec(description, spec)

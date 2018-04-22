@@ -7,5 +7,5 @@ kotlin {
 dependencies {
     compile project(':api:sql')
     compile project(':api:coroutine')
-    compile "com.zaxxer:HikariCP:2.7.1"
+    compile "com.zaxxer:HikariCP:$hikari_version"
 }

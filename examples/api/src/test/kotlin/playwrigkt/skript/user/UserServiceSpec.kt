@@ -4,20 +4,18 @@ import io.kotlintest.*
 import io.kotlintest.specs.StringSpec
 import org.slf4j.LoggerFactory
 import playwrigkt.skript.Async
+import playwrigkt.skript.ExampleApplication
 import playwrigkt.skript.Skript
 import playwrigkt.skript.auth.TokenAndInput
 import playwrigkt.skript.ex.deserialize
 import playwrigkt.skript.produktion.Produktion
 import playwrigkt.skript.queue.QueueMessage
 import playwrigkt.skript.result.AsyncResult
-import playwrigkt.skript.stagemanager.ApplicationStageManager
 import playwrigkt.skript.troupe.ApplicationTroupe
 import playwrigkt.skript.user.extensions.schema.dropUserSchema
 import playwrigkt.skript.user.extensions.schema.initUserSchema
 import playwrigkt.skript.user.extensions.transaction.deleteAllUsers
 import playwrigkt.skript.user.models.*
-import playwrigkt.skript.venue.HttpServerVenue
-import playwrigkt.skript.venue.QueueVenue
 import java.util.*
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
@@ -28,52 +26,46 @@ abstract class UserServiceSpec : StringSpec() {
 
     val LOG = LoggerFactory.getLogger(this.javaClass)
 
-    abstract fun queueVenue(): QueueVenue
-    abstract fun httpServerVenue(): HttpServerVenue
-    abstract fun stageManager(): ApplicationStageManager
     abstract fun userHttpClient(): UserHttpClient
+    abstract fun application(): ExampleApplication
 
-    val userService: UserService by lazy { UserService(stageManager()) }
+    val userService: UserService by lazy { UserService(application().stageManager) }
     val userProduktions by lazy {
-        userHttpProduktions(httpServerVenue(), stageManager())
+        application().loadHttpProduktions()
     }
 
-    fun loginProduktion(): Produktion {
-        return awaitSucceededFuture(
-                userLoginQueueProduktion(
-                        Skript.identity<QueueMessage, ApplicationTroupe>()
-                                .map { it.body }
-                                .deserialize(UserSession::class.java)
-                                .map(processedLoginEvents::add)
-                                .map { Unit }, queueVenue(), stageManager()))!!
-    }
+    fun loginProduktion(): Produktion =
+            awaitSucceededFuture(application().queueConsumerProduktion(
+                ExampleApplication.userLoginAddress,
+                Skript.identity<QueueMessage, ApplicationTroupe>()
+                        .map { it.body }
+                        .deserialize(UserSession::class.java)
+                        .map(processedLoginEvents::add)
+                        .map { Unit }))!!
 
     val processedLoginEvents = LinkedBlockingQueue<UserSession>()
 
-    fun createProduktion(): Produktion {
-        return awaitSucceededFuture(
-                userCreateQueueProduktion(
-                        Skript.identity<QueueMessage, ApplicationTroupe>()
-                                .map { it.body }
-                                .deserialize(UserProfile::class.java)
-                                .map(processedCreateEvents::add)
-                                .map { Unit }, queueVenue(), stageManager()))!!
-    }
+    fun createProduktion(): Produktion =
+            awaitSucceededFuture(application().queueConsumerProduktion(
+                ExampleApplication.userCreatedAddress,
+                Skript.identity<QueueMessage, ApplicationTroupe>()
+                        .map { it.body }
+                        .deserialize(UserProfile::class.java)
+                        .map(processedCreateEvents::add)
+                        .map { Unit }))!!
 
     val processedCreateEvents = LinkedBlockingQueue<UserProfile>()
 
     override fun beforeSpec(description: Description, spec: Spec) {
-        awaitSucceededFuture(stageManager().hireTroupe().dropUserSchema())
-        awaitSucceededFuture(stageManager().hireTroupe().initUserSchema())
+        awaitSucceededFuture(application().stageManager.hireTroupe().dropUserSchema())
+        awaitSucceededFuture(application().stageManager.hireTroupe().initUserSchema())
         awaitSucceededFuture(userProduktions)
     }
 
     override fun afterSpec(description: Description, spec: Spec) {
-        awaitSucceededFuture(stageManager().hireTroupe().deleteAllUsers())
-        awaitSucceededFuture(stageManager().hireTroupe().dropUserSchema())
-        awaitSucceededFuture(httpServerVenue().teardown())
-        awaitSucceededFuture(queueVenue().teardown())
-        awaitSucceededFuture(stageManager().tearDown())
+        awaitSucceededFuture(application().stageManager.hireTroupe().deleteAllUsers())
+        awaitSucceededFuture(application().stageManager.hireTroupe().dropUserSchema())
+        awaitSucceededFuture(application().teardown())
     }
 
     init {
@@ -206,11 +198,11 @@ abstract class UserServiceSpec : StringSpec() {
             val user = UserProfile(userId, userName, false)
             val userAndPassword = UserNameAndPassword(userName, password)
 
-            Async.awaitSucceededFuture(userHttpClient().createUserRequestSkript.run(UserProfileAndPassword(user, password), stageManager().hireTroupe())) shouldBe user
+            Async.awaitSucceededFuture(userHttpClient().createUserRequestSkript.run(UserProfileAndPassword(user, password), application().stageManager.hireTroupe())) shouldBe user
 
-            val session = Async.awaitSucceededFuture(userHttpClient().loginRequestSkript.run(userAndPassword, stageManager().hireTroupe()))!!
+            val session = Async.awaitSucceededFuture(userHttpClient().loginRequestSkript.run(userAndPassword, application().stageManager.hireTroupe()))!!
 
-            Async.awaitSucceededFuture(userHttpClient().getUserRequestSkript.run(TokenAndInput(session.sessionKey, userId), stageManager().hireTroupe())) shouldBe user
+            Async.awaitSucceededFuture(userHttpClient().getUserRequestSkript.run(TokenAndInput(session.sessionKey, userId), application().stageManager.hireTroupe())) shouldBe user
         }
     }
 

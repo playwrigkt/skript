@@ -1,6 +1,8 @@
 package playwrigkt.skript.user
 
 import org.funktionale.tries.Try
+import playwrigkt.skript.ExampleApplication.Companion.userCreatedAddress
+import playwrigkt.skript.ExampleApplication.Companion.userLoginAddress
 import playwrigkt.skript.Skript
 import playwrigkt.skript.ex.*
 import playwrigkt.skript.queue.QueueMessage

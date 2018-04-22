@@ -6,11 +6,11 @@ import io.kotlintest.fail
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
 import org.slf4j.LoggerFactory
+import playwrigkt.skript.ExampleApplication
 import playwrigkt.skript.Skript
 import playwrigkt.skript.common.models.Reference
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.sql.transaction.SQLTransactionSkript
-import playwrigkt.skript.stagemanager.ApplicationStageManager
 import playwrigkt.skript.troupe.ApplicationTroupe
 import playwrigkt.skript.user.UserFixture
 import playwrigkt.skript.user.UserService
@@ -18,8 +18,6 @@ import playwrigkt.skript.user.extensions.schema.dropUserSchema
 import playwrigkt.skript.user.extensions.schema.initUserSchema
 import playwrigkt.skript.user.models.UserError
 import playwrigkt.skript.user.models.UserNameAndPassword
-import playwrigkt.skript.venue.HttpServerVenue
-import playwrigkt.skript.venue.QueueVenue
 
 abstract class ChatroomTransactionsSpec : StringSpec() {
 
@@ -37,31 +35,27 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
         val REMOVE_USER_PERMISSION: Skript<playwrigkt.skript.auth.TokenAndInput<playwrigkt.skript.chatrooom.models.ChatRoomUser>, playwrigkt.skript.chatrooom.models.ChatRoom, ApplicationTroupe> = SQLTransactionSkript.transaction(playwrigkt.skript.chatrooom.ChatRoomSkripts.REMOVE_USER_PERMISSIONS)
     }
 
-    abstract fun stageManager(): ApplicationStageManager
-    abstract fun queueVenue(): QueueVenue
-    abstract fun httpServerVenue(): HttpServerVenue
+    abstract fun application(): ExampleApplication
 
-    val userService by lazy { UserService(stageManager()) }
+    val userService by lazy { UserService(application().stageManager) }
 
     override fun beforeSpec(description: Description, spec: Spec) {
-        awaitSucceededFuture(stageManager().runWithTroupe(
+        awaitSucceededFuture(application().stageManager.runWithTroupe(
                 SQLTransactionSkript.transaction(playwrigkt.skript.chatrooom.sql.ChatRoomSchema.dropAllAction),
                 Unit))
-        awaitSucceededFuture(stageManager().hireTroupe().dropUserSchema())
-        awaitSucceededFuture(stageManager().hireTroupe().initUserSchema())
-        awaitSucceededFuture(stageManager().runWithTroupe(
+        awaitSucceededFuture(application().stageManager.hireTroupe().dropUserSchema())
+        awaitSucceededFuture(application().stageManager.hireTroupe().initUserSchema())
+        awaitSucceededFuture(application().stageManager.runWithTroupe(
                 SQLTransactionSkript.transaction(playwrigkt.skript.chatrooom.sql.ChatRoomSchema.initAction),
                 Unit))
     }
 
     override fun afterSpec(description: Description, spec: Spec) {
-        awaitSucceededFuture(stageManager().runWithTroupe(
+        awaitSucceededFuture(application().stageManager.runWithTroupe(
                 SQLTransactionSkript.transaction(playwrigkt.skript.chatrooom.sql.ChatRoomSchema.dropAllAction),
                 Unit))
-        awaitSucceededFuture(stageManager().hireTroupe().dropUserSchema())
-        awaitSucceededFuture(httpServerVenue().teardown())
-        awaitSucceededFuture(queueVenue().teardown())
-        awaitSucceededFuture(stageManager().tearDown())
+        awaitSucceededFuture(application().stageManager.hireTroupe().dropUserSchema())
+        awaitSucceededFuture(application().teardown())
     }
 
     init {
@@ -94,8 +88,8 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
                     setOf(playwrigkt.skript.chatrooom.models.ChatRoomPermissionKey.Get.key)
             )
 
-            awaitSucceededFuture(stageManager().runWithTroupe(CREATE_CHAT_ROOM, playwrigkt.skript.auth.TokenAndInput(session.sessionKey, chatRoom)), chatRoom)
-            awaitSucceededFuture(stageManager().runWithTroupe(GET_CHAT_ROOM, playwrigkt.skript.auth.TokenAndInput(session.sessionKey, chatRoomId)), chatRoom)
+            awaitSucceededFuture(application().stageManager.runWithTroupe(CREATE_CHAT_ROOM, playwrigkt.skript.auth.TokenAndInput(session.sessionKey, chatRoom)), chatRoom)
+            awaitSucceededFuture(application().stageManager.runWithTroupe(GET_CHAT_ROOM, playwrigkt.skript.auth.TokenAndInput(session.sessionKey, chatRoomId)), chatRoom)
 
             val user3 = UserFixture.generateUser(3)
             awaitSucceededFuture(userService.createUser(user3), user3.userProfile)
@@ -106,7 +100,7 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
                     playwrigkt.skript.chatrooom.models.ChatRoomPermissionKey.AddUserPermission.key,
                     playwrigkt.skript.chatrooom.models.ChatRoomPermissionKey.RemoveUserPermission.key))))
             awaitSucceededFuture(
-                    stageManager().runWithTroupe(
+                    application().stageManager.runWithTroupe(
                             ADD_USER,
                             playwrigkt.skript.auth.TokenAndInput(
                                     session.sessionKey,
@@ -121,13 +115,13 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
                     chatRoomWithNewUser)
             val chatRoomAfterDeleteUser = chatRoomWithNewUser.copy(users = chatRoomWithNewUser.users.filterNot { it.user.id == user2.userProfile.id }.toSet())
             awaitSucceededFuture(
-                    stageManager().runWithTroupe(
+                    application().stageManager.runWithTroupe(
                             DELETE_USER,
                             playwrigkt.skript.auth.TokenAndInput(session.sessionKey, playwrigkt.skript.chatrooom.models.ChatRoomUser(Reference.Empty(user2.userProfile.id), Reference.Empty(chatRoomId), setOf(playwrigkt.skript.chatrooom.models.ChatRoomPermissionKey.Update.key)))),
                     chatRoomAfterDeleteUser)
 
             awaitSucceededFuture(
-                    stageManager().runWithTroupe(
+                    application().stageManager.runWithTroupe(
                             ADD_PUBLIC_PERMISSIONS,
                             playwrigkt.skript.auth.TokenAndInput(session.sessionKey, playwrigkt.skript.chatrooom.models.ChatRoomPermissions(Reference.Empty(chatRoomId), setOf(playwrigkt.skript.chatrooom.models.ChatRoomPermissionKey.AddUser.key)))),
                     chatRoomAfterDeleteUser.copy(publicPermissions = chatRoomAfterDeleteUser.publicPermissions.plus(playwrigkt.skript.chatrooom.models.ChatRoomPermissionKey.AddUser.key)))
@@ -135,14 +129,14 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
             val nonPublicChatroom = chatRoomAfterDeleteUser.copy(publicPermissions = emptySet())
 
             awaitSucceededFuture(
-                    stageManager().runWithTroupe(
+                    application().stageManager.runWithTroupe(
                             REMOVE_PUBLIC_PERMISSIONS,
                             playwrigkt.skript.auth.TokenAndInput(session.sessionKey, playwrigkt.skript.chatrooom.models.ChatRoomPermissions(Reference.Empty(chatRoomId), setOf(playwrigkt.skript.chatrooom.models.ChatRoomPermissionKey.Get.key, playwrigkt.skript.chatrooom.models.ChatRoomPermissionKey.AddUser.key)))),
                     nonPublicChatroom)
 
             val updatedChatroom = nonPublicChatroom.copy(name = "upname", description = "chatscription")
             awaitSucceededFuture(
-                    stageManager().runWithTroupe(
+                    application().stageManager.runWithTroupe(
                             UPDATE_CHAT_ROOM,
                             playwrigkt.skript.auth.TokenAndInput(session.sessionKey, updatedChatroom)),
                     updatedChatroom
@@ -160,7 +154,7 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
                     }.toSet())
 
             awaitFailedFuture(
-                    stageManager().runWithTroupe(
+                    application().stageManager.runWithTroupe(
                             ADD_USER_PERMISSION,
                             playwrigkt.skript.auth.TokenAndInput(
                                     session.sessionKey,
@@ -171,7 +165,7 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
                             UserError.AuthorizationFailed)
 
             awaitSucceededFuture(
-                    stageManager().runWithTroupe(
+                    application().stageManager.runWithTroupe(
                             ADD_USER_PERMISSION,
                             playwrigkt.skript.auth.TokenAndInput(
                                     session2.sessionKey,
@@ -193,7 +187,7 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
                             }.toSet())
 
             awaitSucceededFuture(
-                    stageManager().runWithTroupe(
+                    application().stageManager.runWithTroupe(
                             REMOVE_USER_PERMISSION,
                             playwrigkt.skript.auth.TokenAndInput(
                                     session.sessionKey,
