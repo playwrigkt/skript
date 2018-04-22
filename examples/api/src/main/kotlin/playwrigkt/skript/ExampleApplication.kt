@@ -1,14 +1,16 @@
 package playwrigkt.skript
 
 import playwrigkt.skript.ex.lift
+import playwrigkt.skript.http.Http
+import playwrigkt.skript.http.server.HttpServer
 import playwrigkt.skript.produktion.Produktion
 import playwrigkt.skript.queue.QueueMessage
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.stagemanager.ApplicationStageManager
 import playwrigkt.skript.troupe.ApplicationTroupe
-import playwrigkt.skript.user.createUserHttpProduktion
-import playwrigkt.skript.user.getUserHttpProduktion
-import playwrigkt.skript.user.loginuserHttpProduktion
+import playwrigkt.skript.user.http.createUserHttpEndpointSkript
+import playwrigkt.skript.user.http.getUserHttpEndpointSkript
+import playwrigkt.skript.user.http.loginUserHttpEndpointSkript
 import playwrigkt.skript.venue.HttpServerVenue
 import playwrigkt.skript.venue.QueueVenue
 
@@ -21,15 +23,42 @@ data class ExampleApplication(val stageManager: ApplicationStageManager,
     }
 
     fun loadHttpProduktions(): AsyncResult<List<Produktion>> =
-        listOf(createUserHttpProduktion(httpServerVenue, stageManager),
-                loginuserHttpProduktion(httpServerVenue, stageManager),
-                getUserHttpProduktion(httpServerVenue, stageManager))
+        listOf(createUserHttpProduktion(),
+                loginuserHttpProduktion(),
+                getUserHttpProduktion())
                 .lift()
 
     fun queueConsumerProduktion(queue: String, skript: Skript<QueueMessage, Unit, ApplicationTroupe>): AsyncResult<out Produktion> =
         queueVenue.produktion(skript, stageManager, queue)
 
-    fun tearDown(): AsyncResult<List<Unit>> =
+    fun teardown(): AsyncResult<List<Unit>> =
         listOf(stageManager.tearDown(), httpServerVenue.teardown(), queueVenue.teardown())
                 .lift()
+
+    private fun createUserHttpProduktion() =
+            httpServerVenue.produktion(
+                    createUserHttpEndpointSkript,
+                    stageManager,
+                    HttpServer.Endpoint(
+                            "/users",
+                            emptyMap(),
+                            Http.Method.Post))
+
+    private fun loginuserHttpProduktion() =
+            httpServerVenue.produktion(
+                    loginUserHttpEndpointSkript,
+                    stageManager,
+                    HttpServer.Endpoint(
+                            "/login",
+                            emptyMap(),
+                            Http.Method.Post))
+
+    private fun getUserHttpProduktion() =
+            httpServerVenue.produktion(
+                    getUserHttpEndpointSkript,
+                    stageManager,
+                    HttpServer.Endpoint(
+                            "/users/{userId}",
+                            mapOf("Authorization" to emptyList()),
+                            Http.Method.Get))
 }

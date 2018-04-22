@@ -14,6 +14,7 @@ import playwrigkt.skript.venue.HttpServerVenue
 import playwrigkt.skript.venue.QueueVenue
 import playwrigkt.skript.venue.VertxHttpServerVenue
 import playwrigkt.skript.venue.VertxVenue
+import playwrigkt.skript.vertx.createApplication
 import kotlin.math.floor
 
 class VertxUserServiceSpec: UserServiceSpec() {
@@ -26,29 +27,14 @@ class VertxUserServiceSpec: UserServiceSpec() {
                 .put("username", "chatty_tammy")
                 .put("password", "gossipy")
                 .put("driver_class", "org.postgresql.Driver")
-                .put("maximumPoolSize", 30)
+                .put("maximumPoolSize", 1)
                 .put("poolName", "test_pool")
 
         val port = floor((Math.random() * 8000)).toInt() + 2000
 
-
-
-        val vertxVenue by lazy { VertxVenue(vertx) }
-        val httpServerVenue: VertxHttpServerVenue by lazy { VertxHttpServerVenue(vertx, HttpServerOptions().setPort(port)) }
-
-        val sqlConnectionStageManager by lazy { VertxSQLStageManager(vertx, hikariConfig, "test_datasource") }
-        val publishStageManager by lazy { VertxPublishStageManager(vertx.eventBus())  }
-        val serializeStageManager by lazy { VertxSerializeStageManager() }
-        val httpStageManager by lazy { VertxHttpRequestStageManager(HttpClientOptions().setDefaultPort(port), vertx) }
-
-        val stageManager: ApplicationStageManager by lazy {
-            ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManager, httpStageManager)
-        }
+        val application by lazy { createApplication(vertx, hikariConfig, port) }
 
         val userHttpClient by lazy { UserHttpClient(port) }
-
-        val application by lazy { ExampleApplication(stageManager, httpServerVenue, vertxVenue) }
-
     }
 
     override fun userHttpClient(): UserHttpClient = userHttpClient

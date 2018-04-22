@@ -5,7 +5,8 @@ import com.zaxxer.hikari.HikariConfig
 import io.kotlintest.Description
 import io.kotlintest.Spec
 import playwrigkt.skript.ExampleApplication
-import playwrigkt.skript.amqp.AMQPManager
+import playwrigkt.skript.coroutine.AMQPManager
+import playwrigkt.skript.coroutine.startApplication
 import playwrigkt.skript.stagemanager.ApplicationStageManager
 import playwrigkt.skript.stagemanager.JDBCDataSourceStageManager
 import playwrigkt.skript.stagemanager.JacksonSerializeStageManager
@@ -28,25 +29,14 @@ class JDBCChatroomTransactionSpec: ChatroomTransactionsSpec() {
             config.username = "chatty_tammy"
             config.password = "gossipy"
             config.driverClassName = "org.postgresql.Driver"
-            config.maximumPoolSize = 30
+            config.maximumPoolSize = 1
             config.poolName = "test_pool"
             config
         }
 
         val port = floor((Math.random() * 8000)).toInt() + 2000
 
-        val amqpVenue: QueueVenue by lazy { AMQPVenue(amqpConnectionFactory) }
-        val httpServerVenue: KtorHttpServerVenue by lazy { KtorHttpServerVenue(port, 10000) }
-
-        val sqlConnectionStageManager by lazy { JDBCDataSourceStageManager(hikariDSConfig) }
-        val publishStageManager by lazy { playwrigkt.skript.stagemanager.AMQPPublishStageManager(AMQPManager.amqpExchange, amqpConnectionFactory, AMQPManager.basicProperties) }
-        val serializeStageManager by lazy { JacksonSerializeStageManager() }
-        val httpCientStageManager by lazy { KtorHttpClientStageManager() }
-        val stageManager: ApplicationStageManager by lazy {
-            ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManager, httpCientStageManager)
-        }
-
-        val application by lazy { ExampleApplication(stageManager, httpServerVenue, amqpVenue) }
+        val application  by lazy { startApplication(amqpConnectionFactory, hikariDSConfig, port) }
     }
 
     override fun beforeSpec(description: Description, spec: Spec) {

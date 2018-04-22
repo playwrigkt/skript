@@ -1,4 +1,4 @@
-package playwrigkt.skript.amqp
+package playwrigkt.skript.coroutine
 
 import com.rabbitmq.client.AMQP
 import com.rabbitmq.client.BuiltinExchangeType

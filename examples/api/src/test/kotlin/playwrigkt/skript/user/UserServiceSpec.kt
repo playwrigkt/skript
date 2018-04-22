@@ -65,7 +65,7 @@ abstract class UserServiceSpec : StringSpec() {
     override fun afterSpec(description: Description, spec: Spec) {
         awaitSucceededFuture(application().stageManager.hireTroupe().deleteAllUsers())
         awaitSucceededFuture(application().stageManager.hireTroupe().dropUserSchema())
-        awaitSucceededFuture(application().tearDown())
+        awaitSucceededFuture(application().teardown())
     }
 
     init {
