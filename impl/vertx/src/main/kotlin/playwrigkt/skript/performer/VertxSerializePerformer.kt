@@ -5,7 +5,7 @@ import io.vertx.core.buffer.Buffer
 import io.vertx.core.json.Json
 import org.funktionale.tries.Try
 import playwrigkt.skript.result.AsyncResult
-import playwrigkt.skript.result.toAsyncResult
+import playwrigkt.skript.ex.toAsyncResult
 
 class VertxSerializePerformer(val objectMapper: ObjectMapper): SerializePerformer {
     init {

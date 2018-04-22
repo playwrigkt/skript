@@ -5,7 +5,7 @@ import playwrigkt.skript.http.HttpError
 import playwrigkt.skript.http.server.HttpServer
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.CompletableResult
-import playwrigkt.skript.result.toAsyncResult
+import playwrigkt.skript.ex.toAsyncResult
 import playwrigkt.skript.stagemanager.StageManager
 import playwrigkt.skript.venue.VertxHttpServerVenue
 

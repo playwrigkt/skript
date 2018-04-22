@@ -6,7 +6,7 @@ import org.funktionale.tries.Try
 import playwrigkt.skript.http.Http
 import playwrigkt.skript.http.HttpError
 import playwrigkt.skript.result.AsyncResult
-import playwrigkt.skript.result.toAsyncResult
+import playwrigkt.skript.ex.toAsyncResult
 
 sealed class HttpServer {
     data class Endpoint(

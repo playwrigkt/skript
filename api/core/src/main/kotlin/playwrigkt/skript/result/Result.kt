@@ -1,5 +1,8 @@
 package playwrigkt.skript.result
 
+/**
+ * Represents the success or failure of a  computation
+ */
 sealed class Result<out T> {
     abstract val result: T?
     abstract val error: Throwable?

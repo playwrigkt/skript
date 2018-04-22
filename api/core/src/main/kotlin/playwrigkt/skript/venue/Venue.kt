@@ -7,10 +7,15 @@ import playwrigkt.skript.ex.lift
 import playwrigkt.skript.produktion.Performance
 import playwrigkt.skript.produktion.Produktion
 import playwrigkt.skript.result.AsyncResult
-import playwrigkt.skript.result.toAsyncResult
+import playwrigkt.skript.ex.toAsyncResult
 import playwrigkt.skript.stagemanager.StageManager
 import java.util.concurrent.LinkedBlockingQueue
 
+/**
+ * A Venue manages an input resources and various handlers for that input.
+ *
+ * Some examples are http servers, queue consumers, text input
+ */
 abstract class Venue<Rule, Beginning, Ending> {
     val log = LoggerFactory.getLogger(this::class.java)
     private val produktions = LinkedBlockingQueue<Produktion>()
