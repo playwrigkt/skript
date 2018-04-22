@@ -3,10 +3,10 @@ package playwrigkt.skript.http.server
 import org.funktionale.option.getOrElse
 import org.funktionale.option.toOption
 import org.funktionale.tries.Try
+import playwrigkt.skript.ex.toAsyncResult
 import playwrigkt.skript.http.Http
 import playwrigkt.skript.http.HttpError
 import playwrigkt.skript.result.AsyncResult
-import playwrigkt.skript.ex.toAsyncResult
 
 sealed class HttpServer {
     data class Endpoint(

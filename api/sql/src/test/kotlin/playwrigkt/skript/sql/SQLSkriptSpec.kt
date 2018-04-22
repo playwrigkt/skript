@@ -1,18 +1,6 @@
 package playwrigkt.skript.sql
 
 import io.kotlintest.specs.StringSpec
-import org.funktionale.option.Option
-import org.funktionale.option.getOrElse
-import org.funktionale.tries.Try
-import playwrigkt.skript.Skript
-import playwrigkt.skript.ex.andThen
-import playwrigkt.skript.ex.query
-import playwrigkt.skript.ex.update
-import playwrigkt.skript.performer.SQLPerformer
-import playwrigkt.skript.result.AsyncResult
-import playwrigkt.skript.sql.transaction.SQLTransactionSkript
-import playwrigkt.skript.troupe.SQLTroupe
-import java.time.Instant
 
 class SQLSkriptSpec : StringSpec() {
 //    data class UserSession(val sessionKey: String, val userId: String, val expiration: Instant)

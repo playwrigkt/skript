@@ -4,12 +4,13 @@ import org.funktionale.tries.Try
 import playwrigkt.skript.Skript
 import playwrigkt.skript.auth.TokenAndInput
 import playwrigkt.skript.ex.andThen
+import playwrigkt.skript.ex.httpServerResponse
+import playwrigkt.skript.ex.join
 import playwrigkt.skript.ex.serialize
 import playwrigkt.skript.http.Http
 import playwrigkt.skript.http.HttpError
 import playwrigkt.skript.http.server.HttpServer
 import playwrigkt.skript.http.server.HttpServerRequestDeserializationSkript
-import playwrigkt.skript.http.server.HttpServerResponseSerializationSkript
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.troupe.ApplicationTroupe
 import playwrigkt.skript.user.UserSkripts
@@ -25,37 +26,41 @@ val createUserHttpEndpointSkript =
                 .andThen(HttpServerRequestDeserializationSkript(UserProfileAndPassword::class.java))
                 .flatMapWithTroupe { request, _ -> request.body }
                 .compose(UserSkripts.createSkript)
-                .compose(HttpServerResponseSerializationSkript(
+                .httpServerResponse(
                         Skript.map { Http.Status.Created },
                         Skript.map { mapOf("Content-Type" to listOf("application/json")) },
                         Skript.identity<UserProfile, ApplicationTroupe>().serialize(),
-                        Skript.map(ERROR_SERVER_RESPONSE_MAPPER)))
+                        Skript.map(ERROR_SERVER_RESPONSE_MAPPER))
 
 val loginUserHttpEndpointSkript =
         Skript.identity<HttpServer.Request<ByteArray>, ApplicationTroupe>()
                 .andThen(HttpServerRequestDeserializationSkript(UserNameAndPassword::class.java))
                 .flatMapWithTroupe { request, _ -> request.body }
                 .compose(UserSkripts.loginSkript)
-                .compose(HttpServerResponseSerializationSkript(
+                .httpServerResponse(
                         Skript.map { Http.Status.OK },
                         Skript.map { mapOf("Content-Type" to listOf("application/json")) },
                         Skript.identity<UserSession, ApplicationTroupe>().serialize(),
-                        Skript.map(ERROR_SERVER_RESPONSE_MAPPER)))
+                        Skript.map(ERROR_SERVER_RESPONSE_MAPPER))
 
 val getUserHttpEndpointSkript =
         Skript.identity<HttpServer.Request<ByteArray>, ApplicationTroupe>()
-                .mapTry {
-                    Try {it.headers.get("Authorization")
-                        ?.firstOrNull()
-                        ?.let { authHeader ->
-                            it.pathParameters.get("userId")
-                                    ?.let { TokenAndInput(authHeader, it) }
-                        }?:throw HttpError.MissingInputs(listOf(HttpError.HttpInput("path", "userId")))
-                    }
-                }
+                .both<String, String>(
+                        Skript.mapTry {
+                            it.headers.get("Authorization")
+                                    ?.firstOrNull()
+                                    ?.let { Try.Success(it) }
+                            ?: Try.Failure(HttpError.MissingInputs(listOf(HttpError.HttpInput.header("Authorization"))))
+                        },
+                        Skript.mapTry {
+                                it.pathParameters.get("userId")
+                                        ?.let { Try.Success(it) }
+                                        ?:Try.Failure(HttpError.MissingInputs(listOf(HttpError.HttpInput.path("userId"))))
+                        })
+                .join { authToken, userId -> TokenAndInput(authToken, userId) }
                 .compose(UserSkripts.getSkript)
-                .compose(HttpServerResponseSerializationSkript(
+                .httpServerResponse(
                         Skript.map { Http.Status.OK },
                         Skript.map { mapOf("Content-Type" to listOf("application/json")) },
                         Skript.identity<UserProfile, ApplicationTroupe>().serialize(),
-                        Skript.map(ERROR_SERVER_RESPONSE_MAPPER)))
+                        Skript.map(ERROR_SERVER_RESPONSE_MAPPER))

@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.json.Json
 import org.funktionale.tries.Try
-import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.ex.toAsyncResult
+import playwrigkt.skript.result.AsyncResult
 
 class VertxSerializePerformer(val objectMapper: ObjectMapper): SerializePerformer {
     init {
