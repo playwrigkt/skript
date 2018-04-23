@@ -29,6 +29,7 @@ allprojects {
   apply plugin: 'kotlin'
   apply plugin: 'org.jetbrains.dokka'
   apply plugin: 'org.junit.platform.gradle.plugin'
+  apply plugin: "jacoco"
 
   group = "playwrigkt.skript"
   version = "0.0.1"
@@ -51,20 +52,27 @@ allprojects {
     kotlinOptions.jvmTarget = "1.8"
   }
 
-  test {
-    systemProperties = [
-            'profile': 'test'
-    ]
+  junitPlatform {
+
+  }
+  jacoco {
+    applyTo junitPlatformTest
+  }
 
 
-    useJUnitPlatform()
-
-    reports {
-      html.enabled = true
-    }
+  task jacocoCodeCoverageReport(type:JacocoReport){
+      executionData junitPlatformTest
+      sourceSets sourceSets.main
+      reports {
+        xml.enabled false
+        csv.enabled false
+        html.destination file("${buildDir}/jacocoHtml")
+      }
 
   }
 
+  jacocoCodeCoverageReport.dependsOn junitPlatformTest
+  build.dependsOn jacocoCodeCoverageReport
   dependencies {
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
