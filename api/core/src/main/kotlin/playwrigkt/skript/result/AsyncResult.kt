@@ -19,12 +19,12 @@ interface AsyncResult<T> {
      * Once this computation succeeds run an asynchronous function, or run it now if this computation has already
      * succeeded
      */
-    fun <U> flatMap(f: (T) -> AsyncResult<U>): AsyncResult<U>
+    fun <U> flatMap(f: (T) -> AsyncResult<out U>): AsyncResult<U>
 
     /**
      * If this computation fails, run an asynchronous function, or run it now if this computation has already failed
      */
-    fun recover(f: (Throwable) -> AsyncResult<T>): AsyncResult<T>
+    fun recover(f: (Throwable) -> AsyncResult<out T>): AsyncResult<T>
 
     /**
      * If this computation succeeds, run a synchronous function, or run  it now if this computation has already

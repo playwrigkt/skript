@@ -52,27 +52,6 @@ allprojects {
     kotlinOptions.jvmTarget = "1.8"
   }
 
-  junitPlatform {
-
-  }
-  jacoco {
-    applyTo junitPlatformTest
-  }
-
-
-  task jacocoCodeCoverageReport(type:JacocoReport){
-      executionData junitPlatformTest
-      sourceSets sourceSets.main
-      reports {
-        xml.enabled false
-        csv.enabled false
-        html.destination file("${buildDir}/jacocoHtml")
-      }
-
-  }
-
-  jacocoCodeCoverageReport.dependsOn junitPlatformTest
-  build.dependsOn jacocoCodeCoverageReport
   dependencies {
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
@@ -87,6 +66,27 @@ allprojects {
     testCompile "io.kotlintest:kotlintest-runner-junit5:$kotlin_test_version"
     testCompile 'org.slf4j:slf4j-simple:1.7.25'
   }
+
+  junitPlatform {
+
+  }
+
+  jacoco {
+    applyTo junitPlatformTest
+  }
+
+  task junitPlatformCoverageReport(type:JacocoReport){
+      executionData junitPlatformTest
+      sourceSets sourceSets.main
+      reports {
+        xml.enabled true
+        csv.enabled true
+        html.enabled true
+      }
+  }
+
+  junitPlatformCoverageReport.dependsOn junitPlatformTest
+  build.dependsOn junitPlatformCoverageReport
 
   dokka {
     outputFormat = 'html'

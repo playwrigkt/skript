@@ -36,7 +36,7 @@ class VertxResult<T>(val future: Future<T>): AsyncResult<T> {
         return VertxResult(future.map(f))
     }
 
-    override fun <U> flatMap(f: (T) -> AsyncResult<U>): AsyncResult<U> {
+    override fun <U> flatMap(f: (T) -> AsyncResult<out U>): AsyncResult<U> {
         val result = CompletableResult<U>()
         future.setHandler {
             if(it.succeeded()) {
@@ -48,7 +48,7 @@ class VertxResult<T>(val future: Future<T>): AsyncResult<T> {
         return result
     }
 
-    override fun recover(f: (Throwable) -> AsyncResult<T>): AsyncResult<T> {
+    override fun recover(f: (Throwable) -> AsyncResult<out T>): AsyncResult<T> {
         val result = CompletableResult<T>()
         future.setHandler {
             if(it.succeeded()) {

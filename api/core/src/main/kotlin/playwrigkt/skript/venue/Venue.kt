@@ -62,6 +62,9 @@ abstract class Venue<Rule, Beginning, Ending> {
                     .onSuccess { log.info("...Stopped produktion...: ${produktion}") }
                     .onFailure { log.error("...Failed to stop produktion...: ${produktion}", it) }
 
+    /**
+     * Stop the resources created by this.  Called by teardown after stopping all produktions
+     */
     protected abstract fun stop(): AsyncResult<Unit>
 
     private fun stopAllProduktions(): AsyncResult<List<Unit>> {

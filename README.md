@@ -91,8 +91,8 @@ technology and not change anything but minor configuration code.
 2. run the tests: `gradle clean test`
 
 ## Coming Soon:
-* StageManager lifecycle handling
 * FileSkript
-* CacheSkript
 * Config Skript
+* AMQPQueue Mangement
+* CacheSkript
 * Encryption

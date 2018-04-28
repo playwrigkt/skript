@@ -56,7 +56,7 @@ interface CompletableResult<T>: AsyncResult<T>, Completable<T> {
             return newResult
         }
 
-        override fun <U> flatMap(f: (T) -> AsyncResult<U>): AsyncResult<U> {
+        override fun <U> flatMap(f: (T) -> AsyncResult<out U>): AsyncResult<U> {
             val newResult: CompletableResult<U> = CompletableResultImpl<U>()
             addHandler {
                 when(it) {
@@ -73,7 +73,7 @@ interface CompletableResult<T>: AsyncResult<T>, Completable<T> {
             return newResult
         }
 
-        override fun recover(f: (Throwable) -> AsyncResult<T>): AsyncResult<T> {
+        override fun recover(f: (Throwable) -> AsyncResult<out T>): AsyncResult<T> {
             val newResult: CompletableResult<T> = invoke()
             addHandler {
                 when(it) {
