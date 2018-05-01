@@ -1,76 +1,32 @@
 package playwrigkt.skript.result
 
-import org.funktionale.tries.Try
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.locks.ReentrantLock
 
-fun <T> Try<T>.toAsyncResult(): AsyncResult<T> =
-    when(this) {
-        is Try.Success -> AsyncResult.succeeded(this.get())
-        is Try.Failure -> AsyncResult.failed(this.throwable)
-    }
-
-interface AsyncResult<T> {
-    companion object {
-        fun <T> succeeded(t: T): AsyncResult<T> = CompletableResult.succeeded(t)
-        fun <T> failed(error: Throwable): AsyncResult<T> = CompletableResult.failed(error)
-    }
-
-    fun <U> map(f: (T) -> U): AsyncResult<U>
-    fun <U> flatMap(f: (T) -> AsyncResult<U>): AsyncResult<U>
-    fun recover(f: (Throwable) -> AsyncResult<T>): AsyncResult<T>
-
-    fun onSuccess(f: (T) -> Unit): AsyncResult<T>
-    fun onFailure(f: (Throwable) -> Unit): AsyncResult<T>
-
-    fun addHandler(handler: (Result<T>) -> Unit)
-    fun alsoComplete(completableResult: CompletableResult<T>): Unit = this.addHandler {
-        it.result?.let(completableResult::succeed)
-                ?: it.error?.let(completableResult::fail)
-    }
-
-    fun isComplete(): Boolean
-    fun isSuccess(): Boolean
-    fun isFailure(): Boolean
-
-    fun result(): T?
-    fun error(): Throwable?
-}
-
-interface Completable<T> {
-    fun succeed(t: T)
-    fun fail(error: Throwable)
-
-    fun completionHandler(): ResultHandler<T> = {
-        when(it) {
-            is Result.Failure -> fail(it.error)
-            is Result.Success -> succeed(it.result)
-        }
-    }
-}
-
-interface LightweightSynchronized {
-    val lock: ReentrantLock
-
-    fun <T> lock(fn: () -> T): T {
-        lock.lockInterruptibly()
-        try {
-            return fn()
-        } finally {
-            lock.unlock()
-        }
-    }
-}
+/**
+ * Implementation of AsyncResult used by executors of Asynchronous Computation.  This class should not be used as the
+ * return type of public methods
+ */
 interface CompletableResult<T>: AsyncResult<T>, Completable<T> {
     companion object {
+        /**
+         * Create a new completable result
+         */
         operator fun <T> invoke(): CompletableResult<T> = CompletableResultImpl()
+
+        /**
+         * Synchronously create a completableResult that has already been completed
+         */
         fun <T> succeeded(t: T): CompletableResult<T> {
             val result = CompletableResultImpl<T>()
             result.succeed(t)
             return result
         }
 
+        /**
+         * Synchronously create a completableResult that has already failed
+         */
         fun <T> failed(error: Throwable): CompletableResult<T> {
             val result = CompletableResultImpl<T>()
             result.fail(error)
@@ -100,7 +56,7 @@ interface CompletableResult<T>: AsyncResult<T>, Completable<T> {
             return newResult
         }
 
-        override fun <U> flatMap(f: (T) -> AsyncResult<U>): AsyncResult<U> {
+        override fun <U> flatMap(f: (T) -> AsyncResult<out U>): AsyncResult<U> {
             val newResult: CompletableResult<U> = CompletableResultImpl<U>()
             addHandler {
                 when(it) {
@@ -117,7 +73,7 @@ interface CompletableResult<T>: AsyncResult<T>, Completable<T> {
             return newResult
         }
 
-        override fun recover(f: (Throwable) -> AsyncResult<T>): AsyncResult<T> {
+        override fun recover(f: (Throwable) -> AsyncResult<out T>): AsyncResult<T> {
             val newResult: CompletableResult<T> = invoke()
             addHandler {
                 when(it) {
@@ -171,22 +127,26 @@ interface CompletableResult<T>: AsyncResult<T>, Completable<T> {
                     ?: handlers.add(handler)
         }
 
-        override fun succeed(t: T): Unit = lock {
-            if(!isComplete()) {
-                result = Result.Success(t)
-                handlers.map { it.invoke(Result.Success(t)) }
-            } else {
-                throw IllegalStateException("Result is already succeed")
+        override fun succeed(t: T): Unit {
+            lock {
+                if(!isComplete()) {
+                    result = Result.Success(t)
+                } else {
+                    throw IllegalStateException("Result is already complete")
+                }
             }
+            handlers.map { it.invoke(Result.Success(t)) }
         }
 
-        override fun fail(error: Throwable): Unit = lock {
-            if(!isComplete()) {
-                result = Result.Failure(error)
-                handlers.map { it(Result.Failure(error)) }
-            } else {
-                throw IllegalStateException("Result is already succeed")
+        override fun fail(error: Throwable): Unit {
+            lock {
+                if(!isComplete()) {
+                    result = Result.Failure(error)
+                } else {
+                    throw IllegalStateException("Result is already complete")
+                }
             }
+            handlers.map { it(Result.Failure(error)) }
         }
 
         override fun isComplete(): Boolean {

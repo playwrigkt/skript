@@ -4,16 +4,9 @@ import io.kotlintest.Description
 import io.kotlintest.Spec
 import io.vertx.core.Future
 import io.vertx.core.Vertx
-import io.vertx.core.http.HttpClientOptions
-import io.vertx.core.http.HttpServerOptions
 import io.vertx.core.json.JsonObject
 import playwrigkt.skript.ExampleApplication
 import playwrigkt.skript.result.VertxResult
-import playwrigkt.skript.stagemanager.*
-import playwrigkt.skript.venue.HttpServerVenue
-import playwrigkt.skript.venue.QueueVenue
-import playwrigkt.skript.venue.VertxHttpServerVenue
-import playwrigkt.skript.venue.VertxVenue
 import playwrigkt.skript.vertx.createApplication
 import kotlin.math.floor
 

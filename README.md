@@ -1,3 +1,5 @@
+![Build status](https://circleci.com/gh/dgoetsch/skript.svg?style=shield&circle-token=f1ea168988d7d58862e44026aedd74785214c726)
+
 # Skript
 
 This project allows users to implement application logic independently of technology
@@ -16,8 +18,8 @@ order to provider cleaner and more powerful APIs.
 
 ## Core API
 
-The [core api](api/core/README.md) provides the base definitions for 
-the skript apiskript applications. Other projects in [api/](api/) 
+The [core api](api/core/README.md) provides the base definitions for
+the skript apiskript applications. Other projects in [api/](api/)
 provide contracts for integrating other tools with skript.
 
 ## StageManagers, Troupes, and Skripts
@@ -34,17 +36,17 @@ A Troupe is managed by a stageManager.  A stage manager handles the
 creation and deletion of application resources such as a network
 connection or configuration property.
 
-Currently there are several api's defined in skript that conform to the 
+Currently there are several api's defined in skript that conform to the
 core design:
 * [http](api/http) -  api for http server and client
 * [sql](api/sql) - api for sql interactions
 * [serialize](api/serialize) - api for serialization
 * [queue](api/queue) - api for queue interactions
 
-A developer should be able to build and test all of their application 
+A developer should be able to build and test all of their application
 logic by only using the classes in the `api` modules.  When it comes time
 to run the applicatation, the developer can choose an existing implementation
-of an api or write their own, depending on their specific needs.  Currently, 
+of an api or write their own, depending on their specific needs.  Currently,
 there are two implementations for all of the api's provided by skript:
 
 * Vertx (SQL, Queue, Http, Serialization)
@@ -91,8 +93,8 @@ technology and not change anything but minor configuration code.
 2. run the tests: `gradle clean test`
 
 ## Coming Soon:
-* StageManager lifecycle handling
 * FileSkript
-* CacheSkript
 * Config Skript
+* AMQPQueue Mangement
+* CacheSkript
 * Encryption

@@ -7,13 +7,6 @@ import io.kotlintest.Spec
 import playwrigkt.skript.ExampleApplication
 import playwrigkt.skript.coroutine.AMQPManager
 import playwrigkt.skript.coroutine.startApplication
-import playwrigkt.skript.stagemanager.ApplicationStageManager
-import playwrigkt.skript.stagemanager.JDBCDataSourceStageManager
-import playwrigkt.skript.stagemanager.JacksonSerializeStageManager
-import playwrigkt.skript.stagemanager.KtorHttpClientStageManager
-import playwrigkt.skript.venue.AMQPVenue
-import playwrigkt.skript.venue.KtorHttpServerVenue
-import playwrigkt.skript.venue.QueueVenue
 import kotlin.math.floor
 
 class JDBCChatroomTransactionSpec: ChatroomTransactionsSpec() {

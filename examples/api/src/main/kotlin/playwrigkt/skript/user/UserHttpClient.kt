@@ -14,7 +14,7 @@ import playwrigkt.skript.user.models.UserSession
 //TODO get port from configuration
 class UserHttpClient(val port: Int?) {
     val createUserRequestSkript = Skript.identity<UserProfileAndPassword, ApplicationTroupe>()
-            .httpRequest(
+            .httpClientRequest(
                     method = Http.Method.Post,
                     uri = uri(
                             useSsl = Skript.map { false },
@@ -25,14 +25,14 @@ class UserHttpClient(val port: Int?) {
                             queryParameters = Skript.map { emptyMap() }),
                     body = Skript.identity<UserProfileAndPassword, ApplicationTroupe>().serialize())
             .executeRequest()
-            .httpResponse(
+            .httpClientResponse(
                     Skript.identity<HttpClient.Response, ApplicationTroupe>()
                             .flatMap { it.responseBody }
                             .deserialize(UserProfile::class.java))
 
 
     val loginRequestSkript = Skript.identity<UserNameAndPassword, ApplicationTroupe>()
-            .httpRequest(
+            .httpClientRequest(
                     method = Http.Method.Post,
                     uri = uri(
                             useSsl = Skript.map { false },
@@ -43,13 +43,13 @@ class UserHttpClient(val port: Int?) {
                             queryParameters = Skript.map { emptyMap() }),
                     body = Skript.identity<UserNameAndPassword, ApplicationTroupe>().serialize())
             .executeRequest()
-            .httpResponse(
+            .httpClientResponse(
                     Skript.identity<HttpClient.Response, ApplicationTroupe>()
                             .flatMap { it.responseBody }
                             .deserialize(UserSession::class.java))
 
     val getUserRequestSkript = Skript.identity<TokenAndInput<String>, ApplicationTroupe>()
-            .httpRequest(
+            .httpClientRequest(
                     method = Http.Method.Get,
                     uri = uri(
                             useSsl = Skript.map { false },
@@ -61,7 +61,7 @@ class UserHttpClient(val port: Int?) {
                     headers = Skript.map { mapOf("Authorization" to listOf(it.token)) }
             )
             .executeRequest()
-            .httpResponse(Skript.identity<HttpClient.Response, ApplicationTroupe>()
+            .httpClientResponse(Skript.identity<HttpClient.Response, ApplicationTroupe>()
                     .flatMap { it.responseBody }
                     .deserialize(UserProfile::class.java))
 }

@@ -4,13 +4,18 @@ import org.funktionale.tries.Try
 import org.slf4j.LoggerFactory
 import playwrigkt.skript.Skript
 import playwrigkt.skript.ex.lift
+import playwrigkt.skript.ex.toAsyncResult
 import playwrigkt.skript.produktion.Performance
 import playwrigkt.skript.produktion.Produktion
 import playwrigkt.skript.result.AsyncResult
-import playwrigkt.skript.result.toAsyncResult
 import playwrigkt.skript.stagemanager.StageManager
 import java.util.concurrent.LinkedBlockingQueue
 
+/**
+ * A Venue manages an input resources and various handlers for that input.
+ *
+ * Some examples are http servers, queue consumers, text input
+ */
 abstract class Venue<Rule, Beginning, Ending> {
     val log = LoggerFactory.getLogger(this::class.java)
     private val produktions = LinkedBlockingQueue<Produktion>()
@@ -57,6 +62,9 @@ abstract class Venue<Rule, Beginning, Ending> {
                     .onSuccess { log.info("...Stopped produktion...: ${produktion}") }
                     .onFailure { log.error("...Failed to stop produktion...: ${produktion}", it) }
 
+    /**
+     * Stop the resources created by this.  Called by teardown after stopping all produktions
+     */
     protected abstract fun stop(): AsyncResult<Unit>
 
     private fun stopAllProduktions(): AsyncResult<List<Unit>> {

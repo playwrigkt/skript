@@ -1,0 +1,17 @@
+apply plugin : 'application'
+mainClassName = 'playwrigkt.skript.file.MainKt'
+
+run {
+    standardInput = System.in
+//    standardOutput = System.out
+}
+dependencies {
+    compile project(':api:core')
+    compile project(':api:config')
+    compile project(':impl:vertx')
+    compile project(':api:coroutine')
+    compile project(':api:serialize')
+    compile project(':impl:coroutine-jackson-serialize')
+    testCompile "org.mockito:mockito-core:2.18.0"
+    testCompile "org.mockito:mockito-junit-jupiter:2.18.0"
+}

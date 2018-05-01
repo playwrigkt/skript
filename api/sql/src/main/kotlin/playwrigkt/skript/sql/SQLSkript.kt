@@ -45,7 +45,9 @@ sealed class SQLSkript<IN, OUT>: Skript<IN, OUT, SQLTroupe> {
                         .joinTry(mapping::mapResult)
     }
 
-
+    /**
+     * Execute a sqlQuery and return a resultSet
+     */
     object Query: SQLSkript<SQLCommand.Query, SQLResult.Query>() {
         override fun run(i: SQLCommand.Query, troupe: SQLTroupe): AsyncResult<SQLResult.Query> {
             return troupe.getSQLPerformer()
@@ -54,6 +56,9 @@ sealed class SQLSkript<IN, OUT>: Skript<IN, OUT, SQLTroupe> {
         }
     }
 
+    /**
+     * Execute a sqlUpdate and return the number of rows updated
+     */
     object Update: SQLSkript<SQLCommand.Update, SQLResult.Update>() {
         override fun run(i: SQLCommand.Update, troupe: SQLTroupe): AsyncResult<SQLResult.Update> {
             return troupe.getSQLPerformer()
@@ -62,6 +67,9 @@ sealed class SQLSkript<IN, OUT>: Skript<IN, OUT, SQLTroupe> {
         }
     }
 
+    /**
+     * Execute a sql statement with no result
+     */
     object Exec: SQLSkript<SQLCommand.Exec, SQLResult.Void>() {
         override fun run(i: SQLCommand.Exec, troupe: SQLTroupe): AsyncResult<SQLResult.Void> {
             return troupe.getSQLPerformer()

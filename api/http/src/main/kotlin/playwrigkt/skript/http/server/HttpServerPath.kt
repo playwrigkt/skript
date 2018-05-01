@@ -28,12 +28,17 @@ sealed class HttpPathPart {
     }
 }
 
-data class HttpPathRule(val rule: String) {
+/**
+ * Server side http path binding.
+ */
+data class HttpPathRule(val rule: String,
+                        val variablePrefix: String = "{",
+                        val variableSuffix: String = "}") {
     val ruleParts: List<HttpPathPart> by lazy {
         rule.split("/")
                 .map {
-                    if (it.startsWith("{") && it.endsWith("}")) {
-                        HttpPathPart.Variable(it.removePrefix("{").removeSuffix("}"))
+                    if (it.startsWith(variablePrefix) && it.endsWith(variableSuffix)) {
+                        HttpPathPart.Variable(it.removePrefix(variablePrefix).removeSuffix(variableSuffix))
                     } else {
                         HttpPathPart.Literal(it)
                     }
@@ -43,16 +48,25 @@ data class HttpPathRule(val rule: String) {
     private fun Pair<HttpPathPart, String>.matchPathPart(): Boolean = first.matches(second)
     private fun Pair<HttpPathPart, String>.partPathPart(): Pair<String, String> = first.parse(second)
 
-    fun pathMatches(path: String): Boolean =
-        path.toOption()
+
+    /**
+     * @return true if the requestPath matches the rule
+     */
+    fun pathMatches(requestPath: String): Boolean =
+        requestPath.toOption()
                 .map { it.split("/") }
                 .filter { pathParts -> pathParts.size == ruleParts.size }
                 .map { ruleParts.zip(it) }
                 .filter { it.all { it.matchPathPart() } }
                 .isDefined()
 
-    fun apply(path: String): Option<Map<String, String>>  =
-        path.split("/").toOption()
+    /**
+     * parse a given requestPath according to the rule
+     *
+     * @return map of requestPath variable name to requestPath variable value, or value to value if constant
+     */
+    fun apply(requestPath: String): Option<Map<String, String>>  =
+        requestPath.split("/").toOption()
                 .filter { pathParts -> pathParts.size == ruleParts.size }
                 .map { ruleParts.zip(it) }
                 .filter { it.all { it.matchPathPart() } }

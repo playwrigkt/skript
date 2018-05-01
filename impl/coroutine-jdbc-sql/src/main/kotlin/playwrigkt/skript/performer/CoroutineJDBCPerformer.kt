@@ -95,6 +95,7 @@ class CoroutineJDBCPerformer(val connection: Connection): playwrigkt.skript.perf
                 return playwrigkt.skript.performer.CoroutineJDBCPerformer.JDBCSQLRow(
                         (1..row.metaData.columnCount)
                                 .map {
+                                    //TODO all data types
                                     row.metaData.getColumnName(it) to when (row.metaData.getColumnType(it)) {
                                         Types.BOOLEAN -> row.getBoolean(it)
                                         Types.VARCHAR, Types.NVARCHAR, Types.LONGVARCHAR, Types.LONGNVARCHAR, Types.NCHAR, Types.CHAR -> row.getString(it)

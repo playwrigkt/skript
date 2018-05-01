@@ -10,6 +10,7 @@ sealed class SQLResult {
 }
 
 interface SQLRow {
+    //TODO all data types
     fun getString(key: String): String
     fun getBoolean(key: String): Boolean
     fun getLong(key: String): Long

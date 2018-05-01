@@ -223,27 +223,3 @@ development of skript progresses.  Currently there are other modules planned suc
 * File I/O
 * Application Configuration
 * Caching
-
-## Use for Load testing and benchmarking
-
-The initial reason this project was started was to create a way to easily
-swap technical implementations from an application without having to rewrite
-business logic in order to determine which technologies are the best choice
-for a given problem.
-
-Such benchmarking has not yet been done, but now that the http server support
-has been implemented it is possible to write a rest API and test it with different
-technology and not change anything but minor configuration code.
-
-
-## Running Tests
-
-1. Start the docker environment (postgres): `$ docker-compose up`
-2. run the tests: `gradle clean test`
-
-## Coming Soon:
-* StageManager lifecycle handling
-* FileSkript
-* CacheSkript
-* Config Skript
-* Encryption
