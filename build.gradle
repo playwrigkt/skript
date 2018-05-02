@@ -10,7 +10,7 @@ buildscript {
   ext.javalin_version = '1.5.0'
   ext.hikari_version = '2.7.1'
   ext.postgres_version = '42.1.4'
-
+  ext.junit_platform_version = "5.1.0"
   repositories {
     mavenCentral()
     jcenter()
@@ -23,16 +23,18 @@ buildscript {
   }
 }
 
-allprojects {
-
+subprojects {
   apply plugin:'java'
   apply plugin: 'kotlin'
   apply plugin: 'org.jetbrains.dokka'
   apply plugin: 'org.junit.platform.gradle.plugin'
   apply plugin: "jacoco"
+  apply plugin: 'maven-publish'
 
   group = "playwrigkt.skript"
   version = "0.0.1"
+
+  String moduleName = "skript${project.path.replace(":", "-")}"
 
   repositories {
     jcenter()
@@ -59,8 +61,8 @@ allprojects {
     compile "org.funktionale:funktionale-all:1.2"
     compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
 
-    testCompile("org.junit.jupiter:junit-jupiter-api:5.1.0")
-    testRuntime("org.junit.jupiter:junit-jupiter-engine:5.1.0")
+    testCompile("org.junit.jupiter:junit-jupiter-api:$junit_platform_version")
+    testRuntime("org.junit.jupiter:junit-jupiter-engine:$junit_platform_version")
     testCompile "io.kotlintest:kotlintest-core:$kotlin_test_version"
     testCompile "io.kotlintest:kotlintest-assertions:$kotlin_test_version"
     testCompile "io.kotlintest:kotlintest-runner-junit5:$kotlin_test_version"
@@ -99,9 +101,35 @@ allprojects {
 //    }
   }
 
-  task dokkaJavadoc(type: org.jetbrains.dokka.gradle.DokkaTask) {
-    outputFormat = "javadoc"
-    outputDirectory = "$buildDir/dokkaJavadoc"
+  task dokkaJar(type: Jar) {
+    group = JavaBasePlugin.DOCUMENTATION_GROUP
+    description = "Assembles Kotlin docs with Dokka"
+    classifier = "javadoc"
+    from dokka
   }
 
+  task sourceJar(type: Jar) {
+    baseName "$moduleName-sources"
+    from sourceSets.main.allSource
+    classifier "sources"
+  }
+
+  publishing {
+      publications {
+        mavenJava(MavenPublication) {
+          groupId 'playwrigkt.skript'
+          artifactId "$moduleName"
+
+          from components.java
+          artifact sourceJar
+          artifact dokkaJar
+        }
+      }
+
+      repositories {
+          maven {
+              url = uri("$buildDir/repository")
+          }
+      }
+  }
 }
