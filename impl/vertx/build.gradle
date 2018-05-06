@@ -7,5 +7,5 @@ dependencies {
     compile project(':api:sql')
     compile project(':api:queue')
     compile project(':api:http')
-    compile project(':api:serialize')
+    compile project(':api:jackson')
 }

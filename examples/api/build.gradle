@@ -6,6 +6,5 @@ kotlin {
 dependencies {
     compile project(':api:queue')
     compile project(':api:sql')
-    compile project(':api:serialize')
     compile project(':api:http')
 }
