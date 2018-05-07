@@ -1,0 +1,12 @@
+apply plugin : 'application'
+mainClassName = 'playwrigkt.skript.file.MainKt'
+
+run {
+    standardInput = System.in
+//    standardOutput = System.out
+}
+dependencies {
+    compile project(':api:core')
+    compile project(':api:coroutine')
+    compile project(':impl:app-lifecycle')
+}

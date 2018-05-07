@@ -1,10 +1,12 @@
-include 'api:core', 'api:serialize', 'api:sql', 'api:http',
-        'api:queue', 'api:config', 'api:coroutine',
+include 'api:core',
+        'api:sql', 'api:http', 'api:queue', 'api:coroutine', 'api:jackson',
+        'impl:sync-core',
+        'impl:app-lifecycle',
         'impl:coroutine-jackson-serialize',
         'impl:coroutine-jdbc-sql',
         'impl:coroutine-ktor-http',
         'impl:coroutine-amqp-queue',
         'impl:vertx',
-        'examples:stage-manager',
+        'examples:command-line-application',
         'examples:api','examples:coroutine-impl', 'examples:vertx-impl'
 rootProject.name = "skript"

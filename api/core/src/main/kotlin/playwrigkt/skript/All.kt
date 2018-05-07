@@ -3,17 +3,43 @@ package playwrigkt.skript
 import playwrigkt.skript.result.AsyncResult
 
 /**
- * Perform several skripts in parallel
+ * a tuple of 4 things
  */
-
 data class Quartet<A, B, C, D>(val one: A, val two: B, val three: C, val four: D)
+
+/**
+ * a tuple of 5 things
+ */
 data class Quintet<A, B, C, D, E>(val one: A, val two: B, val three: C, val four: D, val five: E)
+
+/**
+ * a tuple of 6 things
+ */
 data class Sextet<A, B, C, D, E, F>(val one: A, val two: B, val three: C, val four: D, val five: E, val six: F)
+
+/**
+ * a tuple of 7 things
+ */
 data class Septet<A, B, C, D, E, F, G>(val one: A, val two: B, val three: C, val four: D, val five: E, val six: F, val seven: G)
+
+/**
+ * a tuple of 8 things
+ */
 data class Octet<A, B, C, D, E, F, G, H>(val one: A, val two: B, val three: C, val four: D, val five: E, val six: F, val seven: G, val eight: H)
+
+/**
+ * a tuple of 9 things
+ */
 data class Nonet<A, B, C, D, E, F, G, H, I>(val one: A, val two: B, val three: C, val four: D, val five: E, val six: F, val seven: G, val eight: H, val nine: I)
+
+/**
+ * a tuple of 10 things
+ */
 data class Dectet<A, B, C, D, E, F, G, H, I, J>(val one: A, val two: B, val three: C, val four: D, val five: E, val six: F, val seven: G, val eight: H, val nine: I, val ten: J)
 
+/**
+ * 3 parallel skripts
+ */
 data class All3<I, O1,O2, O3, Troupe>(
         val one: Skript<I, O1, Troupe>,
         val two: Skript<I, O2, Troupe>,
@@ -30,6 +56,9 @@ data class All3<I, O1,O2, O3, Troupe>(
     }
 }
 
+/**
+ * 4 parallel skripts
+ */
 data class All4<I, O1,O2, O3, O4, Troupe>(
         val one: Skript<I, O1, Troupe>,
         val two: Skript<I, O2, Troupe>,
@@ -49,6 +78,9 @@ data class All4<I, O1,O2, O3, O4, Troupe>(
     }
 }
 
+/**
+ * 5 parallel skripts
+ */
 data class All5<I, O1,O2, O3, O4, O5, Troupe>(
         val one: Skript<I, O1, Troupe>,
         val two: Skript<I, O2, Troupe>,
@@ -72,6 +104,9 @@ data class All5<I, O1,O2, O3, O4, O5, Troupe>(
     }
 }
 
+/**
+ * 6 parallel skripts
+ */
 data class All6<I, O1,O2, O3, O4, O5, O6, Troupe>(
         val one: Skript<I, O1, Troupe>,
         val two: Skript<I, O2, Troupe>,
@@ -97,6 +132,9 @@ data class All6<I, O1,O2, O3, O4, O5, O6, Troupe>(
     }
 }
 
+/**
+ * 7 parallel skripts
+ */
 data class All7<I, O1,O2, O3, O4, O5, O6, O7, Troupe>(
         val one: Skript<I, O1, Troupe>,
         val two: Skript<I, O2, Troupe>,
@@ -126,6 +164,9 @@ data class All7<I, O1,O2, O3, O4, O5, O6, O7, Troupe>(
     }
 }
 
+/**
+ * 8 parallel skripts
+ */
 data class All8<I, O1,O2, O3, O4, O5, O6, O7, O8, Troupe>(
         val one: Skript<I, O1, Troupe>,
         val two: Skript<I, O2, Troupe>,
@@ -158,6 +199,9 @@ data class All8<I, O1,O2, O3, O4, O5, O6, O7, O8, Troupe>(
     }
 }
 
+/**
+ * 9 parallel skripts
+ */
 data class All9<I, O1,O2, O3, O4, O5, O6, O7, O8, O9, Troupe>(
         val one: Skript<I, O1, Troupe>,
         val two: Skript<I, O2, Troupe>,
@@ -193,6 +237,9 @@ data class All9<I, O1,O2, O3, O4, O5, O6, O7, O8, O9, Troupe>(
     }
 }
 
+/**
+ * 10 parallel skripts
+ */
 data class All10<I, O1,O2, O3, O4, O5, O6, O7, O8, O9, O10, Troupe>(
         val one: Skript<I, O1, Troupe>,
         val two: Skript<I, O2, Troupe>,

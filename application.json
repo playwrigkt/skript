@@ -1,0 +1,32 @@
+{
+  "modules":[
+    "playwrigkt.skript.application.SyncCoreSkriptModule",
+    "playwrigkt.skript.example.StdIOModule",
+    "playwrigkt.skript.example.MyAppModule"
+  ],
+  "stageManagerLoaders": [
+    {
+      "name": "serialize",
+      "dependencyOverrides": {}
+    },
+    {
+      "name": "stdOut",
+      "dependencyOverrides": {}
+    },
+    {
+      "name": "stdIn",
+      "dependencyOverrides": {}
+    },
+    {
+      "name": "file",
+      "dependencyOverrides": {}
+    },
+    {
+      "name": "exampleApp",
+      "dependencyOverrides": {
+        "inputStream": "stdIn",
+        "outputStream": "stdOut"
+      }
+    }
+  ]
+}
