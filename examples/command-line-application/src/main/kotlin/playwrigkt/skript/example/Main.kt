@@ -30,8 +30,6 @@ data class MyTroupe(val inputStreamTroupe: InputStreamTroupe,
     override fun getSerializePerformer(): AsyncResult<out SerializePerformer> = serializeTroupe.getSerializePerformer()
 
     override fun getFilePerformer(): AsyncResult<out FilePerformer> = fileTroupe.getFilePerformer()
-
-
 }
 
 
@@ -48,9 +46,27 @@ data class MyStageManager(val serialize: StageManager<SerializeTroupe>,
                     .map { Unit}
 }
 
+val applicationSkript = Skript.identity<Unit, MyTroupe>()
+        .map { "What is your message?"}
+        .andThen(IOStreamSkript.WriteLine)
+        .andThen(IOStreamSkript.ReadLine)
+        .split(Skript.identity<String, MyTroupe>()
+                .map { "where should I put  it?" }
+                .andThen(IOStreamSkript.WriteLine)
+                .andThen(IOStreamSkript.ReadLine)
+                .map { FileReference.Relative(it) }
+                .andThen(FileSkript.Writer))
+        .join { content, writer ->
+            writer.appendln(content)
+            writer.flush()
+            writer.close()
+        }
+        .map { "Okay, I've finished recording!" }
+        .andThen(IOStreamSkript.WriteLine)
 
 fun main(args: Array<String>) {
     val registry  = ApplicationRegistry()
+    val waitLatch = CountDownLatch(1)
 
     val result = loadApplication.run("application.json", AppLoader(SyncFileTroupe, SyncJacksonSerializeStageManager().hireTroupe(), registry))
             .map { it.get("exampleApp") }
@@ -60,31 +76,11 @@ fun main(args: Array<String>) {
                             ApplicationRegistry.RegistryException(ApplicationRegistry.RegistryError.NotFound("exampleApp")))
             }
             .map { it as MyStageManager }
-
-    val app =
-            Skript.identity<Unit, MyTroupe>()
-                    .map { "What is your message?"}
-                    .andThen(IOStreamSkript.WriteLine)
-                    .andThen(IOStreamSkript.ReadLine)
-                    .split(Skript.identity<String, MyTroupe>()
-                            .map { "where should I put  it?" }
-                            .andThen(IOStreamSkript.WriteLine)
-                            .andThen(IOStreamSkript.ReadLine)
-                            .map { FileReference.Relative(it) }
-                            .andThen(FileSkript.Writer))
-                    .join { content, writer ->
-                        writer.appendln(content)
-                        writer.flush()
-                        writer.close()
-                    }
-            .map { "Okay, I've finished recording!" }
-            .andThen(IOStreamSkript.WriteLine)
-
-    val waitLatch = CountDownLatch(1)
-    result.flatMap { app.run(Unit, it.hireTroupe()) }
+    result
+            .flatMap { applicationSkript.run(Unit, it.hireTroupe()) }
             .addHandler { waitLatch.countDown() }
-    waitLatch.await()
 
+    waitLatch.await()
     result.flatMap { it.tearDown() }
             .addHandler {
                 println("closed manager")}

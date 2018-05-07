@@ -94,7 +94,16 @@ technology and not change anything but minor configuration code.
 
 ## Coming Soon:
 * FileSkript
+  * coroutine impl
+  * vertx impl
 * Config Skript
+  *  default impl
+  *  coroutine impl
+  *  vertx impl
+  *  runtime update
+* Application lifecycle
+  * venue loading
+  * production config + starting
 * AMQPQueue Mangement
 * CacheSkript
 * Encryption
