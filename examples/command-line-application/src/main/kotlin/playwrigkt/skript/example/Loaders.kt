@@ -15,7 +15,8 @@ import playwrigkt.skript.troupe.FileTroupe
 import playwrigkt.skript.troupe.SerializeTroupe
 
 object MyStageManagerTroupeLoader: StageManagerLoader<MyTroupe> {
-    override fun register(registry: ApplicationRegistry): Try<Unit> = registry.register("exampleApp", this, listOf("serialize", "file", "inputStream", "outputStream"))
+    override val dependencies: List<String> = listOf("serialize", "file", "inputStream", "outputStream")
+    override val name: String = "exampleApp"
 
     override fun loadManager(existingManagers: Map<String, StageManager<*>>, config: StageManagerLoaderConfig): AsyncResult<MyStageManager> =
         loadExisting<SerializeTroupe>("serialize", existingManagers, config).flatMap { serializeStageManager ->
@@ -27,15 +28,11 @@ object MyStageManagerTroupeLoader: StageManagerLoader<MyTroupe> {
                 }
             }
         }.toAsyncResult()
-
-    private fun <Troupe> loadExisting(name: String, existingManagers: Map<String, StageManager<*>>, config: StageManagerLoaderConfig): Try<StageManager<Troupe>> =
-        existingManagers.get(config.applyOverride(name))
-                ?.let { Try { it as StageManager<Troupe> } }
-                ?:Try.Failure(StageManagerLoader.StageManagerException(StageManagerLoader.StageManagerError.NoSuchManager(name)))
 }
 
 object StdInStageManagerLoader: StageManagerLoader<InputStreamTroupe> {
-    override fun register(registry: ApplicationRegistry): Try<Unit> = registry.register("stdIn", this, emptyList())
+    override val dependencies: List<String> = emptyList()
+    override val name: String = "stdIn"
 
     override fun loadManager(existingManagers: Map<String, StageManager<*>>, config: StageManagerLoaderConfig): AsyncResult<out StageManager<InputStreamTroupe>> =
             Try {
@@ -47,7 +44,8 @@ object StdInStageManagerLoader: StageManagerLoader<InputStreamTroupe> {
 }
 
 object StdOutStageManagerLoader: StageManagerLoader<OutputStreamTroupe> {
-    override fun register(registry: ApplicationRegistry): Try<Unit> = registry.register("stdOut", this, emptyList())
+    override val dependencies: List<String> = emptyList()
+    override val name: String = "stdOut"
 
     override fun loadManager(existingManagers: Map<String, StageManager<*>>, config: StageManagerLoaderConfig): AsyncResult<out StageManager<OutputStreamTroupe>> =
             Try {

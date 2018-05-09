@@ -17,7 +17,10 @@ class ApplicationRegistryTest: StringSpec() {
             val name = "myLoader"
             val dependencies = emptyList<String>()
 
-            registry.register(name, loader, dependencies) shouldBe Try.Success(Unit)
+            `when`(loader.name).thenReturn(name)
+            `when`(loader.dependencies).thenReturn(dependencies)
+
+            registry.register(loader) shouldBe Try.Success(Unit)
             registry.getDependencies(name) shouldBe Try.Success(dependencies)
             registry.getLoader(name) shouldBe Try.Success(loader)
         }
@@ -28,7 +31,10 @@ class ApplicationRegistryTest: StringSpec() {
             val name = "myLoader"
             val dependencies = listOf("dep1", "dep2")
 
-            registry.register(name, loader, dependencies) shouldBe Try.Success(Unit)
+            `when`(loader.name).thenReturn(name)
+            `when`(loader.dependencies).thenReturn(dependencies)
+
+            registry.register(loader) shouldBe Try.Success(Unit)
             registry.getDependencies(name) shouldBe Try.Success(dependencies)
             registry.getLoader(name) shouldBe Try.Success(loader)
         }
@@ -41,8 +47,13 @@ class ApplicationRegistryTest: StringSpec() {
             val duplicateLoader = mock(StageManagerLoader::class.java)
             val duplicateDependencies = listOf("dupe1", "dupe2")
 
-            registry.register(name, loader, dependencies) shouldBe Try.Success(Unit)
-            registry.register(name, duplicateLoader, duplicateDependencies) shouldBe
+            `when`(loader.name).thenReturn(name)
+            `when`(loader.dependencies).thenReturn(dependencies)
+            `when`(duplicateLoader.name).thenReturn(name)
+            `when`(duplicateLoader.dependencies).thenReturn(duplicateDependencies)
+
+            registry.register(loader) shouldBe Try.Success(Unit)
+            registry.register(duplicateLoader) shouldBe
                     Try.Failure(ApplicationRegistry.RegistryException(ApplicationRegistry.RegistryError.DuplicateStageManagerLoader(name)))
             registry.getDependencies(name) shouldBe Try.Success(dependencies)
             registry.getLoader(name) shouldBe Try.Success(loader)
@@ -63,7 +74,10 @@ class ApplicationRegistryTest: StringSpec() {
             val name = "myLoader"
             val dependencies = emptyList<String>()
             val config = StageManagerLoaderConfig(name, emptyMap(), ConfigValue.Empty.Null)
-            registry.register(name, loader, dependencies) shouldBe Try.Success(Unit)
+            `when`(loader.name).thenReturn(name)
+            `when`(loader.dependencies).thenReturn(dependencies)
+
+            registry.register(loader) shouldBe Try.Success(Unit)
             `when`(loader.loadManager(emptyMap(), config)).thenReturn(AsyncResult.succeeded(manager))
 
             val result = registry.buildStageManagers(listOf(config))
@@ -103,12 +117,24 @@ class ApplicationRegistryTest: StringSpec() {
             val grandChild2Manager = mock(StageManager::class.java)
             val grandChild2Dependencies= emptyList<String>()
             val grandChild2Config = StageManagerLoaderConfig(grandChild2Name, emptyMap(), ConfigValue.Empty.Null)
-            
-            registry.register(parentName, parentLoader, parentDependencies) shouldBe Try.Success(Unit)
-            registry.register(child1Name, child1Loader, child1Dependencies) shouldBe Try.Success(Unit)
-            registry.register(child2Name, child2Loader, child2Dependencies) shouldBe Try.Success(Unit)
-            registry.register(grandChild1Name, grandChild1Loader, grandChild1Dependencies) shouldBe Try.Success(Unit)
-            registry.register(grandChild2Name, grandChild2Loader, grandChild2Dependencies) shouldBe Try.Success(Unit)
+
+            `when`(parentLoader.name).thenReturn(parentName)
+            `when`(parentLoader.dependencies).thenReturn(parentDependencies)
+            `when`(child1Loader.name).thenReturn(child1Name)
+            `when`(child1Loader.dependencies).thenReturn(child1Dependencies)
+            `when`(child2Loader.name).thenReturn(child2Name)
+            `when`(child2Loader.dependencies).thenReturn(child2Dependencies)
+            `when`(grandChild1Loader.name).thenReturn(grandChild1Name)
+            `when`(grandChild1Loader.dependencies).thenReturn(grandChild1Dependencies)
+            `when`(grandChild2Loader.name).thenReturn(grandChild2Name)
+            `when`(grandChild2Loader.dependencies).thenReturn(grandChild2Dependencies)
+
+            registry.register(parentLoader) shouldBe Try.Success(Unit)
+            registry.register(child1Loader) shouldBe Try.Success(Unit)
+            registry.register(child2Loader) shouldBe Try.Success(Unit)
+            registry.register(grandChild1Loader) shouldBe Try.Success(Unit)
+            registry.register(grandChild2Loader) shouldBe Try.Success(Unit)
+
             `when`(grandChild1Loader.loadManager(emptyMap(), grandChild1Config)).thenReturn(AsyncResult.succeeded(grandChild1Manager))
             `when`(grandChild2Loader.loadManager(emptyMap(), grandChild2Config)).thenReturn(AsyncResult.succeeded(grandChild2Manager))
             `when`(child2Loader.loadManager(emptyMap(), child2Config)).thenReturn(AsyncResult.succeeded(child2Manager))

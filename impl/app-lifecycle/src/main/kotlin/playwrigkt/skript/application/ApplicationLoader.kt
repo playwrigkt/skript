@@ -8,8 +8,10 @@ import playwrigkt.skript.performer.FilePerformer
 import playwrigkt.skript.performer.SerializePerformer
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.stagemanager.StageManager
+import playwrigkt.skript.stagemanager.SyncJacksonSerializeStageManager
 import playwrigkt.skript.troupe.FileTroupe
 import playwrigkt.skript.troupe.SerializeTroupe
+import playwrigkt.skript.troupe.SyncFileTroupe
 
 //TODO
 /*
@@ -19,7 +21,11 @@ import playwrigkt.skript.troupe.SerializeTroupe
  * load venues + produktions
  */
 
-data class AppLoader(val fileTroupe: FileTroupe, val serializeTroupe: SerializeTroupe, val applicationRegistry: ApplicationRegistry): FileTroupe, SerializeTroupe {
+data class SkriptApplicationLoader(val fileTroupe: FileTroupe, val serializeTroupe: SerializeTroupe, val applicationRegistry: ApplicationRegistry): FileTroupe, SerializeTroupe {
+        companion object {
+                fun loader(registry: ApplicationRegistry)=SkriptApplicationLoader(SyncFileTroupe, SyncJacksonSerializeStageManager().hireTroupe(), registry)
+        }
+
         override fun getFilePerformer(): AsyncResult<out FilePerformer> = fileTroupe.getFilePerformer()
 
         override fun getSerializePerformer(): AsyncResult<out SerializePerformer> = serializeTroupe.getSerializePerformer()
@@ -35,7 +41,7 @@ data class AppConfig(
         val stageManagerLoaders: List<StageManagerLoaderConfig>)
 
 
-val loadModules: Skript<AppConfig, Unit, AppLoader> = Skript.identity<AppConfig, AppLoader>()
+val loadModules: Skript<AppConfig, Unit, SkriptApplicationLoader> = Skript.identity<AppConfig, SkriptApplicationLoader>()
         .mapTry { config ->
                 config.modules
                         .map { Class.forName(it) }
@@ -44,22 +50,22 @@ val loadModules: Skript<AppConfig, Unit, AppLoader> = Skript.identity<AppConfig,
                                 .map { it.newInstance() }
                                 .rescue { Try.Failure(AppLoadError.MustExtendSkriptModule(clazz)) }
                                 .map { it as SkriptModule }
-                }.lift()
+                        }
+                        .lift()
         }
         .mapTryWithTroupe { modules, troupe ->
                 modules
-                        .map { Try {
-                                it.loaders().map { it.register(troupe.applicationRegistry) }
-                        } }
+                        .flatMap { it.loaders() }
+                        .map(troupe.applicationRegistry::register)
                         .lift()
         }
         .map { Unit }
 
-val loadStageManagers: Skript<AppConfig, Map<String, StageManager<*>>, AppLoader> =
-        Skript.identity<AppConfig, AppLoader>()
+val loadStageManagers: Skript<AppConfig, Map<String, StageManager<*>>, SkriptApplicationLoader> =
+        Skript.identity<AppConfig, SkriptApplicationLoader>()
                 .flatMapWithTroupe { config, troupe -> troupe.applicationRegistry.buildStageManagers(config.stageManagerLoaders) }
 
-val loadApplication: Skript<String, Map<String, StageManager<*>>, AppLoader> = Skript.identity<String, AppLoader>()
+val loadApplication: Skript<String, Map<String, StageManager<*>>, SkriptApplicationLoader> = Skript.identity<String, SkriptApplicationLoader>()
         .map { FileReference.Relative(it) }
         .readFile()
         .map { it.readText().toByteArray() }

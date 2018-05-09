@@ -8,7 +8,8 @@ import playwrigkt.skript.troupe.FileTroupe
 import playwrigkt.skript.troupe.SyncFileTroupe
 
 object SyncFileStageManagerLoader: StageManagerLoader<FileTroupe> {
-    override fun register(registry: ApplicationRegistry): Try<Unit> = registry.register("file", this, emptyList())
+    override val dependencies: List<String> = emptyList()
+    override val name: String = "file"
 
     override fun loadManager(existingManagers: Map<String, StageManager<*>>, config: StageManagerLoaderConfig): AsyncResult<out StageManager<FileTroupe>> =
         Try {

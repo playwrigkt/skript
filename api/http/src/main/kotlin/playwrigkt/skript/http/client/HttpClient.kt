@@ -11,11 +11,14 @@ sealed class HttpClient {
                    val pathParameters: Map<String, String>,
                    val queryParameters: Map<String, List<String>>) {
         val materialized: String by lazy {
-            "${uriBase}/${pathParts.joinToString("/")}?${queryString}"
+            "${uriBase}/$uri"
         }
 
         private val uriBase: String = "http${if(ssl) "s" else "" }://$host${port?.let{":$it"}}"
 
+        val uri by lazy {
+            "${pathParts.joinToString("/")}?${queryString}"
+        }
         val pathParts: List<String> by lazy {
             pathTemplate
                     .split("/")

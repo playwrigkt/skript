@@ -16,6 +16,14 @@ interface StageManagerLoader<Troupe> {
     sealed class StageManagerError {
         data class NoSuchManager(val name: String): StageManagerError()
     }
-    fun register(registry: ApplicationRegistry): Try<Unit>
+
+    val dependencies: List<String>
+    val name: String
+
     fun loadManager(existingManagers: Map<String, StageManager<*>>, config: StageManagerLoaderConfig): AsyncResult<out StageManager<Troupe>>
+
+    fun <Troupe> loadExisting(name: String, existingManagers: Map<String, StageManager<*>>, config: StageManagerLoaderConfig): Try<StageManager<Troupe>> =
+            existingManagers.get(config.applyOverride(name))
+                    ?.let { Try { it as StageManager<Troupe> } }
+                    ?:Try.Failure(StageManagerLoader.StageManagerException(StageManagerLoader.StageManagerError.NoSuchManager(name)))
 }

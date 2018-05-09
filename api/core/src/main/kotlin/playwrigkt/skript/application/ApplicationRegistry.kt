@@ -26,19 +26,19 @@ class ApplicationRegistry: LightweightSynchronized {
     override fun toString(): String =
         """ApplicationRegistry(registry=$registry)"""
     override val lock: ReentrantLock = ReentrantLock()
-    private val registry: MutableMap<String, Registry> = mutableMapOf()
+    private val registry: MutableMap<String, StageManagerLoader<*>> = mutableMapOf()
 
-    fun <Loader> register(name: String, loader: Loader, dependencies: List<String>): Try<Unit> where Loader: StageManagerLoader<*> = lock {
-        registry.get(name)
-                ?.let { Try.Failure<Unit>(RegistryException(RegistryError.DuplicateStageManagerLoader(name))) }
-                ?: Try.Success(registry.put(name, Registry(loader, dependencies)))
+    fun <Loader> register(loader: Loader): Try<Unit> where Loader: StageManagerLoader<*> = lock {
+        registry.get(loader.name)
+                ?.let { Try.Failure<Unit>(RegistryException(RegistryError.DuplicateStageManagerLoader(loader.name))) }
+                ?: Try.Success(registry.put(loader.name, loader))
                         .map { Unit }
 
     }
 
     fun getLoader(name: String): Try<StageManagerLoader<*>> =
             registry.get(name)
-                    ?.let { it.loader }
+                    ?.let { it }
                     ?.let { Try.Success(it) }
                     ?: Try.Failure(RegistryException(RegistryError.NotFound(name)))
 
