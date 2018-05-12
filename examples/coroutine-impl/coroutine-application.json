@@ -1,0 +1,62 @@
+{
+  "modules":[
+    "playwrigkt.skript.application.KtorHttpClientModule",
+    "playwrigkt.skript.application.CoroutineJDBCSQLModule",
+    "playwrigkt.skript.application.CoroutineJacksonSerializeModule",
+    "playwrigkt.skript.application.CoroutineAMQPModule",
+    "playwrigkt.skript.ExampleApplicationModule"
+  ],
+  "stageManagerLoaders": [
+    {
+      "name": "coroutine-jdbc-sql",
+      "dependencyOverrides": {},
+      "config":{
+        "dataSource": {
+          "jdbcUrl":"jdbc:postgresql://localhost:5432/chitchat",
+          "username":"chatty_tammy",
+          "password":"gossipy",
+          "driverClassName":"org.postgresql.Driver",
+          "maximumPoolSize":1,
+          "poolName":"test_pool"
+        }
+      }
+    },
+    {
+      "name": "coroutine-jackson-serialize",
+      "dependencyOverrides": {}
+    },
+    {
+      "name":"amqp-connection-factory",
+      "dependencyOverrides": {},
+      "config":{
+        "connection":{
+          "username":"rabbitmq",
+          "password":"rabbitmq",
+          "host":"localhost",
+          "port":5672,
+          "virtualHost":"/"
+        }
+      }
+    },
+    {
+      "name": "coroutine-amqp-publish",
+      "dependencyOverrides": {},
+      "config":{
+        "exchange":"events.ex"
+      }
+    },
+    {
+      "name": "ktor-http-client",
+      "dependencyOverrides": {}
+    },
+    {
+      "name": "example-application",
+      "dependencyOverrides": {
+        "http-client": "ktor-http-client",
+        "serialize": "coroutine-jackson-serialize",
+        "publish": "coroutine-amqp-publish",
+        "sql": "coroutine-jdbc-sql"
+      }
+    }
+  ]
+}

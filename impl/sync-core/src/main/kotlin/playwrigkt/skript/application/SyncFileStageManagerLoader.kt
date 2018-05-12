@@ -1,6 +1,7 @@
 package playwrigkt.skript.application
 
 import org.funktionale.tries.Try
+import playwrigkt.skript.Skript
 import playwrigkt.skript.ex.toAsyncResult
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.stagemanager.StageManager
@@ -11,12 +12,12 @@ object SyncFileStageManagerLoader: StageManagerLoader<FileTroupe> {
     override val dependencies: List<String> = emptyList()
     override val name: String = "file"
 
-    override fun loadManager(existingManagers: Map<String, StageManager<*>>, config: StageManagerLoaderConfig): AsyncResult<out StageManager<FileTroupe>> =
-        Try {
-            object : StageManager<FileTroupe> {
-                override fun tearDown(): AsyncResult<Unit> = AsyncResult.succeeded(Unit)
+    override val loadManager: Skript<StageManagerLoader.Input, StageManager<FileTroupe>, SkriptApplicationLoader> =
+            Skript.map { stageManager }
 
-                override fun hireTroupe(): FileTroupe = SyncFileTroupe
-            }
-        }.toAsyncResult()
+    private val stageManager = object : StageManager<FileTroupe> {
+        override fun tearDown(): AsyncResult<Unit> = AsyncResult.succeeded(Unit)
+
+        override fun hireTroupe(): FileTroupe = SyncFileTroupe
+    }
 }

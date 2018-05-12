@@ -13,7 +13,7 @@ import java.time.Instant
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
 
-class CoroutineJDBCPerformer(val connection: Connection): playwrigkt.skript.performer.SQLPerformer() {
+class CoroutineJDBCSQLPerformer(val connection: Connection): playwrigkt.skript.performer.SQLPerformer() {
     override fun query(query: SQLCommand.Query): AsyncResult<SQLResult.Query> {
         val statement = query.statement
         return runAsync {
@@ -25,7 +25,7 @@ class CoroutineJDBCPerformer(val connection: Connection): playwrigkt.skript.perf
                     statement.params.forEachIndexed { idx, value -> preparedStatement.setObject(idx + 1, value) }
                     preparedStatement.executeQuery()
                 } } }
-                .map { SQLResult.Query(playwrigkt.skript.performer.CoroutineJDBCPerformer.JDBCIterator(it)) }
+                .map { SQLResult.Query(playwrigkt.skript.performer.CoroutineJDBCSQLPerformer.JDBCIterator(it)) }
     }
 
     override fun update(update: SQLCommand.Update): AsyncResult<SQLResult.Update> {
@@ -91,8 +91,8 @@ class CoroutineJDBCPerformer(val connection: Connection): playwrigkt.skript.perf
 
     private class JDBCSQLRow(val row: Map<String, Any>): SQLRow {
         companion object {
-            fun of(row: ResultSet): playwrigkt.skript.performer.CoroutineJDBCPerformer.JDBCSQLRow {
-                return playwrigkt.skript.performer.CoroutineJDBCPerformer.JDBCSQLRow(
+            fun of(row: ResultSet): playwrigkt.skript.performer.CoroutineJDBCSQLPerformer.JDBCSQLRow {
+                return playwrigkt.skript.performer.CoroutineJDBCSQLPerformer.JDBCSQLRow(
                         (1..row.metaData.columnCount)
                                 .map {
                                     //TODO all data types
@@ -152,20 +152,20 @@ class CoroutineJDBCPerformer(val connection: Connection): playwrigkt.skript.perf
         }
     }
 
-    private class JDBCIterator(val rs: ResultSet): Iterator<playwrigkt.skript.performer.CoroutineJDBCPerformer.JDBCSQLRow> {
-        val queue = LinkedBlockingQueue<playwrigkt.skript.performer.CoroutineJDBCPerformer.JDBCSQLRow>()
+    private class JDBCIterator(val rs: ResultSet): Iterator<playwrigkt.skript.performer.CoroutineJDBCSQLPerformer.JDBCSQLRow> {
+        val queue = LinkedBlockingQueue<playwrigkt.skript.performer.CoroutineJDBCSQLPerformer.JDBCSQLRow>()
         override fun hasNext(): Boolean {
             if(queue.isNotEmpty()) {
                 return true
             } else if(rs.next()) {
-                queue.offer(playwrigkt.skript.performer.CoroutineJDBCPerformer.JDBCSQLRow.Companion.of(rs))
+                queue.offer(playwrigkt.skript.performer.CoroutineJDBCSQLPerformer.JDBCSQLRow.Companion.of(rs))
                 return true
             } else {
                 return false
             }
         }
 
-        override fun next(): playwrigkt.skript.performer.CoroutineJDBCPerformer.JDBCSQLRow {
+        override fun next(): playwrigkt.skript.performer.CoroutineJDBCSQLPerformer.JDBCSQLRow {
             return Optional.of(hasNext())
                     .filter { it }
                     .flatMap { Optional.of(queue.poll()) }

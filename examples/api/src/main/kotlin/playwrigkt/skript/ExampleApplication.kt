@@ -1,5 +1,6 @@
 package playwrigkt.skript
 
+import playwrigkt.skript.application.SkriptApplicationLoader
 import playwrigkt.skript.application.SkriptModule
 import playwrigkt.skript.application.StageManagerLoader
 import playwrigkt.skript.application.StageManagerLoaderConfig
@@ -70,7 +71,6 @@ data class ExampleApplication(val stageManager: ApplicationStageManager,
                             Http.Method.Get))
 }
 
-typealias LoaderInput = Pair<Map<String, StageManager<*>>, StageManagerLoaderConfig>
 
 class ExampleApplicationModule: SkriptModule {
     override fun loaders(): List<StageManagerLoader<*>> =
@@ -81,13 +81,8 @@ object ExampleApplicationStageManagerLoader: StageManagerLoader<ApplicationTroup
     override val dependencies: List<String> = listOf("sql", "publish", "serialize", "http-client")
     override val name: String = "example-application"
 
-    override fun loadManager(existingManagers: Map<String, StageManager<*>>, config: StageManagerLoaderConfig): AsyncResult<ApplicationStageManager> =
-            loadSkript.run(Pair(existingManagers, config), Unit)
-
-
-
-    val loadSkript =
-            Skript.identity<Pair<Map<String, StageManager<*>>, StageManagerLoaderConfig>, Unit>()
+    override val loadManager =
+            Skript.identity<StageManagerLoader.Input, SkriptApplicationLoader>()
                     .all(
                             loadExistingStageManagerSkript<SQLTroupe>("sql"),
                             loadExistingStageManagerSkript<SerializeTroupe>("serialize"),
@@ -97,8 +92,5 @@ object ExampleApplicationStageManagerLoader: StageManagerLoader<ApplicationTroup
                         ApplicationStageManager(publish, sql, serialize, httpClient)
                     }
 
-    private fun <Troupe> loadExistingStageManagerSkript(name: String): Skript<LoaderInput, StageManager<Troupe>, Unit> =
-            Skript.identity<LoaderInput, Unit>()
-                    .joinTry{ existingManagers, config ->
-                        loadExisting<Troupe>(name, existingManagers, config) }
+
 }

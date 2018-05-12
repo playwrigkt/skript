@@ -5,6 +5,9 @@ import java.math.BigDecimal
 import java.math.BigInteger
 
 sealed class ConfigValue {
+    abstract val raw: String
+    abstract fun propertiesList(propertyName: String? = null): List<Pair<String, String>>
+
     sealed class Error: Exception() {
         data class NotObject(val configValue: ConfigValue): Error()
         data class NotArray(val configValue: ConfigValue): Error()
@@ -18,17 +21,65 @@ sealed class ConfigValue {
     }
 
     sealed class Empty: ConfigValue() {
-        object Undefined: Empty()
-        object Null: Empty()
+        object Undefined: Empty() {
+            override val raw: String = ""
+
+            override fun propertiesList(propertyName: String?): List<Pair<String, String>> = emptyList()
+        }
+
+        object Null: Empty() {
+            override val raw: String = "null"
+
+            override fun propertiesList(propertyName: String?): List<Pair<String, String>> = emptyList()
+        }
     }
     sealed class Collection: ConfigValue() {
-        data class Object(val values: Map<String, ConfigValue>): Collection()
-        data class Array(val list: List<ConfigValue>): Collection()
+        data class Object(val values: Map<String, ConfigValue>): Collection() {
+            override val raw: String by lazy {
+                "{${values.map { "\"${it.key}\":${it.value.raw}" }.joinToString(",")}}"
+            }
+
+            override fun propertiesList(propertyName: String?): List<Pair<String, String>> =
+                    values
+                            .flatMap { entry ->
+                                entry.value.propertiesList(propertyName?.let { "$it.${entry.key}" }?:entry.key)
+                            }
+        }
+
+        data class Array(val list: List<ConfigValue>): Collection() {
+            override val raw: String by lazy {
+                "[${list.map { it.raw }.joinToString(",")}]"
+            }
+
+            override fun propertiesList(propertyName: String?): List<Pair<String, String>> =
+                    list
+                            .mapIndexed { index, configValue ->
+                                configValue.propertiesList(propertyName?.let {"$it.$index"}?:index.toString())
+                            }
+                            .flatten()
+        }
     }
-    data class Text(val value: String): ConfigValue()
-    data class Number(val value: BigInteger): ConfigValue()
-    data class Decimal(val value: BigDecimal): ConfigValue()
-    data class Bool(val value: Boolean): ConfigValue()
+
+    data class Text(val value: String): ConfigValue() {
+        override val raw: String = "\"$value\""
+
+        override fun propertiesList(propertyName: String?): List<Pair<String, String>> = listOf((propertyName?:"") to value)
+    }
+    data class Number(val value: BigInteger): ConfigValue() {
+        override val raw: String = value.toString()
+
+        override fun propertiesList(propertyName: String?): List<Pair<String, String>> = listOf((propertyName?:"") to value.toString())
+    }
+    data class Decimal(val value: BigDecimal): ConfigValue() {
+        override val raw: String  = value.toString()
+
+        override fun propertiesList(propertyName: String?): List<Pair<String, String>> = listOf((propertyName?:"") to value.toString())
+    }
+    data class Bool(val value: Boolean): ConfigValue() {
+        override val raw: String = value.toString()
+
+        override fun propertiesList(propertyName: String?): List<Pair<String, String>> = listOf((propertyName?:"") to value.toString())
+    }
 
     fun objekt(): Try<ConfigValue.Collection.Object> = when {
         this is ConfigValue.Collection.Object -> Try.Success(this)
@@ -82,6 +133,5 @@ sealed class ConfigValue {
                                 ?.let { Try.Success(it) }
                                 ?: Try.Failure<ConfigValue>(Error.ValueNotFound(path, nextPathItem))
                     }
-
                 }
 }

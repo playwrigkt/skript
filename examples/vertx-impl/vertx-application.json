@@ -6,7 +6,8 @@
   "stageManagerLoaders": [
     {
       "name": "vertx",
-      "dependencyOverrides": {}
+      "dependencyOverrides": {},
+      "config":{}
     },
     {
       "name": "vertx-sql",
@@ -33,7 +34,8 @@
     },
     {
       "name": "vertx-http-client",
-      "dependencyOverrides": {}
+      "dependencyOverrides": {},
+      "config": {}
     },
     {
       "name": "example-application",

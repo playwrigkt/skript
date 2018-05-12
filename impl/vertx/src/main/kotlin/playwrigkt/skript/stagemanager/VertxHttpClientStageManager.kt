@@ -5,7 +5,7 @@ import io.vertx.core.http.HttpClientOptions
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.troupe.VertxHttpClientTroupe
 
-data class VertxHttpRequestStageManager(val vertxHttpClientOptions: HttpClientOptions, val vertx: Vertx): StageManager<VertxHttpClientTroupe> {
+data class VertxHttpClientStageManager(val vertxHttpClientOptions: HttpClientOptions, val vertx: Vertx): StageManager<VertxHttpClientTroupe> {
     private val httpClient by lazy {
         AsyncResult.succeeded(vertx.createHttpClient(vertxHttpClientOptions))
     }

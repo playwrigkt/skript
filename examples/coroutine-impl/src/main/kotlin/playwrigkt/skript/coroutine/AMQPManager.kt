@@ -9,7 +9,6 @@ import playwrigkt.skript.ExampleApplication.Companion.userLoginAddress
 
 object AMQPManager {
     val amqpExchange = "events.ex"
-    val basicProperties: AMQP.BasicProperties = AMQP.BasicProperties()
 
     fun connectionFactory(): ConnectionFactory {
         val factory = ConnectionFactory()
