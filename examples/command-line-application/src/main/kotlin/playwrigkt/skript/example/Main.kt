@@ -1,12 +1,10 @@
 package playwrigkt.skript.example
 
-import org.funktionale.tries.Try
 import playwrigkt.skript.Skript
 import playwrigkt.skript.application.*
 import playwrigkt.skript.ex.andThen
 import playwrigkt.skript.ex.join
 import playwrigkt.skript.ex.lift
-import playwrigkt.skript.ex.toAsyncResult
 import playwrigkt.skript.file.*
 import playwrigkt.skript.iostream.*
 import playwrigkt.skript.performer.FilePerformer
@@ -68,8 +66,8 @@ fun main(args: Array<String>) {
     val registry  = ApplicationRegistry()
     val waitLatch = CountDownLatch(1)
 
-    val result = loadApplication.run("application.json", AppLoader(SyncFileTroupe, SyncJacksonSerializeStageManager().hireTroupe(), registry))
-            .map { it.get("exampleApp") }
+    val result = loadApplication.run("application.json", SkriptApplicationLoader(SyncFileTroupe, SyncJacksonSerializeStageManager().hireTroupe(), registry))
+            .map { it.stageManagers.get("exampleApp") }
             .flatMap { it
                     ?.let { AsyncResult.succeeded(it) }
                     ?: AsyncResult.failed(

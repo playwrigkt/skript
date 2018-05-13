@@ -1,0 +1,50 @@
+{
+  "modules":[
+    "playwrigkt.skript.application.VertxModule",
+    "playwrigkt.skript.ExampleApplicationModule"
+  ],
+  "stageManagerLoaders": [
+    {
+      "name": "vertx",
+      "dependencyOverrides": {},
+      "config":{}
+    },
+    {
+      "name": "vertx-sql",
+      "dependencyOverrides": {},
+      "config": {
+        "sql": {
+          "provider_class": "io.vertx.ext.jdbc.spi.impl.HikariCPDataSourceProvider",
+          "jdbcUrl": "jdbc:postgresql://localhost:5432/chitchat",
+          "username": "chatty_tammy",
+          "password": "gossipy",
+          "driver_class": "org.postgresql.Driver",
+          "maximumPoolSize": 1,
+          "poolName": "test_pool"
+        }
+      }
+    },
+    {
+      "name": "vertx-serialize",
+      "dependencyOverrides": {}
+    },
+    {
+      "name": "vertx-publish",
+      "dependencyOverrides": {}
+    },
+    {
+      "name": "vertx-http-client",
+      "dependencyOverrides": {},
+      "config": {}
+    },
+    {
+      "name": "example-application",
+      "dependencyOverrides": {
+        "http-client": "vertx-http-client",
+        "serialize": "vertx-serialize",
+        "publish": "vertx-publish",
+        "sql": "vertx-sql"
+      }
+    }
+  ]
+}

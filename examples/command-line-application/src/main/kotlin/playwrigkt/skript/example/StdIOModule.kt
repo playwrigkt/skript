@@ -5,5 +5,5 @@ import playwrigkt.skript.application.StageManagerLoader
 
 class StdIOModule: SkriptModule {
     override fun loaders(): List<StageManagerLoader<*>> =
-            listOf(MyStageManagerTroupeLoader, StdInStageManagerLoader, StdOutStageManagerLoader)
+            listOf(StdInStageManagerLoader, StdOutStageManagerLoader)
 }

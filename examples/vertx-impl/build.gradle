@@ -1,6 +1,6 @@
 dependencies {
     compile project(':examples:api')
-
+    compile project(':impl:sync-core')
     compile project(':impl:vertx')
     compile "com.zaxxer:HikariCP:$hikari_version"
     compile "org.postgresql:postgresql:$postgres_version"

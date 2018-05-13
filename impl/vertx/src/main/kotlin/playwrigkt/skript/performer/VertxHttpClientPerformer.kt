@@ -1,10 +1,7 @@
 package playwrigkt.skript.performer
 
 import io.vertx.core.buffer.Buffer
-import io.vertx.core.http.HttpClient
-import io.vertx.core.http.HttpClientRequest
-import io.vertx.core.http.HttpClientResponse
-import io.vertx.core.http.HttpMethod
+import io.vertx.core.http.*
 import playwrigkt.skript.http.Http
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.CompletableResult
@@ -29,19 +26,26 @@ data class VertxHttpClientPerformer(val httpClient: HttpClient): HttpClientPerfo
         }
     }
 
+    fun playwrigkt.skript.http.client.HttpClient.URI.toRequestOptions(): RequestOptions =
+            RequestOptions()
+                    .setHost(this.host)
+                    .let { this.port?.let(it::setPort)?:it }
+                    .setURI(this.uri)
+                    .setSsl(this.ssl)
+
     fun method(httpClientRequest: playwrigkt.skript.http.client.HttpClient.Request):  HttpClientRequest =
         when(httpClientRequest.method) {
-            Http.Method.Get -> httpClient.get(httpClientRequest.uri.materialized)
-            Http.Method.Put -> httpClient.put(httpClientRequest.uri.materialized)
-            Http.Method.Delete -> httpClient.delete(httpClientRequest.uri.materialized)
-            Http.Method.Post -> httpClient.post(httpClientRequest.uri.materialized)
-            Http.Method.Head -> httpClient.head(httpClientRequest.uri.materialized)
-            Http.Method.Options -> httpClient.options(httpClientRequest.uri.materialized)
-            Http.Method.Trace -> httpClient.request(HttpMethod.TRACE, httpClientRequest.uri.materialized)
-            Http.Method.Connect -> httpClient.request(HttpMethod.CONNECT, httpClientRequest.uri.materialized)
-            Http.Method.Patch -> httpClient.request(HttpMethod.PATCH, httpClientRequest.uri.materialized)
-            is Http.Method.Other -> httpClient.request(HttpMethod.OTHER, httpClientRequest.uri.materialized)
-            Http.Method.All -> httpClient.get(httpClientRequest.uri.materialized)
+            Http.Method.Get -> httpClient.get(httpClientRequest.uri.toRequestOptions())
+            Http.Method.Put -> httpClient.put(httpClientRequest.uri.toRequestOptions())
+            Http.Method.Delete -> httpClient.delete(httpClientRequest.uri.toRequestOptions())
+            Http.Method.Post -> httpClient.post(httpClientRequest.uri.toRequestOptions())
+            Http.Method.Head -> httpClient.head(httpClientRequest.uri.toRequestOptions())
+            Http.Method.Options -> httpClient.options(httpClientRequest.uri.toRequestOptions())
+            Http.Method.Trace -> httpClient.request(HttpMethod.TRACE, httpClientRequest.uri.toRequestOptions())
+            Http.Method.Connect -> httpClient.request(HttpMethod.CONNECT, httpClientRequest.uri.toRequestOptions())
+            Http.Method.Patch -> httpClient.request(HttpMethod.PATCH, httpClientRequest.uri.toRequestOptions())
+            is Http.Method.Other -> httpClient.request(HttpMethod.OTHER, httpClientRequest.uri.toRequestOptions())
+            Http.Method.All -> httpClient.get(httpClientRequest.uri.toRequestOptions())
         }
 
     private fun HttpClientRequest.applyHeaders(clientRequest: playwrigkt.skript.http.client.HttpClient.Request): HttpClientRequest =

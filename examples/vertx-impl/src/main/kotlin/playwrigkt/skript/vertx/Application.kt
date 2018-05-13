@@ -1,22 +1,35 @@
 package playwrigkt.skript.vertx
 
-import io.vertx.core.Vertx
-import io.vertx.core.http.HttpClientOptions
 import io.vertx.core.http.HttpServerOptions
-import io.vertx.core.json.JsonObject
 import playwrigkt.skript.ExampleApplication
+import playwrigkt.skript.ExampleApplicationStageManagerLoader
+import playwrigkt.skript.application.*
+import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.stagemanager.*
+import playwrigkt.skript.troupe.SyncFileTroupe
 import playwrigkt.skript.venue.VertxHttpServerVenue
 import playwrigkt.skript.venue.VertxVenue
 
-fun createApplication(vertx: Vertx, sqlConfig: JsonObject, port: Int): ExampleApplication {
-    val vertxVenue = VertxVenue(vertx)
-    val httpServerVenue = VertxHttpServerVenue(vertx, HttpServerOptions().setPort(port))
+fun createApplication(port: Int): AsyncResult<ExampleApplication> {
+    val stageManagers = loadApplication
+            .run("vertx-application.json", SkriptApplicationLoader(SyncFileTroupe, SyncJacksonSerializeStageManager().hireTroupe(), ApplicationRegistry()))
+            .map { it.stageManagers }
 
-    val sqlConnectionStageManager = VertxSQLStageManager(vertx, sqlConfig, "application_datasource")
-    val publishStageManager = VertxPublishStageManager(vertx.eventBus())
-    val serializeStageManager = VertxSerializeStageManager()
-    val httpStageManager = VertxHttpRequestStageManager(HttpClientOptions().setDefaultPort(port), vertx)
-    val stageManager = ApplicationStageManager(publishStageManager, sqlConnectionStageManager, serializeStageManager, httpStageManager)
-    return ExampleApplication(stageManager, httpServerVenue, vertxVenue)
+    val applicationStageManagerResult = stageManagers
+            .map { it.get(ExampleApplicationStageManagerLoader.name) }
+            .map { it as ApplicationStageManager }
+
+    val vertxResult = stageManagers
+            .map { it.get(VertxStageManagerLoader.name) }
+            .map { it as VertxStageManager }
+            .map { it.hireTroupe() }
+
+    return vertxResult.flatMap { vertx ->
+        applicationStageManagerResult.map { applicationStageManager ->
+            ExampleApplication(
+                    applicationStageManager,
+                    VertxHttpServerVenue(vertx, HttpServerOptions().setPort(port)),
+                    VertxVenue(vertx))
+        }
+    }
 }

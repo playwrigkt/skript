@@ -1,10 +1,8 @@
 package playwrigkt.skript.jackson
 
+import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.JsonDeserializer
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.*
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
@@ -19,6 +17,7 @@ object SkriptJacksonObjectMapper {
                 .let(ConfigValueJacksonJsonDeserializer()::register)
                 .registerModule(KotlinModule())
                 .registerModule(JavaTimeModule())
+                .configure(DeserializationFeature.FAIL_ON_READING_DUP_TREE_KEY, false)
 }
 
 class ConfigValueJacksonJsonDeserializer: JsonDeserializer<ConfigValue>() {

@@ -1,6 +1,9 @@
 package playwrigkt.skript.ex
 
+import playwrigkt.skript.Skript
+import playwrigkt.skript.config.ConfigSkript
 import playwrigkt.skript.config.ConfigValue
+import playwrigkt.skript.troupe.ConfigTroupe
 import java.math.BigDecimal
 import java.math.BigInteger
 
@@ -13,3 +16,6 @@ fun String.configValue() = ConfigValue.Text(this)
 fun Boolean.configValue() = ConfigValue.Bool(this)
 fun List<ConfigValue>.configValue() = ConfigValue.Collection.Array(this)
 fun Map<String, ConfigValue>.configValue() = ConfigValue.Collection.Object(this)
+
+fun <I, Troupe: ConfigTroupe> Skript<I, String, Troupe>.configValue(): Skript<I, ConfigValue, Troupe> =
+        this.andThen(ConfigSkript.Config)
