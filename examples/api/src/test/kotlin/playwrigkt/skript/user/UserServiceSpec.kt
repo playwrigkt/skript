@@ -2,40 +2,49 @@ package  playwrigkt.skript.user
 
 import io.kotlintest.*
 import io.kotlintest.specs.StringSpec
-import org.slf4j.LoggerFactory
 import playwrigkt.skript.Async
 import playwrigkt.skript.ExampleApplication
 import playwrigkt.skript.Skript
+import playwrigkt.skript.application.ApplicationRegistry
+import playwrigkt.skript.application.SkriptApplicationLoader
 import playwrigkt.skript.auth.TokenAndInput
-import playwrigkt.skript.ex.deserialize
+import playwrigkt.skript.createApplication
+import playwrigkt.skript.ex.*
+import playwrigkt.skript.file.FileReference
 import playwrigkt.skript.produktion.Produktion
 import playwrigkt.skript.queue.QueueMessage
 import playwrigkt.skript.result.AsyncResult
+import playwrigkt.skript.stagemanager.SyncJacksonSerializeStageManager
 import playwrigkt.skript.troupe.ApplicationTroupe
+import playwrigkt.skript.troupe.SyncFileTroupe
 import playwrigkt.skript.user.extensions.schema.dropUserSchema
 import playwrigkt.skript.user.extensions.schema.initUserSchema
 import playwrigkt.skript.user.extensions.transaction.deleteAllUsers
 import playwrigkt.skript.user.models.*
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
+import kotlin.math.floor
 
 
 abstract class UserServiceSpec : StringSpec() {
+    abstract val sourceConfigFileName: String
+    val port: Int = floor((Math.random() * 8000)).toInt() + 2000
 
-    val LOG = LoggerFactory.getLogger(this.javaClass)
+    fun configFile() = sourceConfigFileName.split(".").joinToString("-$port.")
 
-    abstract fun userHttpClient(): UserHttpClient
-    abstract fun application(): ExampleApplication
-
-    val userService: UserService by lazy { UserService(application().stageManager) }
+    val application by lazy { Async.awaitSucceededFuture(createApplication(configFile()))!! }
+    val userHttpClient = UserHttpClient(port)
+    val userService: UserService by lazy { UserService(application.stageManager) }
     val userProduktions by lazy {
-        application().loadHttpProduktions()
+        application.loadHttpProduktions()
     }
 
     fun loginProduktion(): Produktion =
-            awaitSucceededFuture(application().queueConsumerProduktion(
+            awaitSucceededFuture(application.queueConsumerProduktion(
                 ExampleApplication.userLoginAddress,
                 Skript.identity<QueueMessage, ApplicationTroupe>()
                         .map { it.body }
@@ -46,7 +55,7 @@ abstract class UserServiceSpec : StringSpec() {
     val processedLoginEvents = LinkedBlockingQueue<UserSession>()
 
     fun createProduktion(): Produktion =
-            awaitSucceededFuture(application().queueConsumerProduktion(
+            awaitSucceededFuture(application.queueConsumerProduktion(
                 ExampleApplication.userCreatedAddress,
                 Skript.identity<QueueMessage, ApplicationTroupe>()
                         .map { it.body }
@@ -57,15 +66,32 @@ abstract class UserServiceSpec : StringSpec() {
     val processedCreateEvents = LinkedBlockingQueue<UserProfile>()
 
     override fun beforeSpec(description: Description, spec: Spec) {
-        awaitSucceededFuture(application().stageManager.hireTroupe().dropUserSchema())
-        awaitSucceededFuture(application().stageManager.hireTroupe().initUserSchema())
+        val loader = SkriptApplicationLoader(SyncFileTroupe, SyncJacksonSerializeStageManager().hireTroupe(), ApplicationRegistry())
+        Skript.identity<Unit, SkriptApplicationLoader>()
+                .map { FileReference.Relative(sourceConfigFileName) }
+                .readFile()
+                .map { it.readText() }
+                .map { it.replace("\"port\":8080", "\"port\":$port")}
+                .split(Skript.identity<String, SkriptApplicationLoader>()
+                        .map { FileReference.Relative(configFile()) }
+                        .createFile()
+                        .writeFile())
+                .join { json, writer ->
+                    writer.write(json)
+                    writer.flush()
+                    writer.close()
+                }
+                .run(Unit, loader)
+        awaitSucceededFuture(application.stageManager.hireTroupe().dropUserSchema())
+        awaitSucceededFuture(application.stageManager.hireTroupe().initUserSchema())
         awaitSucceededFuture(userProduktions)
     }
 
     override fun afterSpec(description: Description, spec: Spec) {
-        awaitSucceededFuture(application().stageManager.hireTroupe().deleteAllUsers())
-        awaitSucceededFuture(application().stageManager.hireTroupe().dropUserSchema())
-        awaitSucceededFuture(application().teardown())
+        awaitSucceededFuture(application.stageManager.hireTroupe().deleteAllUsers())
+        awaitSucceededFuture(application.stageManager.hireTroupe().dropUserSchema())
+        awaitSucceededFuture(application.teardown())
+        Files.delete(Paths.get(configFile()))
     }
 
     init {
@@ -198,11 +224,11 @@ abstract class UserServiceSpec : StringSpec() {
             val user = UserProfile(userId, userName, false)
             val userAndPassword = UserNameAndPassword(userName, password)
 
-            Async.awaitSucceededFuture(userHttpClient().createUserRequestSkript.run(UserProfileAndPassword(user, password), application().stageManager.hireTroupe())) shouldBe user
+            Async.awaitSucceededFuture(userHttpClient.createUserRequestSkript.run(UserProfileAndPassword(user, password), application.stageManager.hireTroupe())) shouldBe user
 
-            val session = Async.awaitSucceededFuture(userHttpClient().loginRequestSkript.run(userAndPassword, application().stageManager.hireTroupe()))!!
+            val session = Async.awaitSucceededFuture(userHttpClient.loginRequestSkript.run(userAndPassword, application.stageManager.hireTroupe()))!!
 
-            Async.awaitSucceededFuture(userHttpClient().getUserRequestSkript.run(TokenAndInput(session.sessionKey, userId), application().stageManager.hireTroupe())) shouldBe user
+            Async.awaitSucceededFuture(userHttpClient.getUserRequestSkript.run(TokenAndInput(session.sessionKey, userId), application.stageManager.hireTroupe())) shouldBe user
         }
     }
 

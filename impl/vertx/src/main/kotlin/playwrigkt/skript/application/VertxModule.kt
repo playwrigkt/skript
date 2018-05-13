@@ -3,87 +3,112 @@ package playwrigkt.skript.application
 import io.vertx.core.Vertx
 import io.vertx.core.VertxOptions
 import io.vertx.core.http.HttpClientOptions
+import io.vertx.core.http.HttpServerOptions
 import io.vertx.core.json.JsonObject
 import playwrigkt.skript.Skript
 import playwrigkt.skript.ex.*
 import playwrigkt.skript.stagemanager.*
-import playwrigkt.skript.troupe.*
+import playwrigkt.skript.venue.VertxHttpServerVenue
+import playwrigkt.skript.venue.VertxVenue
 
 class VertxModule: SkriptModule {
-    override fun loaders(): List<StageManagerLoader<*>> =
+    override fun loaders(): List<ApplicationResourceLoader<*>> =
             listOf(
-                    VertxStageManagerLoader,
+                    VertxLoader,
                     VertxPublishStageManagerLoader,
                     VertxHttpStageManagerLoader,
                     VertxSerializeSageManagerrLoader,
-                    VertxSQLStagemanagerLoader)
+                    VertxSQLStagemanagerLoader,
+                    VertxHttpServerVenueLoader,
+                    VertxVenueLoader)
 }
 
 
-object VertxStageManagerLoader: StageManagerLoader<Vertx> {
+object VertxLoader: ApplicationResourceLoader<Vertx> {
     override val dependencies: List<String> = emptyList()
     override val name: String = "vertx"
 
-    override val loadManager: Skript<StageManagerLoader.Input, out StageManager<Vertx>, SkriptApplicationLoader> =
-            Skript.identity<StageManagerLoader.Input, SkriptApplicationLoader>()
-                    .map { it.stageManagerLoaderConfig.config.raw.toByteArray() }
+    override val loadResource: Skript<ApplicationResourceLoader.Input, Vertx, SkriptApplicationLoader> =
+            Skript.identity<ApplicationResourceLoader.Input, SkriptApplicationLoader>()
+                    .map { it.applicationResourceLoaderConfig.config.raw.toByteArray() }
                     .deserialize(VertxOptions::class.java)
                     .map { Vertx.vertx(it) }
-                    .map { VertxStageManager(it) }
 }
 
-object VertxPublishStageManagerLoader: StageManagerLoader<QueuePublishTroupe> {
-    override val dependencies: List<String> = listOf("vertx")
+object VertxPublishStageManagerLoader: ApplicationResourceLoader<VertxPublishStageManager> {
+    override val dependencies: List<String> = listOf(VertxLoader.name)
     override val name: String = "vertx-publish"
 
-    override val loadManager: Skript<StageManagerLoader.Input, out StageManager<QueuePublishTroupe>, SkriptApplicationLoader> =
-            loadExistingStageManagerSkript<Vertx>("vertx")
-                    .map { it.hireTroupe().eventBus() }
-                    .map { VertxPublishStageManager(it) }
+    override val loadResource: Skript<ApplicationResourceLoader.Input, VertxPublishStageManager, SkriptApplicationLoader> =
+            loadExistingApplicationResourceSkript<Vertx>(VertxLoader.name)
+                    .map { VertxPublishStageManager(it.eventBus()) }
 }
 
-object VertxHttpStageManagerLoader: StageManagerLoader<HttpClientTroupe> {
-    override val dependencies: List<String> = listOf("vertx")
+object VertxHttpStageManagerLoader: ApplicationResourceLoader<VertxHttpClientStageManager> {
+    override val dependencies: List<String> = listOf(VertxLoader.name)
     override val name: String = "vertx-http-client"
 
-    override val loadManager: Skript<StageManagerLoader.Input, out StageManager<HttpClientTroupe>, SkriptApplicationLoader> =
-            Skript.identity<StageManagerLoader.Input, SkriptApplicationLoader>()
+    override val loadResource: Skript<ApplicationResourceLoader.Input, VertxHttpClientStageManager, SkriptApplicationLoader> =
+            Skript.identity<ApplicationResourceLoader.Input, SkriptApplicationLoader>()
                     .both(
-                            Skript.identity<StageManagerLoader.Input, SkriptApplicationLoader>()
-                                    .map { it.stageManagerLoaderConfig.config.raw.toByteArray() }
+                            Skript.identity<ApplicationResourceLoader.Input, SkriptApplicationLoader>()
+                                    .map { it.applicationResourceLoaderConfig.config.raw.toByteArray() }
                                     .deserialize(HttpClientOptions::class.java),
-                            loadExistingStageManagerSkript<Vertx>("vertx").map { it.hireTroupe() })
+                            loadExistingApplicationResourceSkript<Vertx>(VertxLoader.name))
                     .join { clientOptions, vertx -> VertxHttpClientStageManager(clientOptions, vertx) }
 
 }
 
-object VertxSerializeSageManagerrLoader: StageManagerLoader<SerializeTroupe> {
+object VertxSerializeSageManagerrLoader: ApplicationResourceLoader<VertxSerializeStageManager> {
     override val dependencies: List<String> = emptyList()
     override val name: String = "vertx-serialize"
 
-    override val loadManager: Skript<StageManagerLoader.Input, VertxSerializeStageManager, SkriptApplicationLoader> = Skript.map { VertxSerializeStageManager() }
+    override val loadResource: Skript<ApplicationResourceLoader.Input, VertxSerializeStageManager, SkriptApplicationLoader> = Skript.map { VertxSerializeStageManager() }
 }
 
-object VertxSQLStagemanagerLoader: StageManagerLoader<SQLTroupe> {
+object VertxSQLStagemanagerLoader: ApplicationResourceLoader<VertxSQLStageManager> {
 
-    override val dependencies: List<String> = listOf("vertx")
+    override val dependencies: List<String> = listOf(VertxLoader.name)
     override val name: String = "vertx-sql"
 
 
-    override val loadManager: Skript<StageManagerLoader.Input, VertxSQLStageManager, SkriptApplicationLoader> =
-            Skript.identity<StageManagerLoader.Input, SkriptApplicationLoader>()
+    override val loadResource: Skript<ApplicationResourceLoader.Input, VertxSQLStageManager, SkriptApplicationLoader> =
+            Skript.identity<ApplicationResourceLoader.Input, SkriptApplicationLoader>()
                     .all(
-                            Skript.identity<StageManagerLoader.Input, SkriptApplicationLoader>()
-                                    .mapTry { it.stageManagerLoaderConfig.config.applyPath("sql", ".") }
+                            Skript.identity<ApplicationResourceLoader.Input, SkriptApplicationLoader>()
+                                    .mapTry { it.applicationResourceLoaderConfig.config.applyPath("sql", ".") }
                                     .map { it.raw }
                                     .map { JsonObject(it) },
-                            Skript.identity<StageManagerLoader.Input, SkriptApplicationLoader>()
-                                    .mapTry { it.stageManagerLoaderConfig.config.applyPath("sql.poolName", ".") }
+                            Skript.identity<ApplicationResourceLoader.Input, SkriptApplicationLoader>()
+                                    .mapTry { it.applicationResourceLoaderConfig.config.applyPath("sql.poolName", ".") }
                                     .mapTry {  it.text() }
                                     .map { it.value },
-                            loadExistingStageManagerSkript<Vertx>("vertx"))
+                            loadExistingApplicationResourceSkript<Vertx>(VertxLoader.name))
                     .join { config, poolName, vertx ->
-                        VertxSQLStageManager(vertx.hireTroupe(), config, poolName)
+                        VertxSQLStageManager(vertx, config, poolName)
                     }
 
+}
+
+object VertxHttpServerVenueLoader: ApplicationResourceLoader<VertxHttpServerVenue> {
+    override val dependencies: List<String> = listOf(VertxLoader.name)
+    override val name: String = "vertx-http-server"
+    override val loadResource: Skript<ApplicationResourceLoader.Input, VertxHttpServerVenue, SkriptApplicationLoader> =
+            Skript.both(
+                    loadExistingApplicationResourceSkript<Vertx>(VertxLoader.name),
+                    Skript.identity<ApplicationResourceLoader.Input, SkriptApplicationLoader>()
+                            .mapTry { it.applicationResourceLoaderConfig.config.applyPath("httpServer", ".") }
+                            .map { it.raw.toByteArray() }
+                            .deserialize(HttpServerOptions::class.java))
+                    .join { vertx, httpServerOptions ->
+                        VertxHttpServerVenue(vertx, httpServerOptions)
+                    }
+}
+
+object VertxVenueLoader: ApplicationResourceLoader<VertxVenue> {
+    override val dependencies: List<String> = listOf(VertxLoader.name)
+    override val name: String = "vertx-venue"
+    override val loadResource: Skript<ApplicationResourceLoader.Input, VertxVenue, SkriptApplicationLoader> =
+            loadExistingApplicationResourceSkript<Vertx>(VertxLoader.name)
+                    .map { VertxVenue(it) }
 }

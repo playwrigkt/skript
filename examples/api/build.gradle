@@ -7,4 +7,5 @@ dependencies {
     compile project(':api:queue')
     compile project(':api:sql')
     compile project(':api:http')
+    compile project(':impl:sync-core')
 }

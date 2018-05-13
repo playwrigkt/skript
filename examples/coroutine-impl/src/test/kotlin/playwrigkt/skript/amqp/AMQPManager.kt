@@ -1,6 +1,5 @@
-package playwrigkt.skript.coroutine
+package playwrigkt.skript.amqp
 
-import com.rabbitmq.client.AMQP
 import com.rabbitmq.client.BuiltinExchangeType
 import com.rabbitmq.client.Connection
 import com.rabbitmq.client.ConnectionFactory

@@ -66,8 +66,8 @@ fun main(args: Array<String>) {
     val registry  = ApplicationRegistry()
     val waitLatch = CountDownLatch(1)
 
-    val result = loadApplication.run("application.json", SkriptApplicationLoader(SyncFileTroupe, SyncJacksonSerializeStageManager().hireTroupe(), registry))
-            .map { it.stageManagers.get("exampleApp") }
+    val result = loadApplication.run("examples/command-line-application/application.json", SkriptApplicationLoader(SyncFileTroupe, SyncJacksonSerializeStageManager().hireTroupe(), registry))
+            .map { it.applicationResources.get("exampleApp") }
             .flatMap { it
                     ?.let { AsyncResult.succeeded(it) }
                     ?: AsyncResult.failed(
@@ -81,6 +81,7 @@ fun main(args: Array<String>) {
     waitLatch.await()
     result.flatMap { it.tearDown() }
             .addHandler {
+                println(it)
                 println("closed manager")}
 
 }

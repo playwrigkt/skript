@@ -20,6 +20,11 @@ sealed class FileSkript<I, O>: Skript<I, O, FileTroupe> {
                 troupe.getFilePerformer().flatMap { it.writer(i) }
 
     }
+
+    object Create: FileSkript<FileReference, FileReference>() {
+        override fun run(i: FileReference, troupe: FileTroupe): AsyncResult<FileReference> =
+            troupe.getFilePerformer().flatMap { it.create(i) }
+    }
 }
 
 sealed class FileReference {
