@@ -7,7 +7,7 @@ import playwrigkt.skript.troupe.*
 
 data class ApplicationStageManager(
         val publishProvider: StageManager<QueuePublishTroupe>,
-        val sqlProvider: StageManager<SQLTroupe>,
+        val sqlProvider: StageManager<SqlTroupe>,
         val serializeProvider: StageManager<SerializeTroupe>,
         val httpManager: StageManager<HttpClientTroupe>): StageManager<ApplicationTroupe> {
 

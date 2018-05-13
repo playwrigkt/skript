@@ -10,7 +10,7 @@
       "config":{}
     },
     {
-      "name": "vertx-sql",
+      "name": "vertxSqlStageManager",
       "dependencyOverrides": {},
       "config": {
         "sql": {
@@ -25,20 +25,20 @@
       }
     },
     {
-      "name": "vertx-serialize",
+      "name": "vertxSerializeStageManager",
       "dependencyOverrides": {}
     },
     {
-      "name": "vertx-publish",
+      "name": "vertxPublishStageManager",
       "dependencyOverrides": {}
     },
     {
-      "name": "vertx-http-client",
+      "name": "vertxHttpClientStageManager",
       "dependencyOverrides": {},
       "config": {}
     },
     {
-      "name": "vertx-http-server",
+      "name": "vertxHttpServerVenue",
       "dependencyOverrides": {},
       "config": {
         "httpServer":{
@@ -47,23 +47,23 @@
       }
     },
     {
-      "name": "vertx-venue",
+      "name": "vertxVenue",
       "dependencyOverrides": {}
     },
     {
-      "name": "example-application-stage-manager",
+      "name": "exampleApplicationStageManager",
       "dependencyOverrides": {
-        "http-client": "vertx-http-client",
-        "serialize": "vertx-serialize",
-        "publish": "vertx-publish",
-        "sql": "vertx-sql"
+        "http-client": "vertxHttpClientStageManager",
+        "serialize": "vertxSerializeStageManager",
+        "publish": "vertxPublishStageManager",
+        "sql": "vertxSqlStageManager"
       }
     },
     {
-      "name": "example-application",
+      "name": "exampleApplication",
       "dependencyOverrides": {
-        "http-server-venue": "vertx-http-server",
-        "queue-venue": "vertx-venue"
+        "http-server-venue": "vertxHttpServerVenue",
+        "queue-venue": "vertxVenue"
       }
     }
   ]

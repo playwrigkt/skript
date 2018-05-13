@@ -5,7 +5,6 @@ import playwrigkt.skript.stagemanager.SyncJacksonSerializeStageManager
 
 object SyncJacksonSerializeStageManagerLoader: ApplicationResourceLoader<SyncJacksonSerializeStageManager> {
     override val dependencies: List<String> = emptyList()
-    override val name: String = "serialize"
 
     override val loadResource: Skript<ApplicationResourceLoader.Input, SyncJacksonSerializeStageManager, SkriptApplicationLoader> =
             Skript.map { SyncJacksonSerializeStageManager() }

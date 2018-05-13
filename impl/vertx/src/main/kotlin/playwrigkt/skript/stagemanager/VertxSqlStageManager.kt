@@ -6,16 +6,16 @@ import io.vertx.ext.jdbc.JDBCClient
 import io.vertx.ext.sql.SQLClient
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.CompletableResult
-import playwrigkt.skript.troupe.SQLTroupe
-import playwrigkt.skript.troupe.VertxSQLTroupe
+import playwrigkt.skript.troupe.SqlTroupe
+import playwrigkt.skript.troupe.VertxSqlTroupe
 import playwrigkt.skript.vertx.ex.vertxHandler
 
-data class VertxSQLStageManager(val vertx: Vertx, val sqlConfig: JsonObject, val datasourceName: String): StageManager<SQLTroupe> {
+data class VertxSqlStageManager(val vertx: Vertx, val sqlConfig: JsonObject, val datasourceName: String): StageManager<SqlTroupe> {
     val sqlClient: SQLClient by lazy {
         JDBCClient.createShared(vertx, sqlConfig, "test_ds")
     }
 
-    override fun hireTroupe(): SQLTroupe = VertxSQLTroupe(sqlClient)
+    override fun hireTroupe(): SqlTroupe = VertxSqlTroupe(sqlClient)
 
     override fun tearDown(): AsyncResult<Unit> {
         val result = CompletableResult<Unit>()

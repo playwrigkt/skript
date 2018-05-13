@@ -18,7 +18,7 @@ import playwrigkt.skript.ex.readFile
 import playwrigkt.skript.ex.writeFile
 import playwrigkt.skript.file.FileReference
 import playwrigkt.skript.result.AsyncResult
-import playwrigkt.skript.sql.transaction.SQLTransactionSkript
+import playwrigkt.skript.sql.transaction.SqlTransactionSkript
 import playwrigkt.skript.stagemanager.SyncJacksonSerializeStageManager
 import playwrigkt.skript.troupe.ApplicationTroupe
 import playwrigkt.skript.troupe.SyncFileTroupe
@@ -34,15 +34,15 @@ import kotlin.math.floor
 
 abstract class ChatroomTransactionsSpec : StringSpec() {
     companion object {
-        val CREATE_CHAT_ROOM: Skript<playwrigkt.skript.auth.TokenAndInput<playwrigkt.skript.chatrooom.models.ChatRoom>, playwrigkt.skript.chatrooom.models.ChatRoom, ApplicationTroupe> = SQLTransactionSkript.transaction(playwrigkt.skript.chatrooom.ChatRoomSkripts.CREATE_CHAT_ROOM_TRANSACTION)
-        val GET_CHAT_ROOM: Skript<playwrigkt.skript.auth.TokenAndInput<String>, playwrigkt.skript.chatrooom.models.ChatRoom, ApplicationTroupe> = SQLTransactionSkript.transaction(playwrigkt.skript.chatrooom.ChatRoomSkripts.GET_CHAT_ROOM_TRANSACTION)
-        val ADD_USER: Skript<playwrigkt.skript.auth.TokenAndInput<playwrigkt.skript.chatrooom.models.ChatRoomUser>, playwrigkt.skript.chatrooom.models.ChatRoom, ApplicationTroupe> = SQLTransactionSkript.transaction(playwrigkt.skript.chatrooom.ChatRoomSkripts.ADD_USER_TRANSACTION)
-        val DELETE_USER: Skript<playwrigkt.skript.auth.TokenAndInput<playwrigkt.skript.chatrooom.models.ChatRoomUser>, playwrigkt.skript.chatrooom.models.ChatRoom, ApplicationTroupe> = SQLTransactionSkript.transaction(playwrigkt.skript.chatrooom.ChatRoomSkripts.REMOVE_USER_TRANSACTION)
-        val ADD_PUBLIC_PERMISSIONS: Skript<playwrigkt.skript.auth.TokenAndInput<playwrigkt.skript.chatrooom.models.ChatRoomPermissions>, playwrigkt.skript.chatrooom.models.ChatRoom, ApplicationTroupe> = SQLTransactionSkript.transaction(playwrigkt.skript.chatrooom.ChatRoomSkripts.ADD_PERMISSIONS)
-        val REMOVE_PUBLIC_PERMISSIONS: Skript<playwrigkt.skript.auth.TokenAndInput<playwrigkt.skript.chatrooom.models.ChatRoomPermissions>, playwrigkt.skript.chatrooom.models.ChatRoom, ApplicationTroupe> = SQLTransactionSkript.transaction(playwrigkt.skript.chatrooom.ChatRoomSkripts.REMOVE_PERMISSIONS)
-        val UPDATE_CHAT_ROOM: Skript<playwrigkt.skript.auth.TokenAndInput<playwrigkt.skript.chatrooom.models.ChatRoom>, playwrigkt.skript.chatrooom.models.ChatRoom, ApplicationTroupe> = SQLTransactionSkript.transaction(playwrigkt.skript.chatrooom.ChatRoomSkripts.UPDATE_CHAT_ROOM_TRANSACTION)
-        val ADD_USER_PERMISSION: Skript<playwrigkt.skript.auth.TokenAndInput<playwrigkt.skript.chatrooom.models.ChatRoomUser>, playwrigkt.skript.chatrooom.models.ChatRoom, ApplicationTroupe> = SQLTransactionSkript.transaction(playwrigkt.skript.chatrooom.ChatRoomSkripts.ADD_USER_PERMISSIONS)
-        val REMOVE_USER_PERMISSION: Skript<playwrigkt.skript.auth.TokenAndInput<playwrigkt.skript.chatrooom.models.ChatRoomUser>, playwrigkt.skript.chatrooom.models.ChatRoom, ApplicationTroupe> = SQLTransactionSkript.transaction(playwrigkt.skript.chatrooom.ChatRoomSkripts.REMOVE_USER_PERMISSIONS)
+        val CREATE_CHAT_ROOM: Skript<playwrigkt.skript.auth.TokenAndInput<playwrigkt.skript.chatrooom.models.ChatRoom>, playwrigkt.skript.chatrooom.models.ChatRoom, ApplicationTroupe> = SqlTransactionSkript.transaction(playwrigkt.skript.chatrooom.ChatRoomSkripts.CREATE_CHAT_ROOM_TRANSACTION)
+        val GET_CHAT_ROOM: Skript<playwrigkt.skript.auth.TokenAndInput<String>, playwrigkt.skript.chatrooom.models.ChatRoom, ApplicationTroupe> = SqlTransactionSkript.transaction(playwrigkt.skript.chatrooom.ChatRoomSkripts.GET_CHAT_ROOM_TRANSACTION)
+        val ADD_USER: Skript<playwrigkt.skript.auth.TokenAndInput<playwrigkt.skript.chatrooom.models.ChatRoomUser>, playwrigkt.skript.chatrooom.models.ChatRoom, ApplicationTroupe> = SqlTransactionSkript.transaction(playwrigkt.skript.chatrooom.ChatRoomSkripts.ADD_USER_TRANSACTION)
+        val DELETE_USER: Skript<playwrigkt.skript.auth.TokenAndInput<playwrigkt.skript.chatrooom.models.ChatRoomUser>, playwrigkt.skript.chatrooom.models.ChatRoom, ApplicationTroupe> = SqlTransactionSkript.transaction(playwrigkt.skript.chatrooom.ChatRoomSkripts.REMOVE_USER_TRANSACTION)
+        val ADD_PUBLIC_PERMISSIONS: Skript<playwrigkt.skript.auth.TokenAndInput<playwrigkt.skript.chatrooom.models.ChatRoomPermissions>, playwrigkt.skript.chatrooom.models.ChatRoom, ApplicationTroupe> = SqlTransactionSkript.transaction(playwrigkt.skript.chatrooom.ChatRoomSkripts.ADD_PERMISSIONS)
+        val REMOVE_PUBLIC_PERMISSIONS: Skript<playwrigkt.skript.auth.TokenAndInput<playwrigkt.skript.chatrooom.models.ChatRoomPermissions>, playwrigkt.skript.chatrooom.models.ChatRoom, ApplicationTroupe> = SqlTransactionSkript.transaction(playwrigkt.skript.chatrooom.ChatRoomSkripts.REMOVE_PERMISSIONS)
+        val UPDATE_CHAT_ROOM: Skript<playwrigkt.skript.auth.TokenAndInput<playwrigkt.skript.chatrooom.models.ChatRoom>, playwrigkt.skript.chatrooom.models.ChatRoom, ApplicationTroupe> = SqlTransactionSkript.transaction(playwrigkt.skript.chatrooom.ChatRoomSkripts.UPDATE_CHAT_ROOM_TRANSACTION)
+        val ADD_USER_PERMISSION: Skript<playwrigkt.skript.auth.TokenAndInput<playwrigkt.skript.chatrooom.models.ChatRoomUser>, playwrigkt.skript.chatrooom.models.ChatRoom, ApplicationTroupe> = SqlTransactionSkript.transaction(playwrigkt.skript.chatrooom.ChatRoomSkripts.ADD_USER_PERMISSIONS)
+        val REMOVE_USER_PERMISSION: Skript<playwrigkt.skript.auth.TokenAndInput<playwrigkt.skript.chatrooom.models.ChatRoomUser>, playwrigkt.skript.chatrooom.models.ChatRoom, ApplicationTroupe> = SqlTransactionSkript.transaction(playwrigkt.skript.chatrooom.ChatRoomSkripts.REMOVE_USER_PERMISSIONS)
     }
 
     val LOG = LoggerFactory.getLogger(this.javaClass)
@@ -73,18 +73,18 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
                 }
                 .run(Unit, loader)
         awaitSucceededFuture(application.stageManager.runWithTroupe(
-                SQLTransactionSkript.transaction(playwrigkt.skript.chatrooom.sql.ChatRoomSchema.dropAllAction),
+                SqlTransactionSkript.transaction(playwrigkt.skript.chatrooom.sql.ChatRoomSchema.dropAllAction),
                 Unit))
         awaitSucceededFuture(application.stageManager.hireTroupe().dropUserSchema())
         awaitSucceededFuture(application.stageManager.hireTroupe().initUserSchema())
         awaitSucceededFuture(application.stageManager.runWithTroupe(
-                SQLTransactionSkript.transaction(playwrigkt.skript.chatrooom.sql.ChatRoomSchema.initAction),
+                SqlTransactionSkript.transaction(playwrigkt.skript.chatrooom.sql.ChatRoomSchema.initAction),
                 Unit))
     }
 
     override fun afterSpec(description: Description, spec: Spec) {
         awaitSucceededFuture(application.stageManager.runWithTroupe(
-                SQLTransactionSkript.transaction(playwrigkt.skript.chatrooom.sql.ChatRoomSchema.dropAllAction),
+                SqlTransactionSkript.transaction(playwrigkt.skript.chatrooom.sql.ChatRoomSchema.dropAllAction),
                 Unit))
         awaitSucceededFuture(application.stageManager.hireTroupe().dropUserSchema())
         awaitSucceededFuture(application.teardown())

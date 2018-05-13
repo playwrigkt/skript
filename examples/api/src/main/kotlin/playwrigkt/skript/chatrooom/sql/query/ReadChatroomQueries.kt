@@ -6,7 +6,7 @@ import playwrigkt.skript.sql.*
 import playwrigkt.skript.user.models.UserProfile
 
 
-object GetChatRoom: SQLQueryMapping<String, playwrigkt.skript.chatrooom.models.ChatRoom> {
+object GetChatRoom: SqlQueryMapping<String, playwrigkt.skript.chatrooom.models.ChatRoom> {
     val selectChatroom = """
         |SELECT chatroom.id AS id, chatroom.name AS name, chatroom.description AS description,
         |chatroom_permission.permission_key AS permission_key, chatroom_permission.allow_public AS permission_allow_public,
@@ -27,14 +27,14 @@ object GetChatRoom: SQLQueryMapping<String, playwrigkt.skript.chatrooom.models.C
         |WHERE chatroom.id=?
     """.trimMargin()
 
-    override fun toSql(i: String): SQLCommand.Query {
-        return SQLCommand.Query(SQLStatement.Parameterized(selectChatroom, listOf(i, i)))
+    override fun toSql(i: String): SqlCommand.Query {
+        return SqlCommand.Query(SqlStatement.Parameterized(selectChatroom, listOf(i, i)))
     }
 
-    override fun mapResult(i: String, rs: SQLResult.Query): Try<playwrigkt.skript.chatrooom.models.ChatRoom> {
+    override fun mapResult(i: String, rs: SqlResult.Query): Try<playwrigkt.skript.chatrooom.models.ChatRoom> {
         return Try { rs.result.next() }
                 .flatMap(this::parseFirstRow)
-                .flatMap { rs.result.asSequence().fold(Try.Success(it)) { agg: Try<playwrigkt.skript.chatrooom.models.ChatRoom>, nextRow: SQLRow -> agg.map { chatRoom ->
+                .flatMap { rs.result.asSequence().fold(Try.Success(it)) { agg: Try<playwrigkt.skript.chatrooom.models.ChatRoom>, nextRow: SqlRow -> agg.map { chatRoom ->
                     chatRoom.copy(
                             users = parseUser(nextRow).map { addTo(chatRoom.users, it) }.getOrElse { chatRoom.users },
                             publicPermissions = parsePermission(nextRow).map { chatRoom.publicPermissions.plus(it) }.getOrElse { chatRoom.publicPermissions }
@@ -42,7 +42,7 @@ object GetChatRoom: SQLQueryMapping<String, playwrigkt.skript.chatrooom.models.C
                 }} }
     }
 
-    private fun parseFirstRow(row: SQLRow): Try<playwrigkt.skript.chatrooom.models.ChatRoom> {
+    private fun parseFirstRow(row: SqlRow): Try<playwrigkt.skript.chatrooom.models.ChatRoom> {
         return Try {
             playwrigkt.skript.chatrooom.models.ChatRoom(
                     id = row.getString("id"),
@@ -52,11 +52,11 @@ object GetChatRoom: SQLQueryMapping<String, playwrigkt.skript.chatrooom.models.C
                     publicPermissions = parsePermission(row).map(::setOf).getOrElse { emptySet() })
         }
     }
-    private fun parsePermission(row: SQLRow): Try<String> {
+    private fun parsePermission(row: SqlRow): Try<String> {
         return Try { row.getString("permission_key") }
     }
 
-    private fun parseUser(row: SQLRow): Try<playwrigkt.skript.chatrooom.models.ChatRoomUser> {
+    private fun parseUser(row: SqlRow): Try<playwrigkt.skript.chatrooom.models.ChatRoomUser> {
         return Try {
             playwrigkt.skript.chatrooom.models.ChatRoomUser(
                     user = Reference.Defined(

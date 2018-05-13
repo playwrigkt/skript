@@ -2,32 +2,32 @@ package playwrigkt.skript.sql.transaction
 
 import playwrigkt.skript.Skript
 import playwrigkt.skript.result.AsyncResult
-import playwrigkt.skript.troupe.SQLTroupe
+import playwrigkt.skript.troupe.SqlTroupe
 
 
-sealed class SQLTransactionSkript<I, O, Troupe: SQLTroupe>: Skript<I, O, Troupe> {
-    abstract fun <J> mapInsideTransaction(skript: Skript<O, J, Troupe>): SQLTransactionSkript<I, J, Troupe>
+sealed class SqlTransactionSkript<I, O, Troupe: SqlTroupe>: Skript<I, O, Troupe> {
+    abstract fun <J> mapInsideTransaction(skript: Skript<O, J, Troupe>): SqlTransactionSkript<I, J, Troupe>
 
     abstract val transaction: Skript<I, O, Troupe>
     companion object {
-        fun <I, O, Troupe: SQLTroupe> transaction(skript: Skript<I, O, Troupe>): SQLTransactionSkript<I, O, Troupe> =
+        fun <I, O, Troupe: SqlTroupe> transaction(skript: Skript<I, O, Troupe>): SqlTransactionSkript<I, O, Troupe> =
                 when(skript) {
-                    is SQLTransactionSkript -> transaction(skript.transaction)
-                    else -> TransactionalSQLTransactionSkript(skript)
+                    is SqlTransactionSkript -> transaction(skript.transaction)
+                    else -> TransactionalSqlTransactionSkript(skript)
                 }
 
-        fun <I, O, Troupe: SQLTroupe> autoCommit(skript: Skript<I, O, Troupe>): SQLTransactionSkript<I, O, Troupe> =
+        fun <I, O, Troupe: SqlTroupe> autoCommit(skript: Skript<I, O, Troupe>): SqlTransactionSkript<I, O, Troupe> =
                 when(skript) {
-                    is SQLTransactionSkript -> autoCommit(skript.transaction)
+                    is SqlTransactionSkript -> autoCommit(skript.transaction)
                     else -> AutoCommitSQlTransactionSkript(skript)
                 }
     }
 
-    data class AutoCommitSQlTransactionSkript<I, O, Troupe: SQLTroupe>(override val transaction: Skript<I, O, Troupe>) : SQLTransactionSkript<I, O, Troupe>() {
+    data class AutoCommitSQlTransactionSkript<I, O, Troupe: SqlTroupe>(override val transaction: Skript<I, O, Troupe>) : SqlTransactionSkript<I, O, Troupe>() {
 
-        override fun <J> mapInsideTransaction(skript: Skript<O, J, Troupe>): SQLTransactionSkript<I, J, Troupe> =
+        override fun <J> mapInsideTransaction(skript: Skript<O, J, Troupe>): SqlTransactionSkript<I, J, Troupe> =
                 when(skript) {
-                    is SQLTransactionSkript -> this.mapInsideTransaction(skript.transaction)
+                    is SqlTransactionSkript -> this.mapInsideTransaction(skript.transaction)
                     else -> AutoCommitSQlTransactionSkript(this.transaction.compose(skript))
 
                 }
@@ -41,11 +41,11 @@ sealed class SQLTransactionSkript<I, O, Troupe: SQLTroupe>: Skript<I, O, Troupe>
                 }
     }
 
-    data class TransactionalSQLTransactionSkript<I, O, Troupe: SQLTroupe>(override val transaction: Skript<I, O, Troupe>) : SQLTransactionSkript<I, O, Troupe>() {
-        override fun <J> mapInsideTransaction(skript: Skript<O, J, Troupe>): SQLTransactionSkript<I, J, Troupe> =
+    data class TransactionalSqlTransactionSkript<I, O, Troupe: SqlTroupe>(override val transaction: Skript<I, O, Troupe>) : SqlTransactionSkript<I, O, Troupe>() {
+        override fun <J> mapInsideTransaction(skript: Skript<O, J, Troupe>): SqlTransactionSkript<I, J, Troupe> =
                 when(skript) {
-                    is SQLTransactionSkript -> this.mapInsideTransaction(skript.transaction)
-                    else -> TransactionalSQLTransactionSkript(this.transaction.compose(skript))
+                    is SqlTransactionSkript -> this.mapInsideTransaction(skript.transaction)
+                    else -> TransactionalSqlTransactionSkript(this.transaction.compose(skript))
                 }
 
         override fun run(i: I, troupe: Troupe): AsyncResult<O> =

@@ -17,8 +17,8 @@ interface ApplicationResourceLoader<Resource> {
         data class NoSuchManager(val name: String): StageManagerError()
     }
 
+    fun name(): String = this::class.java.simpleName.removeSuffix("Loader").decapitalize()
     val dependencies: List<String>
-    val name: String
     val loadResource: Skript<Input, Resource, SkriptApplicationLoader>
 
     fun <OtherResource> loadExistingApplicationResourceSkript(name: String): Skript<Input, OtherResource, SkriptApplicationLoader> =

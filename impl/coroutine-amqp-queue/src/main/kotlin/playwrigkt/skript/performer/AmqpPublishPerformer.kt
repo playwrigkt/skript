@@ -6,7 +6,7 @@ import playwrigkt.skript.coroutine.runAsync
 import playwrigkt.skript.queue.QueueMessage
 import playwrigkt.skript.result.AsyncResult
 
-class AMQPPublishPerformer(
+class AmqpPublishPerformer(
         val exchange: String,
         val channel: Channel,
         val basicProperties: AMQP.BasicProperties): QueuePublishPerformer {

@@ -12,43 +12,43 @@ import playwrigkt.skript.result.VertxResult
 import playwrigkt.skript.sql.*
 import java.time.Instant
 
-class VertxSQLPerformer(val connection: SQLConnection): SQLPerformer() {
-    override fun query(query: SQLCommand.Query): AsyncResult<SQLResult.Query> {
+class VertxSqlPerformer(val connection: SQLConnection): SqlPerformer() {
+    override fun query(query: SqlCommand.Query): AsyncResult<SqlResult.Query> {
         val sqlFuture = Future.future<ResultSet>()
         val statement = query.statement
         when (statement) {
-            is SQLStatement.Parameterized -> connection.queryWithParams(statement.query, JsonArray(statement.params), sqlFuture.completer())
-            is SQLStatement.Simple -> connection.query(statement.query, sqlFuture.completer())
+            is SqlStatement.Parameterized -> connection.queryWithParams(statement.query, JsonArray(statement.params), sqlFuture.completer())
+            is SqlStatement.Simple -> connection.query(statement.query, sqlFuture.completer())
         }
         return VertxResult(sqlFuture)
-                .map { SQLResult.Query(VertxRowIterator(it.rows.iterator())) }
-                .recover { CompletableResult.failed(SQLError.OnCommand(query, it)) }
+                .map { SqlResult.Query(VertxRowIterator(it.rows.iterator())) }
+                .recover { CompletableResult.failed(SqlError.OnCommand(query, it)) }
     }
 
-    override fun update(update: SQLCommand.Update): AsyncResult<SQLResult.Update> {
+    override fun update(update: SqlCommand.Update): AsyncResult<SqlResult.Update> {
         val sqlFuture = Future.future<UpdateResult>()
         val statement = update.statement
         when (statement) {
-            is SQLStatement.Parameterized -> connection.updateWithParams(statement.query, JsonArray(statement.params), sqlFuture.completer())
-            is SQLStatement.Simple -> connection.update(statement.query, sqlFuture.completer())
+            is SqlStatement.Parameterized -> connection.updateWithParams(statement.query, JsonArray(statement.params), sqlFuture.completer())
+            is SqlStatement.Simple -> connection.update(statement.query, sqlFuture.completer())
         }
         return VertxResult(sqlFuture)
-                .map { SQLResult.Update(it.updated) }
-                .recover { CompletableResult.failed(SQLError.OnCommand(update, it)) }
+                .map { SqlResult.Update(it.updated) }
+                .recover { CompletableResult.failed(SqlError.OnCommand(update, it)) }
     }
 
-    override fun exec(exec: SQLCommand.Exec): AsyncResult<SQLResult.Void> {
+    override fun exec(exec: SqlCommand.Exec): AsyncResult<SqlResult.Void> {
         val statement = exec.statement
         val query = when(statement) {
-            is SQLStatement.Parameterized -> statement.query
-            is SQLStatement.Simple -> statement.query
+            is SqlStatement.Parameterized -> statement.query
+            is SqlStatement.Simple -> statement.query
         }
 
         val sqlFuture = Future.future<Void>()
         connection.execute(query, sqlFuture.completer())
         return VertxResult(sqlFuture)
-                .map { SQLResult.Void }
-                .recover { CompletableResult.failed(SQLError.OnCommand(exec, it)) }
+                .map { SqlResult.Void }
+                .recover { CompletableResult.failed(SqlError.OnCommand(exec, it)) }
     }
 
     override fun <T> close(): (T) -> AsyncResult<T> = { thing ->
@@ -81,7 +81,7 @@ class VertxSQLPerformer(val connection: SQLConnection): SQLPerformer() {
         return VertxResult(confFuture.map { Unit })
     }
 
-    private class VertxSQLRow(val row: JsonObject): SQLRow {
+    private class VertxSqlRow(val row: JsonObject): SqlRow {
         override fun getString(key: String): String {
             return row.getString(key)
         }
@@ -103,13 +103,13 @@ class VertxSQLPerformer(val connection: SQLConnection): SQLPerformer() {
         }
     }
 
-    private class VertxRowIterator(val rs: Iterator<JsonObject>): Iterator<VertxSQLRow> {
+    private class VertxRowIterator(val rs: Iterator<JsonObject>): Iterator<VertxSqlRow> {
         override fun hasNext(): Boolean {
             return rs.hasNext()
         }
 
-        override fun next(): VertxSQLRow {
-            return VertxSQLRow(rs.next())
+        override fun next(): VertxSqlRow {
+            return VertxSqlRow(rs.next())
         }
     }
 }

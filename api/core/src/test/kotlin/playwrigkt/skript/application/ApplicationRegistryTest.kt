@@ -18,7 +18,7 @@ class ApplicationRegistryTest: StringSpec() {
             val name = "myLoader"
             val dependencies = emptyList<String>()
 
-            `when`(loader.name).thenReturn(name)
+            `when`(loader.name()).thenReturn(name)
             `when`(loader.dependencies).thenReturn(dependencies)
 
             registry.register(loader) shouldBe Try.Success(Unit)
@@ -32,7 +32,7 @@ class ApplicationRegistryTest: StringSpec() {
             val name = "myLoader"
             val dependencies = listOf("dep1", "dep2")
 
-            `when`(loader.name).thenReturn(name)
+            `when`(loader.name()).thenReturn(name)
             `when`(loader.dependencies).thenReturn(dependencies)
 
             registry.register(loader) shouldBe Try.Success(Unit)
@@ -48,9 +48,9 @@ class ApplicationRegistryTest: StringSpec() {
             val duplicateLoader = mock(ApplicationResourceLoader::class.java)
             val duplicateDependencies = listOf("dupe1", "dupe2")
 
-            `when`(loader.name).thenReturn(name)
+            `when`(loader.name()).thenReturn(name)
             `when`(loader.dependencies).thenReturn(dependencies)
-            `when`(duplicateLoader.name).thenReturn(name)
+            `when`(duplicateLoader.name()).thenReturn(name)
             `when`(duplicateLoader.dependencies).thenReturn(duplicateDependencies)
 
             registry.register(loader) shouldBe Try.Success(Unit)
@@ -60,6 +60,7 @@ class ApplicationRegistryTest: StringSpec() {
             registry.getLoader(name) shouldBe Try.Success(loader)
         }
 
+        //TODO move tests below here to ApplicationLoaderSpec
         "A registry should fail to build a stage manager for a manager it has no reference to" {
             val registry = ApplicationRegistry()
             val name = "nosuch"
@@ -82,7 +83,7 @@ class ApplicationRegistryTest: StringSpec() {
             val appConfig = AppConfig(emptyList(), listOf(config))
             val loader = object: ApplicationResourceLoader<Any> {
                 override val dependencies: List<String> = dependencies
-                override val name: String = name
+                override fun name(): String = name
                 override val loadResource: Skript<ApplicationResourceLoader.Input, Any, SkriptApplicationLoader> =
                         Skript.map { resource }
             }
@@ -123,7 +124,7 @@ class ApplicationRegistryTest: StringSpec() {
 
             val parentLoader = object: ApplicationResourceLoader<Any> {
                 override val dependencies: List<String> = parentDependencies
-                override val name: String = parentName
+                override fun name(): String = parentName
                 override val loadResource: Skript<ApplicationResourceLoader.Input, Any, SkriptApplicationLoader> =
                         Skript
                                 .map {
@@ -135,7 +136,7 @@ class ApplicationRegistryTest: StringSpec() {
 
             val child1Loader = object: ApplicationResourceLoader<Any> {
                 override val dependencies: List<String> = child1Dependencies
-                override val name: String = child1Name
+                override fun name(): String = child1Name
 
                 override val loadResource: Skript<ApplicationResourceLoader.Input, Any, SkriptApplicationLoader> =
                         Skript.map {
@@ -147,7 +148,7 @@ class ApplicationRegistryTest: StringSpec() {
 
             val child2Loader = object: ApplicationResourceLoader<Any> {
                 override val dependencies: List<String> = child2Dependencies
-                override val name: String = child2Name
+                override fun name(): String = child2Name
                 override val loadResource: Skript<ApplicationResourceLoader.Input, Any, SkriptApplicationLoader> =
                         Skript.map {
                             it.existingApplicationResources shouldBe emptyMap<String, Any>()
@@ -159,7 +160,7 @@ class ApplicationRegistryTest: StringSpec() {
 
             val grandChild1Loader = object: ApplicationResourceLoader<Any> {
                 override val dependencies: List<String> = grandChild1Dependencies
-                override val name: String = grandChild1Name
+                override fun name(): String = grandChild1Name
 
                 override val loadResource: Skript<ApplicationResourceLoader.Input, Any, SkriptApplicationLoader> =
                         Skript.map {
@@ -171,7 +172,7 @@ class ApplicationRegistryTest: StringSpec() {
 
             val grandChild2Loader = object: ApplicationResourceLoader<Any> {
                 override val dependencies: List<String> = grandChild2Dependencies
-                override val name: String = grandChild2Name
+                override fun name(): String = grandChild2Name
                 override val loadResource: Skript<ApplicationResourceLoader.Input, Any, SkriptApplicationLoader> =
                         Skript.map {
                             it.existingApplicationResources shouldBe emptyMap<String, Any>()

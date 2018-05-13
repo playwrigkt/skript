@@ -10,7 +10,7 @@ import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.CompletableResult
 import playwrigkt.skript.stagemanager.StageManager
 
-data class AMQPProduktion<O, Troupe>(
+data class AmqpProduktion<O, Troupe>(
         val channel: Channel,
         val queue: String,
         val skript: Skript<QueueMessage, O, Troupe>,

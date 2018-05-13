@@ -15,4 +15,4 @@ Currently showcased features:
   * [Mappings](https://github.com/dgoetsch/skript/blob/master/examples/api/src/main/kotlin/playwrigkt/skript/user/http/UserHttpSkripts.kt)
 * [Queue publisher](https://github.com/dgoetsch/skript/blob/master/examples/api/src/main/kotlin/playwrigkt/skript/user/UserSkripts.kt#L17)
 * [Queue Consumer](https://github.com/dgoetsch/skript/blob/master/examples/api/src/test/kotlin/playwrigkt/skript/user/UserServiceSpec.kt#L56)
-* [Vertx](https://github.com/dgoetsch/skript/blob/master/examples/api/src/test/kotlin/playwrigkt/skript/user/VertxUserServiceSpec.kt) or [Library](https://github.com/dgoetsch/skript/blob/master/examples/api/src/test/kotlin/playwrigkt/skript/user/JDBCUserServiceSpec.kt) based implementation
+* [Vertx](https://github.com/dgoetsch/skript/blob/master/examples/api/src/test/kotlin/playwrigkt/skript/user/VertxUserServiceSpec.kt) or [Library](https://github.com/dgoetsch/skript/blob/master/examples/api/src/test/kotlin/playwrigkt/skript/user/JdbcUserServiceSpec.kt) based implementation

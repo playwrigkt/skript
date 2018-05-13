@@ -13,45 +13,45 @@ import java.time.Instant
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
 
-class CoroutineJDBCSQLPerformer(val connection: Connection): playwrigkt.skript.performer.SQLPerformer() {
-    override fun query(query: SQLCommand.Query): AsyncResult<SQLResult.Query> {
+class CoroutineJdbcSqlPerformer(val connection: Connection): playwrigkt.skript.performer.SqlPerformer() {
+    override fun query(query: SqlCommand.Query): AsyncResult<SqlResult.Query> {
         val statement = query.statement
         return runAsync {
             when (statement) {
-                is SQLStatement.Simple ->
+                is SqlStatement.Simple ->
                     connection.createStatement().executeQuery(statement.query)
-                is SQLStatement.Parameterized -> {
+                is SqlStatement.Parameterized -> {
                     val preparedStatement = connection.prepareStatement(statement.query)
                     statement.params.forEachIndexed { idx, value -> preparedStatement.setObject(idx + 1, value) }
                     preparedStatement.executeQuery()
                 } } }
-                .map { SQLResult.Query(playwrigkt.skript.performer.CoroutineJDBCSQLPerformer.JDBCIterator(it)) }
+                .map { SqlResult.Query(playwrigkt.skript.performer.CoroutineJdbcSqlPerformer.JdbcIterator(it)) }
     }
 
-    override fun update(update: SQLCommand.Update): AsyncResult<SQLResult.Update> {
+    override fun update(update: SqlCommand.Update): AsyncResult<SqlResult.Update> {
         val statement = update.statement
         return runAsync {
             when(statement) {
-                is SQLStatement.Simple -> connection.createStatement().executeUpdate(statement.query)
-                is SQLStatement.Parameterized -> {
+                is SqlStatement.Simple -> connection.createStatement().executeUpdate(statement.query)
+                is SqlStatement.Parameterized -> {
                     val preparedStatement = connection.prepareStatement(statement.query)
                     statement.params.forEachIndexed { idx, value -> preparedStatement.setObject(idx + 1, value) }
                     preparedStatement.executeUpdate()
                 } } }
-                .map { SQLResult.Update(it) }
+                .map { SqlResult.Update(it) }
     }
 
-    override fun exec(exec: SQLCommand.Exec): AsyncResult<SQLResult.Void> {
+    override fun exec(exec: SqlCommand.Exec): AsyncResult<SqlResult.Void> {
         val statement = exec.statement
         return runAsync { when(statement) {
-                is SQLStatement.Simple ->
+                is SqlStatement.Simple ->
                     connection.createStatement().execute(statement.query)
-                is SQLStatement.Parameterized -> {
+                is SqlStatement.Parameterized -> {
                     val preparedStatement = connection.prepareStatement(statement.query)
                     statement.params.forEachIndexed { idx, value -> preparedStatement.setObject(idx + 1, value) }
                     preparedStatement.execute()
                 } } }
-                .map { SQLResult.Void }
+                .map { SqlResult.Void }
     }
 
     override fun <T> close(): (T) -> AsyncResult<T> = { t ->
@@ -89,10 +89,10 @@ class CoroutineJDBCSQLPerformer(val connection: Connection): playwrigkt.skript.p
     }
 
 
-    private class JDBCSQLRow(val row: Map<String, Any>): SQLRow {
+    private class JdbcSqlRow(val row: Map<String, Any>): SqlRow {
         companion object {
-            fun of(row: ResultSet): playwrigkt.skript.performer.CoroutineJDBCSQLPerformer.JDBCSQLRow {
-                return playwrigkt.skript.performer.CoroutineJDBCSQLPerformer.JDBCSQLRow(
+            fun of(row: ResultSet): playwrigkt.skript.performer.CoroutineJdbcSqlPerformer.JdbcSqlRow {
+                return playwrigkt.skript.performer.CoroutineJdbcSqlPerformer.JdbcSqlRow(
                         (1..row.metaData.columnCount)
                                 .map {
                                     //TODO all data types
@@ -115,7 +115,7 @@ class CoroutineJDBCSQLPerformer(val connection: Connection): playwrigkt.skript.p
             val result = row.get(key)
             when(result) {
                 is String -> return result
-                else -> throw SQLError.SQLRowError(result, "Value was not a string")
+                else -> throw SqlError.SqlRowError(result, "Value was not a string")
             }
         }
 
@@ -123,7 +123,7 @@ class CoroutineJDBCSQLPerformer(val connection: Connection): playwrigkt.skript.p
             val result = row.get(key)
             when(result) {
                 is Boolean -> return result
-                else -> throw SQLError.SQLRowError(result, "Value was not a boolean")
+                else -> throw SqlError.SqlRowError(result, "Value was not a boolean")
             }
         }
 
@@ -131,7 +131,7 @@ class CoroutineJDBCSQLPerformer(val connection: Connection): playwrigkt.skript.p
             val result = row.get(key)
             return when(result) {
                 is Long -> result
-                else -> throw SQLError.SQLRowError(result, "Value was not a long")
+                else -> throw SqlError.SqlRowError(result, "Value was not a long")
             }
         }
 
@@ -139,7 +139,7 @@ class CoroutineJDBCSQLPerformer(val connection: Connection): playwrigkt.skript.p
             val result = row.get(key)
             when(result) {
                 is Int -> return result
-                else -> throw SQLError.SQLRowError(result, "Value was not an int")
+                else -> throw SqlError.SqlRowError(result, "Value was not an int")
             }
         }
 
@@ -147,29 +147,29 @@ class CoroutineJDBCSQLPerformer(val connection: Connection): playwrigkt.skript.p
             val result = row.get(key)
             when(result) {
                 is Timestamp -> return result.toInstant()
-                else -> throw SQLError.SQLRowError(result, "Value was not an instant")
+                else -> throw SqlError.SqlRowError(result, "Value was not an instant")
             }
         }
     }
 
-    private class JDBCIterator(val rs: ResultSet): Iterator<playwrigkt.skript.performer.CoroutineJDBCSQLPerformer.JDBCSQLRow> {
-        val queue = LinkedBlockingQueue<playwrigkt.skript.performer.CoroutineJDBCSQLPerformer.JDBCSQLRow>()
+    private class JdbcIterator(val rs: ResultSet): Iterator<playwrigkt.skript.performer.CoroutineJdbcSqlPerformer.JdbcSqlRow> {
+        val queue = LinkedBlockingQueue<playwrigkt.skript.performer.CoroutineJdbcSqlPerformer.JdbcSqlRow>()
         override fun hasNext(): Boolean {
             if(queue.isNotEmpty()) {
                 return true
             } else if(rs.next()) {
-                queue.offer(playwrigkt.skript.performer.CoroutineJDBCSQLPerformer.JDBCSQLRow.Companion.of(rs))
+                queue.offer(playwrigkt.skript.performer.CoroutineJdbcSqlPerformer.JdbcSqlRow.Companion.of(rs))
                 return true
             } else {
                 return false
             }
         }
 
-        override fun next(): playwrigkt.skript.performer.CoroutineJDBCSQLPerformer.JDBCSQLRow {
+        override fun next(): playwrigkt.skript.performer.CoroutineJdbcSqlPerformer.JdbcSqlRow {
             return Optional.of(hasNext())
                     .filter { it }
                     .flatMap { Optional.of(queue.poll()) }
-                    .orElseThrow { SQLError.RowIteratorEmpty }
+                    .orElseThrow { SqlError.RowIteratorEmpty }
         }
 
     }

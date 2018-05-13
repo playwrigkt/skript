@@ -25,7 +25,7 @@ fun createApplication(configFile: String): AsyncResult<ExampleApplication> {
 
     return loadApplication
             .run(configFile, loader)
-            .map { it.applicationResources.get(ExampleApplicationLoader.name) }
+            .map { it.applicationResources.get(ExampleApplicationLoader.name()) }
             .map { it as ExampleApplication }
 }
 

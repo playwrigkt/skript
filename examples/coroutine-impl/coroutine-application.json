@@ -1,14 +1,14 @@
 {
   "modules":[
     "playwrigkt.skript.application.KtorHttpClientModule",
-    "playwrigkt.skript.application.CoroutineJDBCSQLModule",
+    "playwrigkt.skript.application.CoroutineJdbcSqlModule",
     "playwrigkt.skript.application.CoroutineJacksonSerializeModule",
-    "playwrigkt.skript.application.CoroutineAMQPModule",
+    "playwrigkt.skript.application.CoroutineAmqpModule",
     "playwrigkt.skript.application.ExampleApplicationModule"
   ],
   "applicationResourceLoaders": [
     {
-      "name": "coroutine-jdbc-sql",
+      "name": "coroutineJdbcSqlStageManager",
       "dependencyOverrides": {},
       "config":{
         "dataSource": {
@@ -22,11 +22,11 @@
       }
     },
     {
-      "name": "coroutine-jackson-serialize",
+      "name": "coroutineJacksonSerializeStageManager",
       "dependencyOverrides": {}
     },
     {
-      "name":"amqp-connection-factory",
+      "name":"amqpConnectionFactory",
       "dependencyOverrides": {},
       "config":{
         "connection":{
@@ -39,18 +39,18 @@
       }
     },
     {
-      "name": "coroutine-amqp-publish",
+      "name": "coroutineAmqpPublishStageManager",
       "dependencyOverrides": {},
       "config":{
         "exchange":"events.ex"
       }
     },
     {
-      "name": "ktor-http-client",
+      "name": "ktorHttpClientStageManager",
       "dependencyOverrides": {}
     },
     {
-      "name": "ktor-http-server",
+      "name": "ktorHttpServerVenue",
       "dependencyOverrides": {},
       "config": {
         "port":8080,
@@ -58,23 +58,23 @@
       }
     },
     {
-      "name": "coroutine-amqp-venue",
+      "name": "coroutineAmqpVenue",
       "dependencyOverrides": {}
     },
     {
-      "name": "example-application-stage-manager",
+      "name": "exampleApplicationStageManager",
       "dependencyOverrides": {
-        "http-client": "ktor-http-client",
-        "serialize": "coroutine-jackson-serialize",
-        "publish": "coroutine-amqp-publish",
-        "sql": "coroutine-jdbc-sql"
+        "http-client": "ktorHttpClientStageManager",
+        "serialize": "coroutineJacksonSerializeStageManager",
+        "publish": "coroutineAmqpPublishStageManager",
+        "sql": "coroutineJdbcSqlStageManager"
       }
     },
     {
-      "name": "example-application",
+      "name": "exampleApplication",
       "dependencyOverrides": {
-        "http-server-venue": "ktor-http-server",
-        "queue-venue": "coroutine-amqp-venue"
+        "http-server-venue": "ktorHttpServerVenue",
+        "queue-venue": "coroutineAmqpVenue"
       }
     }
   ]

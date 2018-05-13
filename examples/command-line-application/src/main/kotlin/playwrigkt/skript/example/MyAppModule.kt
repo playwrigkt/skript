@@ -5,5 +5,5 @@ import playwrigkt.skript.application.SkriptModule
 
 class MyAppModule: SkriptModule {
     override fun loaders(): List<ApplicationResourceLoader<*>> =
-            listOf(MyStageManagerTroupeLoader)
+            listOf(MyStageManagerLoader)
 }

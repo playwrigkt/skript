@@ -2,17 +2,17 @@ package playwrigkt.skript.sql
 
 import io.kotlintest.specs.StringSpec
 
-class SQLSkriptSpec : StringSpec() {
+class SqlSkriptSpec : StringSpec() {
 //    data class UserSession(val sessionKey: String, val userId: String, val expiration: Instant)
 //
 //
 //
-//    data class ApplicationTroupe<R>(val sqlPerformer: SQLPerformer, val cache: R):
-//            SQLTroupe,
+//    data class ApplicationTroupe<R>(val sqlPerformer: SqlPerformer, val cache: R):
+//            SqlTroupe,
 //            OperationCache<R> {
 //        override fun getOperationCache(): R = cache
 //
-//        override fun getSQLPerformer():AsyncResult<SQLPerformer> {
+//        override fun getSQLPerformer():AsyncResult<SqlPerformer> {
 //            return AsyncResult.succeeded(sqlPerformer)
 //        }
 //    }
@@ -53,11 +53,11 @@ class SQLSkriptSpec : StringSpec() {
 //
 //    data class UserProfile(val id: String, val name: String, val allowPublicMessage: Boolean)
 //
-//    object SelectUserProfileById: SQLQueryMapping<String, UserProfile> {
+//    object SelectUserProfileById: SqlQueryMapping<String, UserProfile> {
 //        val selectUser = "SELECT id, user_name, allow_public_message FROM user_profile where id = ?"
-//        override fun toSql(i: String): SQLCommand.Query = SQLCommand.Query(SQLStatement.Parameterized(selectUser, listOf(i)))
+//        override fun toSql(i: String): SqlCommand.Query = SqlCommand.Query(SqlStatement.Parameterized(selectUser, listOf(i)))
 //
-//        override fun mapResult(i: String, rs: SQLResult.Query): Try<UserProfile> =
+//        override fun mapResult(i: String, rs: SqlResult.Query): Try<UserProfile> =
 //                Try { rs.result.next() }
 //                        .rescue { Try.Failure(IllegalArgumentException("no such user")) }
 //                        .map {
@@ -67,22 +67,22 @@ class SQLSkriptSpec : StringSpec() {
 //
 //    }
 //
-//    object UpdateUserProfile: SQLUpdateMapping<UserProfile, UserProfile> {
-//        override fun toSql(i: UserProfile): SQLCommand.Update {
+//    object UpdateUserProfile: SqlUpdateMapping<UserProfile, UserProfile> {
+//        override fun toSql(i: UserProfile): SqlCommand.Update {
 //            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 //        }
 //
-//        override fun mapResult(i: UserProfile, rs: SQLResult.Update): Try<UserProfile> {
+//        override fun mapResult(i: UserProfile, rs: SqlResult.Update): Try<UserProfile> {
 //            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 //        }
 //    }
 //
-//    object SelectSessionByKey: SQLQueryMapping<String, UserSession> {
-//        override fun toSql(i: String): SQLCommand.Query {
+//    object SelectSessionByKey: SqlQueryMapping<String, UserSession> {
+//        override fun toSql(i: String): SqlCommand.Query {
 //            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 //        }
 //
-//        override fun mapResult(i: String, rs: SQLResult.Query): Try<UserSession> {
+//        override fun mapResult(i: String, rs: SqlResult.Query): Try<UserSession> {
 //            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 //        }
 //    }
@@ -121,7 +121,7 @@ class SQLSkriptSpec : StringSpec() {
 //
 //    init {
 //        "Do a thing" {
-//            val performer = object: SQLPerformer() {
+//            val performer = object: SqlPerformer() {
 //                override fun <T> close(): (T) -> AsyncResult<T> {
 //                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 //                }
@@ -142,15 +142,15 @@ class SQLSkriptSpec : StringSpec() {
 //                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 //                }
 //
-//                override fun query(query: SQLCommand.Query): AsyncResult<SQLResult.Query> {
+//                override fun query(query: SqlCommand.Query): AsyncResult<SqlResult.Query> {
 //                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 //                }
 //
-//                override fun update(update: SQLCommand.Update): AsyncResult<SQLResult.Update> {
+//                override fun update(update: SqlCommand.Update): AsyncResult<SqlResult.Update> {
 //                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 //                }
 //
-//                override fun exec(exec: SQLCommand.Exec): AsyncResult<SQLResult.Void> {
+//                override fun exec(exec: SqlCommand.Exec): AsyncResult<SqlResult.Void> {
 //                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 //                }
 //
@@ -159,7 +159,7 @@ class SQLSkriptSpec : StringSpec() {
 //            ApplicationTroupe<UpdateUserProfileTroupe>(performer, UpdateUserProfileTroupe(sessionKey))
 //
 //
-//            SQLTransactionSkript.transaction(
+//            SqlTransactionSkript.transaction(
 //                        validateSession<UserProfile, UpdateUserProfileTroupe>()
 //                            .andThen(authenticateUpdateUserProfile)
 //                            .andThen(addExistingUserToTroupe<UpdateUserProfileTroupe>())

@@ -4,10 +4,10 @@ import com.rabbitmq.client.AMQP
 import com.rabbitmq.client.ConnectionFactory
 import playwrigkt.skript.coroutine.runAsync
 import playwrigkt.skript.result.AsyncResult
-import playwrigkt.skript.troupe.AMQPPublishTroupe
+import playwrigkt.skript.troupe.AmqpPublishTroupe
 import playwrigkt.skript.troupe.QueuePublishTroupe
 
-data class AMQPPublishStageManager(
+data class AmqpPublishStageManager(
         val exchange: String,
         val connectionFactory: ConnectionFactory,
         val basicProperties: AMQP.BasicProperties): StageManager<QueuePublishTroupe> {
@@ -15,7 +15,7 @@ data class AMQPPublishStageManager(
         connectionFactory.newConnection()
     }
 
-    override fun hireTroupe(): QueuePublishTroupe = AMQPPublishTroupe(exchange, amqpConnection, basicProperties)
+    override fun hireTroupe(): QueuePublishTroupe = AmqpPublishTroupe(exchange, amqpConnection, basicProperties)
 
     override fun tearDown(): AsyncResult<Unit> {
         return runAsync { amqpConnection.close() }

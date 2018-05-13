@@ -23,9 +23,9 @@ class ApplicationRegistry: LightweightSynchronized {
     private val registry: MutableMap<String, ApplicationResourceLoader<*>> = mutableMapOf()
 
     fun <Loader> register(loader: Loader): Try<Unit> where Loader: ApplicationResourceLoader<*> = lock {
-        registry.get(loader.name)
-                ?.let { Try.Failure<Unit>(RegistryException(RegistryError.DuplicateStageManagerLoader(loader.name))) }
-                ?: Try.Success(registry.put(loader.name, loader))
+        registry.get(loader.name())
+                ?.let { Try.Failure<Unit>(RegistryException(RegistryError.DuplicateStageManagerLoader(loader.name()))) }
+                ?: Try.Success(registry.put(loader.name(), loader))
                         .map { Unit }
 
     }

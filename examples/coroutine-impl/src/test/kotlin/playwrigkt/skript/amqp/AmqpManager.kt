@@ -6,7 +6,7 @@ import com.rabbitmq.client.ConnectionFactory
 import playwrigkt.skript.ExampleApplication.Companion.userCreatedAddress
 import playwrigkt.skript.ExampleApplication.Companion.userLoginAddress
 
-object AMQPManager {
+object AmqpManager {
     val amqpExchange = "events.ex"
 
     fun connectionFactory(): ConnectionFactory {
