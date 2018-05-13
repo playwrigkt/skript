@@ -38,12 +38,32 @@
       "config": {}
     },
     {
-      "name": "example-application",
+      "name": "vertx-http-server",
+      "dependencyOverrides": {},
+      "config": {
+        "httpServer":{
+          "port":8080
+        }
+      }
+    },
+    {
+      "name": "vertx-venue",
+      "dependencyOverrides": {}
+    },
+    {
+      "name": "example-application-stage-manager",
       "dependencyOverrides": {
         "http-client": "vertx-http-client",
         "serialize": "vertx-serialize",
         "publish": "vertx-publish",
         "sql": "vertx-sql"
+      }
+    },
+    {
+      "name": "example-application",
+      "dependencyOverrides": {
+        "http-server-venue": "vertx-http-server",
+        "queue-venue": "vertx-venue"
       }
     }
   ]

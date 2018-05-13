@@ -10,4 +10,6 @@ interface FilePerformer {
     fun reader(i: FileReference): AsyncResult<BufferedReader>
 
     fun writer(i: FileReference): AsyncResult<BufferedWriter>
+
+    fun create(i: FileReference): AsyncResult<FileReference>
 }

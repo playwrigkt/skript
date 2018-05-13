@@ -50,12 +50,31 @@
       "dependencyOverrides": {}
     },
     {
-      "name": "example-application",
+      "name": "ktor-http-server",
+      "dependencyOverrides": {},
+      "config": {
+        "port":8080,
+        "maxConnectionMillis":10000
+      }
+    },
+    {
+      "name": "coroutine-amqp-venue",
+      "dependencyOverrides": {}
+    },
+    {
+      "name": "example-application-stage-manager",
       "dependencyOverrides": {
         "http-client": "ktor-http-client",
         "serialize": "coroutine-jackson-serialize",
         "publish": "coroutine-amqp-publish",
         "sql": "coroutine-jdbc-sql"
+      }
+    },
+    {
+      "name": "example-application",
+      "dependencyOverrides": {
+        "http-server-venue": "ktor-http-server",
+        "queue-venue": "coroutine-amqp-venue"
       }
     }
   ]

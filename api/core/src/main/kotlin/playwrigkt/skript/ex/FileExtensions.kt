@@ -12,3 +12,6 @@ fun <I, Troupe: FileTroupe> Skript<I, out FileReference, Troupe>.readFile(): Skr
 
 fun <I, Troupe: FileTroupe> Skript<I, out FileReference, Troupe>.writeFile(): Skript<I, BufferedWriter, Troupe> =
         this.andThen(FileSkript.Writer)
+
+fun <I, Troupe: FileTroupe> Skript<I, out FileReference, Troupe>.createFile(): Skript<I, out FileReference, Troupe> =
+        this.andThen(FileSkript.Create)

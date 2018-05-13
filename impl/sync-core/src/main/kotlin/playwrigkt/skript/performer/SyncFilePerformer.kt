@@ -9,6 +9,12 @@ import java.nio.file.Files
 import java.nio.file.StandardOpenOption
 
 object SyncFilePerformer: FilePerformer {
+    override fun create(i: FileReference): AsyncResult<FileReference> =
+        i.toPath()
+                .map { Files.createFile(it) }
+                .map { i }
+                .toAsyncResult()
+
     override fun reader(i: FileReference): AsyncResult<BufferedReader> =
             i.toPath()
                     .map(Files::newBufferedReader)

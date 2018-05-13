@@ -4,7 +4,7 @@
     "playwrigkt.skript.example.StdIOModule",
     "playwrigkt.skript.example.MyAppModule"
   ],
-  "stageManagerLoaders": [
+  "applicationResourceLoaders": [
     {
       "name": "serialize",
       "dependencyOverrides": {}

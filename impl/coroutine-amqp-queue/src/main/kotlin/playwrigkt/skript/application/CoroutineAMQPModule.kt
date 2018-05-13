@@ -7,12 +7,14 @@ import playwrigkt.skript.Skript
 import playwrigkt.skript.ex.all
 import playwrigkt.skript.ex.join
 import playwrigkt.skript.stagemanager.AMQPPublishStageManager
+import playwrigkt.skript.venue.AMQPVenue
 
 class CoroutineAMQPModule: SkriptModule {
     override fun loaders(): List<ApplicationResourceLoader<*>> =
             listOf(
+                    AMQPConnectionFactoryLoader,
                     CoroutineAMQPPublishStageManagerLoader,
-                    AMQPConnectionFactoryLoader)
+                    CoroutineAMQPVenueLoader)
 }
 
 object AMQPConnectionFactoryLoader: ApplicationResourceLoader<ConnectionFactory> {
@@ -30,7 +32,7 @@ object AMQPConnectionFactoryLoader: ApplicationResourceLoader<ConnectionFactory>
 
 }
 object CoroutineAMQPPublishStageManagerLoader: ApplicationResourceLoader<AMQPPublishStageManager> {
-    override val dependencies: List<String> = listOf("amqp-connection-factory")
+    override val dependencies: List<String> = listOf(AMQPConnectionFactoryLoader.name)
     override val name: String = "coroutine-amqp-publish"
 
     override val loadResource: Skript<ApplicationResourceLoader.Input, AMQPPublishStageManager, SkriptApplicationLoader> =
@@ -40,11 +42,19 @@ object CoroutineAMQPPublishStageManagerLoader: ApplicationResourceLoader<AMQPPub
                                     .mapTry { it.applicationResourceLoaderConfig.config.applyPath("exchange", ".") }
                                     .mapTry { it.text() }
                                     .map { it.value },
-                            loadExistingApplicationResourceSkript<ConnectionFactory>("amqp-connection-factory"),
+                            loadExistingApplicationResourceSkript<ConnectionFactory>(AMQPConnectionFactoryLoader.name),
                             Skript.identity<ApplicationResourceLoader.Input, SkriptApplicationLoader>()
                                     .map { AMQP.BasicProperties() }
                     ).join { exchange, connectionFactory, basicProperties ->
                         AMQPPublishStageManager(exchange, connectionFactory, basicProperties)
                     }
+}
+
+object CoroutineAMQPVenueLoader: ApplicationResourceLoader<AMQPVenue> {
+    override val dependencies: List<String> = listOf(AMQPConnectionFactoryLoader.name)
+    override val name: String = "coroutine-amqp-venue"
+    override val loadResource: Skript<ApplicationResourceLoader.Input, AMQPVenue, SkriptApplicationLoader>  =
+            loadExistingApplicationResourceSkript<ConnectionFactory>(AMQPConnectionFactoryLoader.name)
+                    .map { AMQPVenue(it) }
 }
 
