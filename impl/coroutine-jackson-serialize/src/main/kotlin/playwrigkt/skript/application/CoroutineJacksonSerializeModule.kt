@@ -2,8 +2,6 @@ package playwrigkt.skript.application
 
 import playwrigkt.skript.Skript
 import playwrigkt.skript.stagemanager.JacksonSerializeStageManager
-import playwrigkt.skript.stagemanager.StageManager
-import playwrigkt.skript.troupe.SerializeTroupe
 
 class CoroutineJacksonSerializeModule: SkriptModule {
     override fun loaders(): List<ApplicationResourceLoader<*>> = listOf(CoroutineJacksonSerializeStageManagerLoader)

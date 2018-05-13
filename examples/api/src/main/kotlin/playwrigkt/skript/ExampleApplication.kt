@@ -1,8 +1,9 @@
 package playwrigkt.skript
 
-import playwrigkt.skript.application.*
-import playwrigkt.skript.ex.all
-import playwrigkt.skript.ex.join
+import playwrigkt.skript.application.ApplicationRegistry
+import playwrigkt.skript.application.ExampleApplicationLoader
+import playwrigkt.skript.application.SkriptApplicationLoader
+import playwrigkt.skript.application.loadApplication
 import playwrigkt.skript.ex.lift
 import playwrigkt.skript.http.Http
 import playwrigkt.skript.http.server.HttpServer
@@ -10,9 +11,9 @@ import playwrigkt.skript.produktion.Produktion
 import playwrigkt.skript.queue.QueueMessage
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.stagemanager.ApplicationStageManager
-import playwrigkt.skript.stagemanager.StageManager
 import playwrigkt.skript.stagemanager.SyncJacksonSerializeStageManager
-import playwrigkt.skript.troupe.*
+import playwrigkt.skript.troupe.ApplicationTroupe
+import playwrigkt.skript.troupe.SyncFileTroupe
 import playwrigkt.skript.user.http.createUserHttpEndpointSkript
 import playwrigkt.skript.user.http.getUserHttpEndpointSkript
 import playwrigkt.skript.user.http.loginUserHttpEndpointSkript
@@ -78,39 +79,3 @@ data class ExampleApplication(val stageManager: ApplicationStageManager,
 }
 
 
-class ExampleApplicationModule: SkriptModule {
-    override fun loaders(): List<ApplicationResourceLoader<*>> =
-            listOf(ExampleApplicationStageManagerLoader,
-                    ExampleApplicationLoader)
-}
-
-object ExampleApplicationStageManagerLoader: ApplicationResourceLoader<ApplicationStageManager> {
-    override val dependencies: List<String> = listOf("sql", "publish", "serialize", "http-client")
-    override val name: String = "example-application-stage-manager"
-
-    override val loadResource =
-            Skript.identity<ApplicationResourceLoader.Input, SkriptApplicationLoader>()
-                    .all(
-                            loadExistingApplicationResourceSkript<StageManager<SQLTroupe>>("sql"),
-                            loadExistingApplicationResourceSkript<StageManager<SerializeTroupe>>("serialize"),
-                            loadExistingApplicationResourceSkript<StageManager<HttpClientTroupe>>("http-client"),
-                            loadExistingApplicationResourceSkript<StageManager<QueuePublishTroupe>>("publish"))
-                    .join { sql, serialize, httpClient, publish ->
-                        ApplicationStageManager(publish, sql, serialize, httpClient)
-                    }
-}
-
-object ExampleApplicationLoader: ApplicationResourceLoader<ExampleApplication> {
-    override val dependencies: List<String> = listOf(ExampleApplicationStageManagerLoader.name, "http-server-venue", "queue-venue")
-    override val name: String = "example-application"
-
-    override val loadResource: Skript<ApplicationResourceLoader.Input, ExampleApplication, SkriptApplicationLoader> =
-            Skript.identity<ApplicationResourceLoader.Input, SkriptApplicationLoader>()
-                    .all(
-                            loadExistingApplicationResourceSkript<ApplicationStageManager>(ExampleApplicationStageManagerLoader.name),
-                            loadExistingApplicationResourceSkript<HttpServerVenue>("http-server-venue"),
-                            loadExistingApplicationResourceSkript<QueueVenue>("queue-venue"))
-                    .join { applicationStageManager, httpServerVenue, queueVenue->
-                        ExampleApplication(applicationStageManager, httpServerVenue, queueVenue)
-                    }
-}

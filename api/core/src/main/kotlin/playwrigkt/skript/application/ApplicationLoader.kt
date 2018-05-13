@@ -3,7 +3,7 @@ package playwrigkt.skript.application
 import org.funktionale.tries.Try
 import playwrigkt.skript.Skript
 import playwrigkt.skript.ex.*
-import playwrigkt.skript.file.*
+import playwrigkt.skript.file.FileReference
 import playwrigkt.skript.performer.FilePerformer
 import playwrigkt.skript.performer.SerializePerformer
 import playwrigkt.skript.result.AsyncResult

@@ -1,7 +1,7 @@
 package playwrigkt.skript.troupe
 
-import playwrigkt.skript.performer.SyncFilePerformer
 import playwrigkt.skript.performer.FilePerformer
+import playwrigkt.skript.performer.SyncFilePerformer
 import playwrigkt.skript.result.AsyncResult
 
 object SyncFileTroupe: FileTroupe {

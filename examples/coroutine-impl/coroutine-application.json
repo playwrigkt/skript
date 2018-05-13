@@ -4,7 +4,7 @@
     "playwrigkt.skript.application.CoroutineJDBCSQLModule",
     "playwrigkt.skript.application.CoroutineJacksonSerializeModule",
     "playwrigkt.skript.application.CoroutineAMQPModule",
-    "playwrigkt.skript.ExampleApplicationModule"
+    "playwrigkt.skript.application.ExampleApplicationModule"
   ],
   "applicationResourceLoaders": [
     {

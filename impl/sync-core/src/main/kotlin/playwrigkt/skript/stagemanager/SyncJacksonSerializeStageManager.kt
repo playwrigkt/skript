@@ -3,8 +3,8 @@ package playwrigkt.skript.stagemanager
 import com.fasterxml.jackson.databind.ObjectMapper
 import playwrigkt.skript.jackson.SkriptJacksonObjectMapper
 import playwrigkt.skript.result.AsyncResult
-import playwrigkt.skript.troupe.SyncJacksonSerializeTroupe
 import playwrigkt.skript.troupe.SerializeTroupe
+import playwrigkt.skript.troupe.SyncJacksonSerializeTroupe
 
 data class SyncJacksonSerializeStageManager(val objectMapper: ObjectMapper = defaultObjectMapper): StageManager<SerializeTroupe> {
     companion object {

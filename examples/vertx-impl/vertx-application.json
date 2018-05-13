@@ -1,7 +1,7 @@
 {
   "modules":[
     "playwrigkt.skript.application.VertxModule",
-    "playwrigkt.skript.ExampleApplicationModule"
+    "playwrigkt.skript.application.ExampleApplicationModule"
   ],
   "applicationResourceLoaders": [
     {

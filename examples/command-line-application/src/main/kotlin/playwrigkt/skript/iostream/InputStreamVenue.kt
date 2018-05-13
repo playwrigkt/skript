@@ -1,14 +1,7 @@
 package playwrigkt.skript.iostream
 
-import org.funktionale.tries.Try
 import playwrigkt.skript.Skript
-import playwrigkt.skript.produktion.Produktion
 import playwrigkt.skript.result.AsyncResult
-import playwrigkt.skript.result.LightweightSynchronized
-import playwrigkt.skript.stagemanager.StageManager
-import playwrigkt.skript.venue.Venue
-import java.io.*
-import java.util.concurrent.locks.ReentrantLock
 
 interface InputStreamPerformer {
     fun readLine(): AsyncResult<String>

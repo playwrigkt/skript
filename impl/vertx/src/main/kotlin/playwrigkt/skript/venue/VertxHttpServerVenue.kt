@@ -9,7 +9,6 @@ import io.vertx.core.http.HttpServerResponse
 import org.funktionale.option.firstOption
 import org.funktionale.tries.Try
 import playwrigkt.skript.Skript
-import playwrigkt.skript.application.ApplicationResourceLoader
 import playwrigkt.skript.ex.toAsyncResult
 import playwrigkt.skript.http.Http
 import playwrigkt.skript.http.HttpError

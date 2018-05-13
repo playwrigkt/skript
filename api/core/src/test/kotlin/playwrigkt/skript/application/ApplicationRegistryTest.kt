@@ -7,7 +7,6 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import playwrigkt.skript.Skript
 import playwrigkt.skript.config.ConfigValue
-import playwrigkt.skript.stagemanager.StageManager
 import playwrigkt.skript.troupe.FileTroupe
 import playwrigkt.skript.troupe.SerializeTroupe
 
