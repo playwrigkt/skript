@@ -67,7 +67,7 @@ fun main(args: Array<String>) {
     val waitLatch = CountDownLatch(1)
 
     val result = loadApplication.run("application.json", SkriptApplicationLoader(SyncFileTroupe, SyncJacksonSerializeStageManager().hireTroupe(), registry))
-            .map { it.stageManagers.get("exampleApp") }
+            .map { it.applicationResources.get("exampleApp") }
             .flatMap { it
                     ?.let { AsyncResult.succeeded(it) }
                     ?: AsyncResult.failed(

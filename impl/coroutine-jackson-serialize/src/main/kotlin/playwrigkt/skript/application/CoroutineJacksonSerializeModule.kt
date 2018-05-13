@@ -6,14 +6,14 @@ import playwrigkt.skript.stagemanager.StageManager
 import playwrigkt.skript.troupe.SerializeTroupe
 
 class CoroutineJacksonSerializeModule: SkriptModule {
-    override fun loaders(): List<StageManagerLoader<*>> = listOf(CoroutineJacksonSerializeStageManagerLoader)
+    override fun loaders(): List<ApplicationResourceLoader<*>> = listOf(CoroutineJacksonSerializeStageManagerLoader)
 }
 
-object CoroutineJacksonSerializeStageManagerLoader: StageManagerLoader<SerializeTroupe> {
+object CoroutineJacksonSerializeStageManagerLoader: ApplicationResourceLoader<JacksonSerializeStageManager> {
     override val dependencies: List<String> = emptyList()
     override val name: String = "coroutine-jackson-serialize"
 
-    override val loadManager: Skript<StageManagerLoader.Input, out StageManager<SerializeTroupe>, SkriptApplicationLoader> =
+    override val loadResource: Skript<ApplicationResourceLoader.Input, JacksonSerializeStageManager, SkriptApplicationLoader> =
             Skript.map { JacksonSerializeStageManager() }
 
 }

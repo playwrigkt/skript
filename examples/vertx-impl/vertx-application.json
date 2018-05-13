@@ -3,7 +3,7 @@
     "playwrigkt.skript.application.VertxModule",
     "playwrigkt.skript.ExampleApplicationModule"
   ],
-  "stageManagerLoaders": [
+  "applicationResourceLoaders": [
     {
       "name": "vertx",
       "dependencyOverrides": {},

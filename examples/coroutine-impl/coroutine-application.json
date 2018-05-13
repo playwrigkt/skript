@@ -6,7 +6,7 @@
     "playwrigkt.skript.application.CoroutineAMQPModule",
     "playwrigkt.skript.ExampleApplicationModule"
   ],
-  "stageManagerLoaders": [
+  "applicationResourceLoaders": [
     {
       "name": "coroutine-jdbc-sql",
       "dependencyOverrides": {},

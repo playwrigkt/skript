@@ -15,7 +15,7 @@ class ApplicationRegistryTest: StringSpec() {
     init {
         "A registry should register a loader" {
             val registry = ApplicationRegistry()
-            val loader = mock(StageManagerLoader::class.java)
+            val loader = mock(ApplicationResourceLoader::class.java)
             val name = "myLoader"
             val dependencies = emptyList<String>()
 
@@ -29,7 +29,7 @@ class ApplicationRegistryTest: StringSpec() {
 
         "A registry should register a loader and its dependencies" {
             val registry = ApplicationRegistry()
-            val loader = mock(StageManagerLoader::class.java)
+            val loader = mock(ApplicationResourceLoader::class.java)
             val name = "myLoader"
             val dependencies = listOf("dep1", "dep2")
 
@@ -44,9 +44,9 @@ class ApplicationRegistryTest: StringSpec() {
         "A registry should not register a loader with a duplicate name" {
             val registry = ApplicationRegistry()
             val name = "myLoader"
-            val loader = mock(StageManagerLoader::class.java)
+            val loader = mock(ApplicationResourceLoader::class.java)
             val dependencies = listOf("dep1", "dep2")
-            val duplicateLoader = mock(StageManagerLoader::class.java)
+            val duplicateLoader = mock(ApplicationResourceLoader::class.java)
             val duplicateDependencies = listOf("dupe1", "dupe2")
 
             `when`(loader.name).thenReturn(name)
@@ -65,33 +65,33 @@ class ApplicationRegistryTest: StringSpec() {
             val registry = ApplicationRegistry()
             val name = "nosuch"
             val applicationLoader = SkriptApplicationLoader(mock(FileTroupe::class.java), mock(SerializeTroupe::class.java), registry)
-            val appConfig = AppConfig(emptyList(), listOf(StageManagerLoaderConfig(name, emptyMap(), ConfigValue.Empty.Null)))
+            val appConfig = AppConfig(emptyList(), listOf(ApplicationResourceLoaderConfig(name, emptyMap(), ConfigValue.Empty.Null)))
             val result = applicationLoader.buildApplication(appConfig)
             result.error() shouldBe ApplicationRegistry.RegistryException(ApplicationRegistry.RegistryError.NotFound(name))
             result.result() shouldBe null
         }
 
         "A registry should build a stage manager for a manager it has a reference to" {
-            val manager: StageManager<Any> = mock(StageManager::class.java) as StageManager<Any>
+            val resource = mock(Any::class.java)
             val name = "myLoader"
             val dependencies = emptyList<String>()
 
             val registry = ApplicationRegistry()
             val applicationLoader = SkriptApplicationLoader(mock(FileTroupe::class.java), mock(SerializeTroupe::class.java), registry)
 
-            val config = StageManagerLoaderConfig(name, emptyMap(), ConfigValue.Empty.Null)
+            val config = ApplicationResourceLoaderConfig(name, emptyMap(), ConfigValue.Empty.Null)
             val appConfig = AppConfig(emptyList(), listOf(config))
-            val loader = object: StageManagerLoader<Any> {
+            val loader = object: ApplicationResourceLoader<Any> {
                 override val dependencies: List<String> = dependencies
                 override val name: String = name
-                override val loadManager: Skript<StageManagerLoader.Input, out StageManager<Any>, SkriptApplicationLoader> =
-                        Skript.map { manager }
+                override val loadResource: Skript<ApplicationResourceLoader.Input, Any, SkriptApplicationLoader> =
+                        Skript.map { resource }
             }
             registry.register(loader) shouldBe Try.Success(Unit)
 
             val result = applicationLoader.buildApplication(appConfig)
             result.error() shouldBe null
-            result.result() shouldBe SkriptApplication(mapOf(name to manager))
+            result.result() shouldBe SkriptApplication(mapOf(name to resource))
         }
 
         "A registry should build a stage manager for a manager and its dependencies" {
@@ -102,82 +102,82 @@ class ApplicationRegistryTest: StringSpec() {
             val grandChild1Name = "grandChild1"
             val grandChild2Name = "grandChild2"
             
-            val parentManager = mock(StageManager::class.java) as StageManager<Any>
+            val parentResource = mock(Any::class.java)
             val parentDependencies= listOf(child1Name, child2Name)
-            val parentConfig = StageManagerLoaderConfig(parentName, emptyMap(), ConfigValue.Empty.Null)
+            val parentConfig = ApplicationResourceLoaderConfig(parentName, emptyMap(), ConfigValue.Empty.Null)
             
-            val child1Manager = mock(StageManager::class.java) as StageManager<Any>
+            val child1Resource = mock(Any::class.java)
             val child1Dependencies= listOf(grandChild1Name, grandChild2Name)
-            val child1Config = StageManagerLoaderConfig(child1Name, emptyMap(), ConfigValue.Empty.Null)
+            val child1Config = ApplicationResourceLoaderConfig(child1Name, emptyMap(), ConfigValue.Empty.Null)
 
-            val child2Manager = mock(StageManager::class.java) as StageManager<Any>
+            val child2Resource = mock(Any::class.java)
             val child2Dependencies= emptyList<String>()
-            val child2Config = StageManagerLoaderConfig(child2Name, emptyMap(), ConfigValue.Empty.Null)
+            val child2Config = ApplicationResourceLoaderConfig(child2Name, emptyMap(), ConfigValue.Empty.Null)
 
-            val grandChild1Manager = mock(StageManager::class.java) as StageManager<Any>
+            val grandChild1Resource = mock(Any::class.java)
             val grandChild1Dependencies= emptyList<String>()
-            val grandChild1Config = StageManagerLoaderConfig(grandChild1Name, emptyMap(), ConfigValue.Empty.Null)
+            val grandChild1Config = ApplicationResourceLoaderConfig(grandChild1Name, emptyMap(), ConfigValue.Empty.Null)
 
-            val grandChild2Manager = mock(StageManager::class.java) as StageManager<Any>
+            val grandChild2Resource = mock(Any::class.java)
             val grandChild2Dependencies= emptyList<String>()
-            val grandChild2Config = StageManagerLoaderConfig(grandChild2Name, emptyMap(), ConfigValue.Empty.Null)
+            val grandChild2Config = ApplicationResourceLoaderConfig(grandChild2Name, emptyMap(), ConfigValue.Empty.Null)
 
-            val parentLoader = object: StageManagerLoader<Any> {
+            val parentLoader = object: ApplicationResourceLoader<Any> {
                 override val dependencies: List<String> = parentDependencies
                 override val name: String = parentName
-                override val loadManager: Skript<StageManagerLoader.Input, out StageManager<Any>, SkriptApplicationLoader> =
+                override val loadResource: Skript<ApplicationResourceLoader.Input, Any, SkriptApplicationLoader> =
                         Skript
                                 .map {
-                                    it.stageManagerLoaderConfig shouldBe parentConfig
-                                    it.existingManagers shouldBe mapOf(child1Name to child1Manager, child2Name to child2Manager, grandChild1Name to grandChild1Manager, grandChild2Name to grandChild2Manager)
-                                    parentManager
+                                    it.applicationResourceLoaderConfig shouldBe parentConfig
+                                    it.existingApplicationResources shouldBe mapOf(child1Name to child1Resource, child2Name to child2Resource, grandChild1Name to grandChild1Resource, grandChild2Name to grandChild2Resource)
+                                    parentResource
                                 }
             }
 
-            val child1Loader = object: StageManagerLoader<Any> {
+            val child1Loader = object: ApplicationResourceLoader<Any> {
                 override val dependencies: List<String> = child1Dependencies
                 override val name: String = child1Name
 
-                override val loadManager: Skript<StageManagerLoader.Input, out StageManager<Any>, SkriptApplicationLoader> =
+                override val loadResource: Skript<ApplicationResourceLoader.Input, Any, SkriptApplicationLoader> =
                         Skript.map {
-                            it.existingManagers shouldBe mapOf(child2Name to child2Manager, grandChild1Name to grandChild1Manager, grandChild2Name to grandChild2Manager)
-                            it.stageManagerLoaderConfig shouldBe child1Config
-                            child1Manager
+                            it.existingApplicationResources shouldBe mapOf(child2Name to child2Resource, grandChild1Name to grandChild1Resource, grandChild2Name to grandChild2Resource)
+                            it.applicationResourceLoaderConfig shouldBe child1Config
+                            child1Resource
                         }
             }
 
-            val child2Loader = object: StageManagerLoader<Any> {
+            val child2Loader = object: ApplicationResourceLoader<Any> {
                 override val dependencies: List<String> = child2Dependencies
                 override val name: String = child2Name
-                override val loadManager: Skript<StageManagerLoader.Input, out StageManager<Any>, SkriptApplicationLoader> =
+                override val loadResource: Skript<ApplicationResourceLoader.Input, Any, SkriptApplicationLoader> =
                         Skript.map {
-                            it.existingManagers shouldBe emptyMap()
-                            it.stageManagerLoaderConfig shouldBe child2Config
-                            child2Manager
+                            it.existingApplicationResources shouldBe emptyMap<String, Any>()
+                            it.applicationResourceLoaderConfig shouldBe child2Config
+                            child2Resource
                         }
 
             }
 
-            val grandChild1Loader = object: StageManagerLoader<Any> {
+            val grandChild1Loader = object: ApplicationResourceLoader<Any> {
                 override val dependencies: List<String> = grandChild1Dependencies
                 override val name: String = grandChild1Name
 
-                override val loadManager: Skript<StageManagerLoader.Input, out StageManager<Any>, SkriptApplicationLoader> =
+                override val loadResource: Skript<ApplicationResourceLoader.Input, Any, SkriptApplicationLoader> =
                         Skript.map {
-                            it.existingManagers shouldBe emptyMap()
-                            it.stageManagerLoaderConfig shouldBe grandChild1Config
-                            grandChild1Manager
+                            it.existingApplicationResources shouldBe emptyMap<String, Any>()
+                            it.applicationResourceLoaderConfig shouldBe grandChild1Config
+                            grandChild1Resource
                         }
             }
 
-            val grandChild2Loader = object: StageManagerLoader<Any> {
+            val grandChild2Loader = object: ApplicationResourceLoader<Any> {
                 override val dependencies: List<String> = grandChild2Dependencies
                 override val name: String = grandChild2Name
-                override val loadManager: Skript<StageManagerLoader.Input, out StageManager<Any>, SkriptApplicationLoader> =
+                override val loadResource: Skript<ApplicationResourceLoader.Input, Any, SkriptApplicationLoader> =
                         Skript.map {
-                            it.existingManagers shouldBe emptyMap()
-                            it.stageManagerLoaderConfig shouldBe grandChild2Config
-                            grandChild2Manager
+                            it.existingApplicationResources shouldBe emptyMap<String, Any>()
+                            it.applicationResourceLoaderConfig shouldBe grandChild2Config
+                            grandChild2Resource
                         }
             }
 
@@ -193,11 +193,11 @@ class ApplicationRegistryTest: StringSpec() {
             val result = applicationLoader.buildApplication(appConfig)
             result.error() shouldBe null
             result.result() shouldBe SkriptApplication(mapOf(
-                    parentName to parentManager,
-                    child1Name to child1Manager,
-                    child2Name to child2Manager,
-                    grandChild1Name to grandChild1Manager,
-                    grandChild2Name to grandChild2Manager))
+                    parentName to parentResource,
+                    child1Name to child1Resource,
+                    child2Name to child2Resource,
+                    grandChild1Name to grandChild1Resource,
+                    grandChild2Name to grandChild2Resource))
         }
     }
 }

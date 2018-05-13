@@ -2,17 +2,15 @@ package playwrigkt.skript.application
 
 import playwrigkt.skript.Skript
 import playwrigkt.skript.stagemanager.KtorHttpClientStageManager
-import playwrigkt.skript.stagemanager.StageManager
-import playwrigkt.skript.troupe.KtorHttpClientTroupe
 
 class KtorHttpClientModule: SkriptModule {
-    override fun loaders(): List<StageManagerLoader<*>> = listOf(KtorHttpClientStageManagerLoader)
+    override fun loaders(): List<ApplicationResourceLoader<*>> = listOf(KtorHttpClientStageManagerLoader)
 }
 
-object KtorHttpClientStageManagerLoader: StageManagerLoader<KtorHttpClientTroupe> {
+object KtorHttpClientStageManagerLoader: ApplicationResourceLoader<KtorHttpClientStageManager> {
     override val dependencies: List<String> = emptyList()
     override val name: String = "ktor-http-client"
 
-    override val loadManager: Skript<StageManagerLoader.Input, out StageManager<KtorHttpClientTroupe>, SkriptApplicationLoader> =
+    override val loadResource: Skript<ApplicationResourceLoader.Input, KtorHttpClientStageManager, SkriptApplicationLoader> =
             Skript.map { KtorHttpClientStageManager() }
 }

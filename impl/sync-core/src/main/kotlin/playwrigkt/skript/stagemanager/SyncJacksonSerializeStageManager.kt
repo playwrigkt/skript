@@ -13,7 +13,8 @@ data class SyncJacksonSerializeStageManager(val objectMapper: ObjectMapper = def
         }
     }
 
-    override fun hireTroupe(): SerializeTroupe = SyncJacksonSerializeTroupe(objectMapper)
+    override fun hireTroupe(): SerializeTroupe =
+            SyncJacksonSerializeTroupe(objectMapper)
 
     override fun tearDown(): AsyncResult<Unit> {
         return AsyncResult.succeeded(Unit)

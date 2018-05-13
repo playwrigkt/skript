@@ -2,5 +2,5 @@ package playwrigkt.skript.application
 
 interface SkriptModule {
         //TODO load venues
-        fun loaders(): List<StageManagerLoader<*>>
+        fun loaders(): List<ApplicationResourceLoader<*>>
 }

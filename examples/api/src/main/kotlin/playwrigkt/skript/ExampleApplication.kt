@@ -2,11 +2,9 @@ package playwrigkt.skript
 
 import playwrigkt.skript.application.SkriptApplicationLoader
 import playwrigkt.skript.application.SkriptModule
-import playwrigkt.skript.application.StageManagerLoader
-import playwrigkt.skript.application.StageManagerLoaderConfig
+import playwrigkt.skript.application.ApplicationResourceLoader
 import playwrigkt.skript.ex.all
 import playwrigkt.skript.ex.join
-import playwrigkt.skript.ex.joinTry
 import playwrigkt.skript.ex.lift
 import playwrigkt.skript.http.Http
 import playwrigkt.skript.http.server.HttpServer
@@ -73,21 +71,21 @@ data class ExampleApplication(val stageManager: ApplicationStageManager,
 
 
 class ExampleApplicationModule: SkriptModule {
-    override fun loaders(): List<StageManagerLoader<*>> =
+    override fun loaders(): List<ApplicationResourceLoader<*>> =
             listOf(ExampleApplicationStageManagerLoader)
 }
 
-object ExampleApplicationStageManagerLoader: StageManagerLoader<ApplicationTroupe> {
+object ExampleApplicationStageManagerLoader: ApplicationResourceLoader<ApplicationStageManager> {
     override val dependencies: List<String> = listOf("sql", "publish", "serialize", "http-client")
     override val name: String = "example-application"
 
-    override val loadManager =
-            Skript.identity<StageManagerLoader.Input, SkriptApplicationLoader>()
+    override val loadResource =
+            Skript.identity<ApplicationResourceLoader.Input, SkriptApplicationLoader>()
                     .all(
-                            loadExistingStageManagerSkript<SQLTroupe>("sql"),
-                            loadExistingStageManagerSkript<SerializeTroupe>("serialize"),
-                            loadExistingStageManagerSkript<HttpClientTroupe>("http-client"),
-                            loadExistingStageManagerSkript<QueuePublishTroupe>("publish"))
+                            loadExistingApplicationResourceSkript<StageManager<SQLTroupe>>("sql"),
+                            loadExistingApplicationResourceSkript<StageManager<SerializeTroupe>>("serialize"),
+                            loadExistingApplicationResourceSkript<StageManager<HttpClientTroupe>>("http-client"),
+                            loadExistingApplicationResourceSkript<StageManager<QueuePublishTroupe>>("publish"))
                     .join { sql, serialize, httpClient, publish ->
                         ApplicationStageManager(publish, sql, serialize, httpClient)
                     }

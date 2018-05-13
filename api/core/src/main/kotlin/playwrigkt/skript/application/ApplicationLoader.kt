@@ -18,7 +18,7 @@ import playwrigkt.skript.troupe.SerializeTroupe
  * Automatically find dependencies from single configured stage manager
  * load venues + produktions
  */
-data class SkriptApplication(val stageManagers: Map<String, StageManager<*>>)
+data class SkriptApplication(val applicationResources: Map<String, *>)
 data class SkriptApplicationLoader(val fileTroupe: FileTroupe, val serializeTroupe: SerializeTroupe, val applicationRegistry: ApplicationRegistry): FileTroupe, SerializeTroupe {
         override fun getFilePerformer(): AsyncResult<out FilePerformer> = fileTroupe.getFilePerformer()
 
@@ -26,38 +26,38 @@ data class SkriptApplicationLoader(val fileTroupe: FileTroupe, val serializeTrou
 
 
         fun buildApplication(appConfig: AppConfig): AsyncResult<SkriptApplication> =
-                buildStageManagers(appConfig.stageManagerLoaders)
+                buildStageManagers(appConfig.applicationResourceLoaders)
                         .map { SkriptApplication(it) }
 
-        private fun buildStageManagers(remainingStageManagers: List<StageManagerLoaderConfig>,
-                                       completedStageManagers: Map<String, StageManager<*>> = emptyMap()): AsyncResult<Map<String, StageManager<*>>> {
+        private fun buildStageManagers(remainingApplicationResources: List<ApplicationResourceLoaderConfig>,
+                                       completedApplicationResources: Map<String, *> = emptyMap<String, Any>()): AsyncResult<Map<String, *>> {
 
 
-                if(remainingStageManagers.isEmpty()) {
-                        return AsyncResult.succeeded(completedStageManagers)
+                if(remainingApplicationResources.isEmpty()) {
+                        return AsyncResult.succeeded(completedApplicationResources)
                 }
 
                 val remainingAfter =
-                        remainingStageManagers.filterNot { config ->
-                                applicationRegistry.dependenciesAreSatisfied(config, completedStageManagers)
+                        remainingApplicationResources.filterNot { config ->
+                                applicationRegistry.dependenciesAreSatisfied(config, completedApplicationResources)
                         }
 
-                if (remainingAfter.size.equals(remainingStageManagers.size)) {
-                        return AsyncResult.failed(ApplicationRegistry.RegistryException(ApplicationRegistry.RegistryError.UnsatisfiedDependencies(remainingAfter, completedStageManagers)))
+                if (remainingAfter.size.equals(remainingApplicationResources.size)) {
+                        return AsyncResult.failed(ApplicationRegistry.RegistryException(ApplicationRegistry.RegistryError.UnsatisfiedDependencies(remainingAfter, completedApplicationResources)))
                 }
 
-                return remainingStageManagers
-                        .filter { config -> applicationRegistry.dependenciesAreSatisfied(config, completedStageManagers) }
+                return remainingApplicationResources
+                        .filter { config -> applicationRegistry.dependenciesAreSatisfied(config, completedApplicationResources) }
                         .map { config -> config.name to
                                 applicationRegistry.getLoader(config.name)
                                         .toAsyncResult()
                                         .flatMap {
-                                                it.loadManager.run(StageManagerLoader.Input(completedStageManagers, config), this)
+                                                it.loadResource.run(ApplicationResourceLoader.Input(completedApplicationResources, config), this)
                                         }
                         }
                         .toMap()
                         .lift()
-                        .map { newlyCompleted -> newlyCompleted.plus(completedStageManagers) }
+                        .map { newlyCompleted -> newlyCompleted.plus(completedApplicationResources) }
                         .flatMap { completedAfter -> buildStageManagers(remainingAfter, completedAfter) }
         }
 }
@@ -71,7 +71,7 @@ sealed class AppLoadError: Throwable() {
 
 data class AppConfig(
         val modules: List<String>,
-        val stageManagerLoaders: List<StageManagerLoaderConfig>)
+        val applicationResourceLoaders: List<ApplicationResourceLoaderConfig>)
 
 
 val loadModules: Skript<AppConfig, Unit, SkriptApplicationLoader> = Skript.identity<AppConfig, SkriptApplicationLoader>()

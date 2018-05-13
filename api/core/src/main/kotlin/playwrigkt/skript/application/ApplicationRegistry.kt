@@ -14,16 +14,16 @@ class ApplicationRegistry: LightweightSynchronized {
     sealed class RegistryError {
         data class DuplicateStageManagerLoader(val name: String): RegistryError()
         data class NotFound(val name: String): RegistryError()
-        data class UnsatisfiedDependencies(val remainingStageManagers: List<StageManagerLoaderConfig>,
-                                           val completedStageManagers: Map<String, StageManager<*>>): RegistryError()
+        data class UnsatisfiedDependencies(val remainingApplicationResources: List<ApplicationResourceLoaderConfig>,
+                                           val completedApplicationResources: Map<String, *>): RegistryError()
     }
 
     override fun toString(): String =
         """ApplicationRegistry(registry=$registry)"""
     override val lock: ReentrantLock = ReentrantLock()
-    private val registry: MutableMap<String, StageManagerLoader<*>> = mutableMapOf()
+    private val registry: MutableMap<String, ApplicationResourceLoader<*>> = mutableMapOf()
 
-    fun <Loader> register(loader: Loader): Try<Unit> where Loader: StageManagerLoader<*> = lock {
+    fun <Loader> register(loader: Loader): Try<Unit> where Loader: ApplicationResourceLoader<*> = lock {
         registry.get(loader.name)
                 ?.let { Try.Failure<Unit>(RegistryException(RegistryError.DuplicateStageManagerLoader(loader.name))) }
                 ?: Try.Success(registry.put(loader.name, loader))
@@ -31,7 +31,7 @@ class ApplicationRegistry: LightweightSynchronized {
 
     }
 
-    fun getLoader(name: String): Try<StageManagerLoader<*>> =
+    fun getLoader(name: String): Try<ApplicationResourceLoader<*>> =
             registry.get(name)
                     ?.let { it }
                     ?.let { Try.Success(it) }
@@ -43,8 +43,8 @@ class ApplicationRegistry: LightweightSynchronized {
                     ?.let { Try.Success(it) }
                     ?: Try.Failure(RegistryException(RegistryError.NotFound(name)))
 
-    fun dependenciesAreSatisfied(config: StageManagerLoaderConfig,
-                                         existingStageManagers: Map<String, StageManager<*>>): Boolean =
+    fun dependenciesAreSatisfied(config: ApplicationResourceLoaderConfig,
+                                 existingStageManagers: Map<String, *>): Boolean =
             existingStageManagers.keys.containsAll(
                     registry.get(config.name)
                             .toOption()
