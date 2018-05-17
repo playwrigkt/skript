@@ -1,7 +1,8 @@
 {
   "modules":[
     "playwrigkt.skript.application.VertxModule",
-    "playwrigkt.skript.application.ExampleApplicationModule"
+    "playwrigkt.skript.application.ExampleApplicationModule",
+    "playwrigkt.skript.application.ProduktionManagerModule"
   ],
   "applicationResourceLoaders": [
     {
@@ -64,6 +65,39 @@
       "dependencyOverrides": {
         "http-server-venue": "vertxHttpServerVenue",
         "queue-venue": "vertxVenue"
+      }
+    },
+    {
+      "name":"produktionManager",
+      "dependencyOverrides":{
+          "venue":"vertxHttpServerVenue",
+          "stageManager":"exampleApplicationStageManager"
+      },
+      "config":{
+        "produktions":[
+          {
+            "className":"playwrigkt.skript.user.http.UserHttpSkripts",
+            "mappings": {
+              "getUser": {
+                "path": "/users/{userId}",
+                "headers": {
+                  "Authorization": []
+                },
+                "method": "GET"
+              },
+              "createUser": {
+                "path": "/users",
+                "headers": {},
+                "method": "Post"
+              },
+              "loginUser": {
+                "path": "/login",
+                "headers": {},
+                "method": "Post"
+              }
+            }
+          }
+        ]
       }
     }
   ]

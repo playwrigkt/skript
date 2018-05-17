@@ -1,6 +1,7 @@
 package playwrigkt.skript.application
 
 import org.funktionale.tries.Try
+import org.slf4j.LoggerFactory
 import playwrigkt.skript.Skript
 import playwrigkt.skript.ex.*
 import playwrigkt.skript.file.FileReference
@@ -20,6 +21,8 @@ import playwrigkt.skript.troupe.SerializeTroupe
  */
 data class SkriptApplication(val applicationResources: Map<String, *>)
 data class SkriptApplicationLoader(val fileTroupe: FileTroupe, val serializeTroupe: SerializeTroupe, val applicationRegistry: ApplicationRegistry): FileTroupe, SerializeTroupe {
+        val log = LoggerFactory.getLogger(this::class.java)
+
         override fun getFilePerformer(): AsyncResult<out FilePerformer> = fileTroupe.getFilePerformer()
 
         override fun getSerializePerformer(): AsyncResult<out SerializePerformer> = serializeTroupe.getSerializePerformer()
@@ -46,12 +49,13 @@ data class SkriptApplicationLoader(val fileTroupe: FileTroupe, val serializeTrou
                         return AsyncResult.failed(ApplicationRegistry.RegistryException(ApplicationRegistry.RegistryError.UnsatisfiedDependencies(remainingAfter, completedApplicationResources)))
                 }
 
-                return remainingApplicationResources
+                val result = remainingApplicationResources
                         .filter { config -> applicationRegistry.dependenciesAreSatisfied(config, completedApplicationResources) }
                         .map { config -> config.name to
                                 applicationRegistry.getLoader(config.name)
                                         .toAsyncResult()
                                         .flatMap {
+                                                log.info("loading application resource $config with $it")
                                                 it.loadResource.run(ApplicationResourceLoader.Input(completedApplicationResources, config), this)
                                         }
                         }
@@ -59,6 +63,8 @@ data class SkriptApplicationLoader(val fileTroupe: FileTroupe, val serializeTrou
                         .lift()
                         .map { newlyCompleted -> newlyCompleted.plus(completedApplicationResources) }
                         .flatMap { completedAfter -> buildStageManagers(remainingAfter, completedAfter) }
+                result.addHandler { log.info("finished  loading applicationResources: $it") }
+                return result
         }
 }
 

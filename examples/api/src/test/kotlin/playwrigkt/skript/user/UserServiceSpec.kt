@@ -39,9 +39,7 @@ abstract class UserServiceSpec : StringSpec() {
     val application by lazy { Async.awaitSucceededFuture(createApplication(configFile()))!! }
     val userHttpClient = UserHttpClient(port)
     val userService: UserService by lazy { UserService(application.stageManager) }
-    val userProduktions by lazy {
-        application.loadHttpProduktions()
-    }
+
 
     fun loginProduktion(): Produktion =
             awaitSucceededFuture(application.queueConsumerProduktion(
@@ -84,7 +82,7 @@ abstract class UserServiceSpec : StringSpec() {
                 .run(Unit, loader)
         awaitSucceededFuture(application.stageManager.hireTroupe().dropUserSchema())
         awaitSucceededFuture(application.stageManager.hireTroupe().initUserSchema())
-        awaitSucceededFuture(userProduktions)
+        awaitSucceededFuture(application.startResult)
     }
 
     override fun afterSpec(description: Description, spec: Spec) {

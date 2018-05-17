@@ -4,7 +4,8 @@
     "playwrigkt.skript.application.CoroutineJdbcSqlModule",
     "playwrigkt.skript.application.CoroutineJacksonSerializeModule",
     "playwrigkt.skript.application.CoroutineAmqpModule",
-    "playwrigkt.skript.application.ExampleApplicationModule"
+    "playwrigkt.skript.application.ExampleApplicationModule",
+    "playwrigkt.skript.application.ProduktionManagerModule"
   ],
   "applicationResourceLoaders": [
     {
@@ -75,6 +76,39 @@
       "dependencyOverrides": {
         "http-server-venue": "ktorHttpServerVenue",
         "queue-venue": "coroutineAmqpVenue"
+      }
+    },
+    {
+      "name":"produktionManager",
+      "dependencyOverrides":{
+        "venue":"ktorHttpServerVenue",
+        "stageManager":"exampleApplicationStageManager"
+      },
+      "config":{
+        "produktions":[
+          {
+            "className":"playwrigkt.skript.user.http.UserHttpSkripts",
+            "mappings": {
+              "getUser": {
+                "path": "/users/{userId}",
+                "headers": {
+                  "Authorization": []
+                },
+                "method": "GET"
+              },
+              "createUser": {
+                "path": "/users",
+                "headers": {},
+                "method": "Post"
+              },
+              "loginUser": {
+                "path": "/login",
+                "headers": {},
+                "method": "Post"
+              }
+            }
+          }
+        ]
       }
     }
   ]
