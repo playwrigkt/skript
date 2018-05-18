@@ -18,9 +18,6 @@ data class ApplicationStageManager(
         return skript.run(i, hireTroupe())
     }
 
-    override fun tearDown(): AsyncResult<Unit> =
-        listOf(publishProvider.tearDown(), sqlProvider.tearDown(), serializeProvider.tearDown(), httpManager.tearDown())
-                .lift()
-                .map { Unit }
+    override fun tearDown(): AsyncResult<Unit> = AsyncResult.succeeded(Unit)
 }
 

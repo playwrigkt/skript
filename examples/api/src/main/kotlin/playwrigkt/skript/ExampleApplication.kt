@@ -13,13 +13,11 @@ import playwrigkt.skript.troupe.SyncFileTroupe
 import playwrigkt.skript.venue.HttpServerVenue
 import playwrigkt.skript.venue.QueueVenue
 
-fun createApplication(configFile: String): AsyncResult<ExampleApplication> {
+fun createApplication(configFile: String): AsyncResult<SkriptApplication> {
     val loader = SkriptApplicationLoader(SyncFileTroupe, SyncJacksonSerializeStageManager().hireTroupe(), ApplicationRegistry())
 
     return loadApplication
             .run(configFile, loader)
-            .map { it.applicationResources.get(ExampleApplicationLoader.name()) }
-            .map { it as ExampleApplication }
 }
 
 data class ExampleApplication(val stageManager: ApplicationStageManager,
@@ -36,10 +34,7 @@ data class ExampleApplication(val stageManager: ApplicationStageManager,
     fun queueConsumerProduktion(queue: String, skript: Skript<QueueMessage, Unit, ApplicationTroupe>): AsyncResult<out Produktion> =
         queueVenue.produktion(skript, stageManager, queue)
 
-    override fun tearDown(): AsyncResult<Unit> =
-        listOf(httpProduktionManager.tearDown(), stageManager.tearDown(), httpServerVenue.tearDown(), queueVenue.tearDown())
-                .lift()
-                .map { Unit }
+    override fun tearDown(): AsyncResult<Unit> = AsyncResult.succeeded(Unit)
 }
 
 

@@ -61,6 +61,30 @@ class ApplicationRegistryTest: StringSpec() {
         }
 
         //TODO move tests below here to ApplicationLoaderSpec
+
+        "A registry should find entries that depend on nothing" {
+            val resource = mock(ApplicationResource::class.java)
+            val name = "myLoader"
+            val dependencies = emptyList<String>()
+
+            val registry = ApplicationRegistry()
+            val applicationLoader = SkriptApplicationLoader(mock(FileTroupe::class.java), mock(SerializeTroupe::class.java), registry)
+
+            val config = ApplicationResourceLoaderConfig(name, emptyMap(), ConfigValue.Empty.Null)
+            val appConfig = AppConfig(emptyList(), listOf(config))
+            val loader = object: ApplicationResourceLoader<ApplicationResource> {
+                override val dependencies: List<String> = dependencies
+                override fun name(): String = name
+                override val loadResource: Skript<ApplicationResourceLoader.Input, ApplicationResource, SkriptApplicationLoader> =
+                        Skript.map { resource }
+            }
+            registry.register(loader) shouldBe Try.Success(Unit)
+
+            val result = applicationLoader.buildApplication(appConfig)
+            result.error() shouldBe null
+            result.result() shouldBe SkriptApplication(mapOf(name to resource), appConfig, registry)
+        }
+
         "A registry should fail to build a stage manager for a manager it has no reference to" {
             val registry = ApplicationRegistry()
             val name = "nosuch"
@@ -91,7 +115,7 @@ class ApplicationRegistryTest: StringSpec() {
 
             val result = applicationLoader.buildApplication(appConfig)
             result.error() shouldBe null
-            result.result() shouldBe SkriptApplication(mapOf(name to resource))
+            result.result() shouldBe SkriptApplication(mapOf(name to resource), appConfig, registry)
         }
 
         "A registry should build a stage manager for a manager and its dependencies" {
@@ -197,7 +221,7 @@ class ApplicationRegistryTest: StringSpec() {
                     child1Name to child1Resource,
                     child2Name to child2Resource,
                     grandChild1Name to grandChild1Resource,
-                    grandChild2Name to grandChild2Resource))
+                    grandChild2Name to grandChild2Resource), appConfig, registry)
         }
     }
 }

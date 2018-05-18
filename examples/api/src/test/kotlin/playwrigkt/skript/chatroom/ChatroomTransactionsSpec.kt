@@ -7,6 +7,7 @@ import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
 import org.slf4j.LoggerFactory
 import playwrigkt.skript.Async
+import playwrigkt.skript.ExampleApplication
 import playwrigkt.skript.Skript
 import playwrigkt.skript.application.ApplicationRegistry
 import playwrigkt.skript.application.SkriptApplicationLoader
@@ -52,7 +53,13 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
     val port: Int = floor((Math.random() * 8000)).toInt() + 2000
     fun configFile() = sourceConfigFileName.split(".").joinToString("-$port.")
 
-    val application by lazy { Async.awaitSucceededFuture(createApplication(configFile()))!! }
+    val skriptApplication by lazy { Async.awaitSucceededFuture(createApplication(configFile()))!! }
+    val application by lazy  {
+        skriptApplication.applicationResources
+                .filter { it.value is ExampleApplication }
+                .map { it.value as ExampleApplication }
+                .first()
+    }
     val userService by lazy { UserService(application.stageManager) }
 
     override fun beforeSpec(description: Description, spec: Spec) {
@@ -87,7 +94,7 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
                 SqlTransactionSkript.transaction(playwrigkt.skript.chatrooom.sql.ChatRoomSchema.dropAllAction),
                 Unit))
         awaitSucceededFuture(application.stageManager.hireTroupe().dropUserSchema())
-        awaitSucceededFuture(application.tearDown())
+        awaitSucceededFuture(skriptApplication.tearDown())
         Files.delete(Paths.get(configFile()))
     }
 

@@ -12,14 +12,50 @@ import playwrigkt.skript.stagemanager.StageManager
 import playwrigkt.skript.troupe.FileTroupe
 import playwrigkt.skript.troupe.SerializeTroupe
 
-//TODO
-/*
- * Loaders for all impl modules
- * Modules for all impl modules
- * Automatically find dependencies from single configured stage manager
- * load venues + produktions
- */
-data class SkriptApplication(val applicationResources: Map<String, out ApplicationResource>)
+data class SkriptApplication(val applicationResources: Map<String, out ApplicationResource>,
+                             val config: AppConfig,
+                             val applicationRegistry: ApplicationRegistry) {
+    val log = LoggerFactory.getLogger(this::class.java)
+
+    fun tearDown() : AsyncResult<Unit> =
+            tearDownInReverseDependencyOrder(config.applicationResourceLoaders)
+
+    fun tearDownInReverseDependencyOrder(applicationResourceConfigs: List<ApplicationResourceLoaderConfig>): AsyncResult<Unit> {
+        if(applicationResourceConfigs.isEmpty()) {
+            return AsyncResult.succeeded(Unit)
+        }
+
+        val dependenciesMap = dependencyMap(applicationResourceConfigs)
+        val hasNoDependencies = hasNoDependents(dependenciesMap)
+
+        if(hasNoDependencies.isEmpty()) {
+            return AsyncResult.failed(IllegalStateException("could not find dependencies that have  no running dependencies"))
+        }
+
+        return hasNoDependencies
+                .mapNotNull { applicationResources.get(it) }
+                .map {
+                    log.info("Tearing down $it...")
+                    it.tearDown()
+                }
+                .lift()
+                .flatMap { tearDownInReverseDependencyOrder(applicationResourceConfigs.filterNot { hasNoDependencies.contains(it.name) }) }
+    }
+
+    fun dependencyMap(applicationResourceConfigs: List<ApplicationResourceLoaderConfig>): Map<String, List<String>> =
+            applicationResourceConfigs
+                    .map { config ->
+                        config.name to applicationRegistry.getLoader(config.name)
+                                .map { it.dependencies.map { config.applyOverride(it) } }
+                                .getOrElse { emptyList() }
+                    }
+                    .toMap()
+
+    fun hasNoDependents(dependenciesMap: Map<String, List<String>>): List<String> =
+            dependenciesMap
+                    .filterNot { dependenciesMap.values.flatten().toSet().contains(it.key) }
+                    .map { it.key }
+}
 data class SkriptApplicationLoader(val fileTroupe: FileTroupe, val serializeTroupe: SerializeTroupe, val applicationRegistry: ApplicationRegistry): FileTroupe, SerializeTroupe {
         val log = LoggerFactory.getLogger(this::class.java)
 
@@ -30,7 +66,7 @@ data class SkriptApplicationLoader(val fileTroupe: FileTroupe, val serializeTrou
 
         fun buildApplication(appConfig: AppConfig): AsyncResult<SkriptApplication> =
                 buildStageManagers(appConfig.applicationResourceLoaders)
-                        .map { SkriptApplication(it) }
+                        .map { SkriptApplication(it, appConfig, applicationRegistry) }
 
         private fun buildStageManagers(remainingApplicationResources: List<ApplicationResourceLoaderConfig>,
                                        completedApplicationResources: Map<String, out ApplicationResource> = emptyMap()): AsyncResult<Map<String, out ApplicationResource>> {

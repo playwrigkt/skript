@@ -171,10 +171,10 @@ class SkriptSpec : StringSpec() {
         }
 
         "Two skripts can be run concurrently" {
-            val sum: Skript<List<Int>, Int, Unit> = Skript.map { it.sum() }
-            val length: Skript<List<*>, Int, Unit> = Skript.map { it.size }
+            val sumSkript: Skript<List<Int>, Int, Unit> = Skript.map { it.sum() }
+            val lengthSkript: Skript<List<*>, Int, Unit> = Skript.map { it.size }
 
-            val average = Skript.both(sum, length).join { sum, length -> sum.toDouble() / length }
+            val average = Skript.both(sumSkript, lengthSkript).join { sum, length -> sum.toDouble() / length }
 
             val input = listOf(1, 3, 5, 6, 3)
             average.run(input, Unit).result() shouldBe input.average()

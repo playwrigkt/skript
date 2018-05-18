@@ -43,7 +43,7 @@ class ApplicationRegistry: LightweightSynchronized {
                     ?: Try.Failure(RegistryException(RegistryError.NotFound(name)))
 
     fun dependenciesAreSatisfied(config: ApplicationResourceLoaderConfig,
-                                 existingStageManagers: Map<String, *>): Boolean =
+                                 existingStageManagers: Map<String, ApplicationResource>): Boolean =
             existingStageManagers.keys.containsAll(
                     registry.get(config.name)
                             .toOption()

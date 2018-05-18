@@ -36,7 +36,13 @@ abstract class UserServiceSpec : StringSpec() {
 
     fun configFile() = sourceConfigFileName.split(".").joinToString("-$port.")
 
-    val application by lazy { Async.awaitSucceededFuture(createApplication(configFile()))!! }
+    val skriptApplication by lazy { Async.awaitSucceededFuture(createApplication(configFile()))!! }
+    val application by lazy  {
+        skriptApplication.applicationResources
+                .filter { it.value is ExampleApplication }
+                .map { it.value as ExampleApplication }
+                .first()
+    }
     val userHttpClient = UserHttpClient(port)
     val userService: UserService by lazy { UserService(application.stageManager) }
 
@@ -88,7 +94,7 @@ abstract class UserServiceSpec : StringSpec() {
     override fun afterSpec(description: Description, spec: Spec) {
         awaitSucceededFuture(application.stageManager.hireTroupe().deleteAllUsers())
         awaitSucceededFuture(application.stageManager.hireTroupe().dropUserSchema())
-        awaitSucceededFuture(application.tearDown())
+        awaitSucceededFuture(skriptApplication.tearDown())
         Files.delete(Paths.get(configFile()))
     }
 
