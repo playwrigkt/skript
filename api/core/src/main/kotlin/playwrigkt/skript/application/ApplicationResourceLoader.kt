@@ -10,7 +10,7 @@ data class ApplicationResourceLoaderConfig(val name: String,
     fun applyOverride(dependency: String): String = dependencyOverrides.get(dependency)?:dependency
 }
 
-interface ApplicationResourceLoader<Resource> {
+interface ApplicationResourceLoader<Resource: ApplicationResource> {
     data class Input(val existingApplicationResources: Map<String, *>, val applicationResourceLoaderConfig: ApplicationResourceLoaderConfig)
     data class StageManagerException(val error: StageManagerError, override val cause: Throwable? = null): Exception(error.toString(), cause)
     sealed class StageManagerError {
@@ -21,7 +21,7 @@ interface ApplicationResourceLoader<Resource> {
     val dependencies: List<String>
     val loadResource: Skript<Input, Resource, SkriptApplicationLoader>
 
-    fun <OtherResource> loadExistingApplicationResourceSkript(name: String): Skript<Input, OtherResource, SkriptApplicationLoader> =
+    fun <OtherResource: ApplicationResource> loadExistingApplicationResourceSkript(name: String): Skript<Input, OtherResource, SkriptApplicationLoader> =
             Skript.mapTry {
                 it.existingApplicationResources.get(it.applicationResourceLoaderConfig.applyOverride(name))
                         ?.let { Try { it as OtherResource } }

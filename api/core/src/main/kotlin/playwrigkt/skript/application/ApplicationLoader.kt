@@ -19,7 +19,7 @@ import playwrigkt.skript.troupe.SerializeTroupe
  * Automatically find dependencies from single configured stage manager
  * load venues + produktions
  */
-data class SkriptApplication(val applicationResources: Map<String, *>)
+data class SkriptApplication(val applicationResources: Map<String, out ApplicationResource>)
 data class SkriptApplicationLoader(val fileTroupe: FileTroupe, val serializeTroupe: SerializeTroupe, val applicationRegistry: ApplicationRegistry): FileTroupe, SerializeTroupe {
         val log = LoggerFactory.getLogger(this::class.java)
 
@@ -33,7 +33,7 @@ data class SkriptApplicationLoader(val fileTroupe: FileTroupe, val serializeTrou
                         .map { SkriptApplication(it) }
 
         private fun buildStageManagers(remainingApplicationResources: List<ApplicationResourceLoaderConfig>,
-                                       completedApplicationResources: Map<String, *> = emptyMap<String, Any>()): AsyncResult<Map<String, *>> {
+                                       completedApplicationResources: Map<String, out ApplicationResource> = emptyMap()): AsyncResult<Map<String, out ApplicationResource>> {
 
 
                 if(remainingApplicationResources.isEmpty()) {

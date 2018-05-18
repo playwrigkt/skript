@@ -25,7 +25,7 @@ fun createApplication(configFile: String): AsyncResult<ExampleApplication> {
 data class ExampleApplication(val stageManager: ApplicationStageManager,
                               val httpServerVenue: HttpServerVenue,
                               val queueVenue: QueueVenue,
-                              val httpProduktionManager: ProduktionsManager<HttpServer.Endpoint, HttpServer.Request<ByteArray>, HttpServer.Response, ApplicationTroupe>) {
+                              val httpProduktionManager: ProduktionsManager<HttpServer.Endpoint, HttpServer.Request<ByteArray>, HttpServer.Response, ApplicationTroupe>): ApplicationResource {
     companion object {
         val userCreatedAddress = "user.updated"
         val userLoginAddress = "user.login"
@@ -36,9 +36,10 @@ data class ExampleApplication(val stageManager: ApplicationStageManager,
     fun queueConsumerProduktion(queue: String, skript: Skript<QueueMessage, Unit, ApplicationTroupe>): AsyncResult<out Produktion> =
         queueVenue.produktion(skript, stageManager, queue)
 
-    fun teardown(): AsyncResult<List<Unit>> =
-        listOf(httpProduktionManager.tearDown(), stageManager.tearDown(), httpServerVenue.teardown(), queueVenue.teardown())
+    override fun tearDown(): AsyncResult<Unit> =
+        listOf(httpProduktionManager.tearDown(), stageManager.tearDown(), httpServerVenue.tearDown(), queueVenue.tearDown())
                 .lift()
+                .map { Unit }
 }
 
 

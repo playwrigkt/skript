@@ -3,6 +3,7 @@ package playwrigkt.skript.venue
 import org.funktionale.tries.Try
 import org.slf4j.LoggerFactory
 import playwrigkt.skript.Skript
+import playwrigkt.skript.application.ApplicationResource
 import playwrigkt.skript.ex.lift
 import playwrigkt.skript.ex.toAsyncResult
 import playwrigkt.skript.produktion.Performance
@@ -16,7 +17,7 @@ import java.util.concurrent.LinkedBlockingQueue
  *
  * Some examples are http servers, queue consumers, text input
  */
-abstract class Venue<Rule, Beginning, Ending> {
+abstract class Venue<Rule, Beginning, Ending>: ApplicationResource {
     val log = LoggerFactory.getLogger(this::class.java)
     private val produktions = LinkedBlockingQueue<Produktion>()
 
@@ -42,7 +43,7 @@ abstract class Venue<Rule, Beginning, Ending> {
     fun <I, O, Troupe> performance(skript: Skript<I, O, Troupe>,
                                    stageManager: StageManager<Troupe>): Performance<I, O, Troupe> = Performance(skript, stageManager)
 
-    fun teardown(): AsyncResult<Unit> =
+    override fun tearDown(): AsyncResult<Unit> =
             stopAllProduktions()
                     .flatMap { this
                             .stop()
@@ -63,7 +64,7 @@ abstract class Venue<Rule, Beginning, Ending> {
                     .onFailure { log.error("...Failed to stop produktion...: ${produktion}", it) }
 
     /**
-     * Stop the resources created by this.  Called by teardown after stopping all produktions
+     * Stop the resources created by this.  Called by tearDown after stopping all produktions
      */
     protected abstract fun stop(): AsyncResult<Unit>
 

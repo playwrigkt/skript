@@ -87,7 +87,7 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
                 SqlTransactionSkript.transaction(playwrigkt.skript.chatrooom.sql.ChatRoomSchema.dropAllAction),
                 Unit))
         awaitSucceededFuture(application.stageManager.hireTroupe().dropUserSchema())
-        awaitSucceededFuture(application.teardown())
+        awaitSucceededFuture(application.tearDown())
         Files.delete(Paths.get(configFile()))
     }
 
