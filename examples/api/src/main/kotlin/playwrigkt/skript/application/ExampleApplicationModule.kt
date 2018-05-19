@@ -13,8 +13,7 @@ import playwrigkt.skript.venue.QueueVenue
 
 class ExampleApplicationModule: SkriptModule {
     override fun loaders(): List<ApplicationResourceLoader<*>> =
-            listOf(ExampleApplicationStageManagerLoader,
-                    ExampleApplicationLoader)
+            listOf(ExampleApplicationStageManagerLoader)
 }
 
 object ExampleApplicationStageManagerLoader: ApplicationResourceLoader<ApplicationStageManager> {
@@ -29,20 +28,5 @@ object ExampleApplicationStageManagerLoader: ApplicationResourceLoader<Applicati
                             loadExistingApplicationResourceSkript<StageManager<QueuePublishTroupe>>("publish"))
                     .join { sql, serialize, httpClient, publish ->
                         ApplicationStageManager(publish, sql, serialize, httpClient)
-                    }
-}
-
-object ExampleApplicationLoader: ApplicationResourceLoader<ExampleApplication> {
-    override val dependencies: List<String> = listOf(ExampleApplicationStageManagerLoader.name(), "http-server-venue", "queue-venue", ProduktionManagerLoader.name())
-
-    override val loadResource: Skript<ApplicationResourceLoader.Input, ExampleApplication, SkriptApplicationLoader> =
-            Skript.identity<ApplicationResourceLoader.Input, SkriptApplicationLoader>()
-                    .all(
-                            loadExistingApplicationResourceSkript<ApplicationStageManager>(ExampleApplicationStageManagerLoader.name()),
-                            loadExistingApplicationResourceSkript<HttpServerVenue>("http-server-venue"),
-                            loadExistingApplicationResourceSkript<QueueVenue>("queue-venue"),
-                            loadExistingApplicationResourceSkript<ProduktionsManager<HttpServer.Endpoint, HttpServer.Request<ByteArray>, HttpServer.Response, ApplicationTroupe>>(ProduktionManagerLoader.name()))
-                    .join { applicationStageManager, httpServerVenue, queueVenue, produktionManager ->
-                        ExampleApplication(applicationStageManager, httpServerVenue, queueVenue, produktionManager)
                     }
 }

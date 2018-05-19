@@ -61,13 +61,6 @@
       }
     },
     {
-      "name": "exampleApplication",
-      "dependencyOverrides": {
-        "http-server-venue": "vertxHttpServerVenue",
-        "queue-venue": "vertxVenue"
-      }
-    },
-    {
       "name":"produktionManager",
       "dependencyOverrides":{
           "venue":"vertxHttpServerVenue",

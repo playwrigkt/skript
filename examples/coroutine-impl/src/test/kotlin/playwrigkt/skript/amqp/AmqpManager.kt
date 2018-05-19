@@ -3,8 +3,8 @@ package playwrigkt.skript.amqp
 import com.rabbitmq.client.BuiltinExchangeType
 import com.rabbitmq.client.Connection
 import com.rabbitmq.client.ConnectionFactory
-import playwrigkt.skript.ExampleApplication.Companion.userCreatedAddress
-import playwrigkt.skript.ExampleApplication.Companion.userLoginAddress
+import playwrigkt.skript.ExampleApplication.userCreatedAddress
+import playwrigkt.skript.ExampleApplication.userLoginAddress
 
 object AmqpManager {
     val amqpExchange = "events.ex"

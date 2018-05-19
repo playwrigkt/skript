@@ -5,15 +5,17 @@ import io.kotlintest.specs.StringSpec
 import playwrigkt.skript.Async
 import playwrigkt.skript.ExampleApplication
 import playwrigkt.skript.Skript
-import playwrigkt.skript.application.ApplicationRegistry
-import playwrigkt.skript.application.SkriptApplicationLoader
+import playwrigkt.skript.application.*
 import playwrigkt.skript.auth.TokenAndInput
 import playwrigkt.skript.createApplication
 import playwrigkt.skript.ex.*
 import playwrigkt.skript.file.FileReference
+import playwrigkt.skript.http.server.HttpServer
 import playwrigkt.skript.produktion.Produktion
 import playwrigkt.skript.queue.QueueMessage
 import playwrigkt.skript.result.AsyncResult
+import playwrigkt.skript.stagemanager.ApplicationStageManager
+import playwrigkt.skript.stagemanager.StageManager
 import playwrigkt.skript.stagemanager.SyncJacksonSerializeStageManager
 import playwrigkt.skript.troupe.ApplicationTroupe
 import playwrigkt.skript.troupe.SyncFileTroupe
@@ -21,6 +23,7 @@ import playwrigkt.skript.user.extensions.schema.dropUserSchema
 import playwrigkt.skript.user.extensions.schema.initUserSchema
 import playwrigkt.skript.user.extensions.transaction.deleteAllUsers
 import playwrigkt.skript.user.models.*
+import playwrigkt.skript.venue.QueueVenue
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
@@ -37,18 +40,36 @@ abstract class UserServiceSpec : StringSpec() {
     fun configFile() = sourceConfigFileName.split(".").joinToString("-$port.")
 
     val skriptApplication by lazy { Async.awaitSucceededFuture(createApplication(configFile()))!! }
-    val application by lazy  {
+
+    val stageManager by lazy  {
         skriptApplication.applicationResources
-                .filter { it.value is ExampleApplication }
-                .map { it.value as ExampleApplication }
+                .filter { it.value is ApplicationStageManager }
+                .map { it.value as ApplicationStageManager }
                 .first()
     }
+
+    abstract val queueVenueName: String
+    val queueVenue by lazy {
+        skriptApplication.applicationResources
+                .get(queueVenueName)
+                ?.let { it as QueueVenue }!!
+    }
+
+    val httpProduktiionManager by lazy  {
+        skriptApplication.applicationResources
+                .get(ProduktionManagerLoader.name())
+                ?.let { it as ProduktionsManager<HttpServer.Endpoint, HttpServer.Request<ByteArray>, HttpServer.Response, ApplicationTroupe> }!!
+    }
+
+    fun queueConsumerProduktion(queue: String, skript: Skript<QueueMessage, Unit, ApplicationTroupe>): AsyncResult<out Produktion> =
+            queueVenue.produktion(skript, stageManager, queue)
+
     val userHttpClient = UserHttpClient(port)
-    val userService: UserService by lazy { UserService(application.stageManager) }
+    val userService: UserService by lazy { UserService(stageManager) }
 
 
     fun loginProduktion(): Produktion =
-            awaitSucceededFuture(application.queueConsumerProduktion(
+            awaitSucceededFuture(queueConsumerProduktion(
                 ExampleApplication.userLoginAddress,
                 Skript.identity<QueueMessage, ApplicationTroupe>()
                         .map { it.body }
@@ -59,7 +80,7 @@ abstract class UserServiceSpec : StringSpec() {
     val processedLoginEvents = LinkedBlockingQueue<UserSession>()
 
     fun createProduktion(): Produktion =
-            awaitSucceededFuture(application.queueConsumerProduktion(
+            awaitSucceededFuture(queueConsumerProduktion(
                 ExampleApplication.userCreatedAddress,
                 Skript.identity<QueueMessage, ApplicationTroupe>()
                         .map { it.body }
@@ -86,14 +107,14 @@ abstract class UserServiceSpec : StringSpec() {
                     writer.close()
                 }
                 .run(Unit, loader)
-        awaitSucceededFuture(application.stageManager.hireTroupe().dropUserSchema())
-        awaitSucceededFuture(application.stageManager.hireTroupe().initUserSchema())
-        awaitSucceededFuture(application.startResult)
+        awaitSucceededFuture(stageManager.hireTroupe().dropUserSchema())
+        awaitSucceededFuture(stageManager.hireTroupe().initUserSchema())
+        awaitSucceededFuture(httpProduktiionManager.produktionManagers)
     }
 
     override fun afterSpec(description: Description, spec: Spec) {
-        awaitSucceededFuture(application.stageManager.hireTroupe().deleteAllUsers())
-        awaitSucceededFuture(application.stageManager.hireTroupe().dropUserSchema())
+        awaitSucceededFuture(stageManager.hireTroupe().deleteAllUsers())
+        awaitSucceededFuture(stageManager.hireTroupe().dropUserSchema())
         awaitSucceededFuture(skriptApplication.tearDown())
         Files.delete(Paths.get(configFile()))
     }
@@ -228,11 +249,11 @@ abstract class UserServiceSpec : StringSpec() {
             val user = UserProfile(userId, userName, false)
             val userAndPassword = UserNameAndPassword(userName, password)
 
-            Async.awaitSucceededFuture(userHttpClient.createUserRequestSkript.run(UserProfileAndPassword(user, password), application.stageManager.hireTroupe())) shouldBe user
+            Async.awaitSucceededFuture(userHttpClient.createUserRequestSkript.run(UserProfileAndPassword(user, password), stageManager.hireTroupe())) shouldBe user
 
-            val session = Async.awaitSucceededFuture(userHttpClient.loginRequestSkript.run(userAndPassword, application.stageManager.hireTroupe()))!!
+            val session = Async.awaitSucceededFuture(userHttpClient.loginRequestSkript.run(userAndPassword, stageManager.hireTroupe()))!!
 
-            Async.awaitSucceededFuture(userHttpClient.getUserRequestSkript.run(TokenAndInput(session.sessionKey, userId), application.stageManager.hireTroupe())) shouldBe user
+            Async.awaitSucceededFuture(userHttpClient.getUserRequestSkript.run(TokenAndInput(session.sessionKey, userId), stageManager.hireTroupe())) shouldBe user
         }
     }
 

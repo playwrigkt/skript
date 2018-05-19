@@ -72,13 +72,6 @@
       }
     },
     {
-      "name": "exampleApplication",
-      "dependencyOverrides": {
-        "http-server-venue": "ktorHttpServerVenue",
-        "queue-venue": "coroutineAmqpVenue"
-      }
-    },
-    {
       "name":"produktionManager",
       "dependencyOverrides":{
         "venue":"ktorHttpServerVenue",
