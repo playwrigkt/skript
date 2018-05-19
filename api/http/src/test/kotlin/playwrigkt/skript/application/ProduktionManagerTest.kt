@@ -2,10 +2,10 @@ package playwrigkt.skript.application
 
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
-import org.funktionale.tries.Try
 import playwrigkt.skript.Skript
 import playwrigkt.skript.http.Http
 import playwrigkt.skript.http.server.HttpServer
+import playwrigkt.skript.produktion.ProduktionConfig
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -28,7 +28,7 @@ class ProduktionManagerTest: StringSpec() {
                     mapOf("skript1" to skript1Rule,
                             "getSkript2" to skript2Rule))
 
-            val result = getSkriptsFromClass.run(produktionConfig, Unit)
+            val result = HttpProduktionManagerLoader.getSkriptsFromClass.run(produktionConfig, Unit)
             result.isSuccess() shouldBe true
             result.result() shouldBe mapOf(
                     skript1Rule to ExampleSkriptConfig.skript1,

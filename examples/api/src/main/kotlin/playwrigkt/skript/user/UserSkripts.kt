@@ -1,8 +1,6 @@
 package playwrigkt.skript.user
 
 import org.funktionale.tries.Try
-import playwrigkt.skript.ExampleApplication.userCreatedAddress
-import playwrigkt.skript.ExampleApplication.userLoginAddress
 import playwrigkt.skript.Skript
 import playwrigkt.skript.ex.*
 import playwrigkt.skript.queue.QueueMessage
@@ -15,6 +13,9 @@ import java.util.*
 
 object UserSkripts {
     private val createNewSessionKey: (String) -> UserSession = { UserSession(UUID.randomUUID().toString(), it, Instant.now().plusSeconds(3600)) }
+
+    val userCreatedAddress = "user.updated"
+    val userLoginAddress = "user.login"
 
     private val PUBLISH_USER_CREATE_EVENT: Skript<UserProfile, UserProfile, ApplicationTroupe> =
             Skript.identity<UserProfile, ApplicationTroupe>()

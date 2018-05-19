@@ -5,7 +5,7 @@
     "playwrigkt.skript.application.CoroutineJacksonSerializeModule",
     "playwrigkt.skript.application.CoroutineAmqpModule",
     "playwrigkt.skript.application.ExampleApplicationModule",
-    "playwrigkt.skript.application.ProduktionManagerModule"
+    "playwrigkt.skript.application.HttpProduktionManagerModule"
   ],
   "applicationResourceLoaders": [
     {
@@ -72,7 +72,7 @@
       }
     },
     {
-      "name":"produktionManager",
+      "name":"httpProduktionManager",
       "dependencyOverrides":{
         "venue":"ktorHttpServerVenue",
         "stageManager":"exampleApplicationStageManager"

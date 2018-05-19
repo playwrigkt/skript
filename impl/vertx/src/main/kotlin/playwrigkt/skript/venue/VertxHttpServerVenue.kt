@@ -78,7 +78,7 @@ data class VertxHttpServerVenue(val vertx: Vertx, val httpServerOptions: HttpSer
 
     fun removeHandler(httpEndpoint: playwrigkt.skript.http.server.HttpServer.Endpoint): Try<Unit> =
             Try {
-                if(!requestHandlers.removeAll { it.endpoint.matches(httpEndpoint) }) {
+                if(!requestHandlers.removeAll { httpEndpoint.matches(it.endpoint) }) {
                     throw HttpError.EndpointNotHandled(httpEndpoint)
                 }
             }
@@ -86,7 +86,7 @@ data class VertxHttpServerVenue(val vertx: Vertx, val httpServerOptions: HttpSer
     fun handles(httpEndpoint: playwrigkt.skript.http.server.HttpServer.Endpoint): Boolean =
             requestHandlers.any { it.endpoint.matches(httpEndpoint) }
 
-    override fun stop(): AsyncResult<Unit> {
+    override fun tearDown(): AsyncResult<Unit> {
         val result = CompletableResult<Unit>()
         log.info("closing vertx http server")
         server.close(result.vertxHandler())

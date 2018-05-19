@@ -4,7 +4,7 @@ import org.funktionale.tries.Try
 
 data class AggregateException(val errors: List<Throwable>): Exception()
 
-fun <T: Any> List<Try<T>>.lift(): Try<List<T>> {
+fun <T: Any> List<Try<T>>.liftTry(): Try<List<T>> {
     val errors = this
             .mapNotNull { it.failed().toOption().orNull() }
             .flatMap {

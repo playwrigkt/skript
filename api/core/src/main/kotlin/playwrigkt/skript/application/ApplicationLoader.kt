@@ -126,13 +126,13 @@ val loadModules: Skript<AppConfig, Unit, SkriptApplicationLoader> = Skript.ident
                                 .rescue { Try.Failure(AppLoadError.MustExtendSkriptModule(clazz)) }
                                 .map { it as SkriptModule }
                         }
-                        .lift()
+                        .liftTry()
         }
         .mapTryWithTroupe { modules, troupe ->
                 modules
                         .flatMap { it.loaders() }
                         .map(troupe.applicationRegistry::register)
-                        .lift()
+                        .liftTry()
         }
         .map { Unit }
 

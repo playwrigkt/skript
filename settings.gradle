@@ -1,6 +1,6 @@
 include 'api:core',
         'api:sql', 'api:http', 'api:queue', 'api:coroutine', 'api:jackson',
-        'impl:sync-core',
+        'impl:application',
         'impl:coroutine-jackson-serialize',
         'impl:coroutine-jdbc-sql',
         'impl:coroutine-ktor-http',

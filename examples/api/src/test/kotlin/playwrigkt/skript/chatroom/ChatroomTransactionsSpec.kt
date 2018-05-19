@@ -7,14 +7,9 @@ import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
 import org.slf4j.LoggerFactory
 import playwrigkt.skript.Async
-import playwrigkt.skript.ExampleApplication
 import playwrigkt.skript.Skript
-import playwrigkt.skript.application.ApplicationRegistry
-import playwrigkt.skript.application.ProduktionManagerLoader
-import playwrigkt.skript.application.ProduktionsManager
-import playwrigkt.skript.application.SkriptApplicationLoader
+import playwrigkt.skript.application.*
 import playwrigkt.skript.common.models.Reference
-import playwrigkt.skript.createApplication
 import playwrigkt.skript.ex.createFile
 import playwrigkt.skript.ex.join
 import playwrigkt.skript.ex.readFile
@@ -33,6 +28,7 @@ import playwrigkt.skript.user.extensions.schema.dropUserSchema
 import playwrigkt.skript.user.extensions.schema.initUserSchema
 import playwrigkt.skript.user.models.UserError
 import playwrigkt.skript.user.models.UserNameAndPassword
+import playwrigkt.skript.produktion.ProduktionsManager
 import playwrigkt.skript.venue.QueueVenue
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -76,7 +72,7 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
 
     val httpProduktiionManager by lazy  {
         skriptApplication.applicationResources
-                .get(ProduktionManagerLoader.name())
+                .get(HttpProduktionManagerLoader.name())
                 ?.let { it as ProduktionsManager<HttpServer.Endpoint, HttpServer.Request<ByteArray>, HttpServer.Response, ApplicationTroupe> }!!
     }
     val userService by lazy { UserService(stageManager) }

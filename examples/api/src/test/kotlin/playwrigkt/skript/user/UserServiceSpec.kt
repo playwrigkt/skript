@@ -3,11 +3,10 @@ package  playwrigkt.skript.user
 import io.kotlintest.*
 import io.kotlintest.specs.StringSpec
 import playwrigkt.skript.Async
-import playwrigkt.skript.ExampleApplication
 import playwrigkt.skript.Skript
 import playwrigkt.skript.application.*
 import playwrigkt.skript.auth.TokenAndInput
-import playwrigkt.skript.createApplication
+import playwrigkt.skript.application.createApplication
 import playwrigkt.skript.ex.*
 import playwrigkt.skript.file.FileReference
 import playwrigkt.skript.http.server.HttpServer
@@ -15,7 +14,6 @@ import playwrigkt.skript.produktion.Produktion
 import playwrigkt.skript.queue.QueueMessage
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.stagemanager.ApplicationStageManager
-import playwrigkt.skript.stagemanager.StageManager
 import playwrigkt.skript.stagemanager.SyncJacksonSerializeStageManager
 import playwrigkt.skript.troupe.ApplicationTroupe
 import playwrigkt.skript.troupe.SyncFileTroupe
@@ -23,6 +21,7 @@ import playwrigkt.skript.user.extensions.schema.dropUserSchema
 import playwrigkt.skript.user.extensions.schema.initUserSchema
 import playwrigkt.skript.user.extensions.transaction.deleteAllUsers
 import playwrigkt.skript.user.models.*
+import playwrigkt.skript.produktion.ProduktionsManager
 import playwrigkt.skript.venue.QueueVenue
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -57,7 +56,7 @@ abstract class UserServiceSpec : StringSpec() {
 
     val httpProduktiionManager by lazy  {
         skriptApplication.applicationResources
-                .get(ProduktionManagerLoader.name())
+                .get(HttpProduktionManagerLoader.name())
                 ?.let { it as ProduktionsManager<HttpServer.Endpoint, HttpServer.Request<ByteArray>, HttpServer.Response, ApplicationTroupe> }!!
     }
 
@@ -70,7 +69,7 @@ abstract class UserServiceSpec : StringSpec() {
 
     fun loginProduktion(): Produktion =
             awaitSucceededFuture(queueConsumerProduktion(
-                ExampleApplication.userLoginAddress,
+                UserSkripts.userLoginAddress,
                 Skript.identity<QueueMessage, ApplicationTroupe>()
                         .map { it.body }
                         .deserialize(UserSession::class.java)
@@ -81,7 +80,7 @@ abstract class UserServiceSpec : StringSpec() {
 
     fun createProduktion(): Produktion =
             awaitSucceededFuture(queueConsumerProduktion(
-                ExampleApplication.userCreatedAddress,
+                    UserSkripts.userCreatedAddress,
                 Skript.identity<QueueMessage, ApplicationTroupe>()
                         .map { it.body }
                         .deserialize(UserProfile::class.java)

@@ -1,15 +1,11 @@
 package playwrigkt.skript.application
 
-import playwrigkt.skript.ExampleApplication
 import playwrigkt.skript.Skript
 import playwrigkt.skript.ex.all
 import playwrigkt.skript.ex.join
-import playwrigkt.skript.http.server.HttpServer
 import playwrigkt.skript.stagemanager.ApplicationStageManager
 import playwrigkt.skript.stagemanager.StageManager
 import playwrigkt.skript.troupe.*
-import playwrigkt.skript.venue.HttpServerVenue
-import playwrigkt.skript.venue.QueueVenue
 
 class ExampleApplicationModule: SkriptModule {
     override fun loaders(): List<ApplicationResourceLoader<*>> =

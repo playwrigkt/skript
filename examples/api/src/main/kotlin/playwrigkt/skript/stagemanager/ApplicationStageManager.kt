@@ -1,7 +1,6 @@
 package playwrigkt.skript.stagemanager
 
 import playwrigkt.skript.Skript
-import playwrigkt.skript.ex.lift
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.troupe.*
 

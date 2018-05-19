@@ -22,6 +22,6 @@ data class AmqpVenue(val amqpConnectionFactory: ConnectionFactory): QueueVenue()
                 .map { it as Produktion }
     }
 
-    override fun stop(): AsyncResult<Unit> =
+    override fun tearDown(): AsyncResult<Unit> =
             runAsync { amqpConnection.close() }
 }
