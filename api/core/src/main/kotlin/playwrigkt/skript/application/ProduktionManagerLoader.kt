@@ -7,10 +7,7 @@ import org.slf4j.LoggerFactory
 import playwrigkt.skript.All3
 import playwrigkt.skript.Skript
 import playwrigkt.skript.config.ConfigValue
-import playwrigkt.skript.ex.andThen
-import playwrigkt.skript.ex.iterate
-import playwrigkt.skript.ex.join
-import playwrigkt.skript.ex.liftTry
+import playwrigkt.skript.ex.*
 import playwrigkt.skript.stagemanager.StageManager
 import playwrigkt.skript.produktion.ProduktionConfig
 import playwrigkt.skript.produktion.ProduktionManagerConfig
@@ -64,15 +61,8 @@ abstract class ProduktionManagerLoader<Rule: Any, Beginning, End, Troupe>: Appli
                         Skript.identity<ConfigValue, SkriptApplicationLoader>()
                                 .mapTry { it.applyPath("mappings", ".") }
                                 .mapTry { it.objekt() }
-                                .map { it.values.toList() }
-                                .iterate(Skript.identity<Pair<String, ConfigValue>, SkriptApplicationLoader>()
-                                        .both<String, Rule>(
-                                                Skript.map { it.first },
-                                                Skript.identity<Pair<String, ConfigValue>, SkriptApplicationLoader>()
-                                                        .map { it.second }
-                                                        .andThen(parseRuleConfig))
-                                        .join { skriptName, rule -> skriptName to rule })
-                                .map { it.toMap() })
+                                .map { it.values }
+                                .iterateValues(parseRuleConfig))
                 .join { className, mappings -> ProduktionConfig(className, mappings) }
     }
 

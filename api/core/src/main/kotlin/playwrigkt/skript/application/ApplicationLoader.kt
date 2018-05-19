@@ -71,7 +71,6 @@ data class SkriptApplicationLoader(val fileTroupe: FileTroupe, val serializeTrou
         private fun buildStageManagers(remainingApplicationResources: List<ApplicationResourceLoaderConfig>,
                                        completedApplicationResources: Map<String, out ApplicationResource> = emptyMap()): AsyncResult<Map<String, out ApplicationResource>> {
 
-
                 if(remainingApplicationResources.isEmpty()) {
                         return AsyncResult.succeeded(completedApplicationResources)
                 }
