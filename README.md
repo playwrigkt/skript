@@ -90,7 +90,7 @@ technology and not change anything but minor configuration code.
 ## Running Tests
 
 1. Start the docker environment (postgres): `$ docker-compose up`
-2. run the tests: `gradle clean test`
+2. run the tests and generate reports: `gradle clean build`
 
 ## Coming Soon:
 * FileSkript
@@ -101,9 +101,7 @@ technology and not change anything but minor configuration code.
   *  coroutine impl
   *  vertx impl
   *  runtime update
-* Application lifecycle
-  * venue loading
-  * production config + starting
 * AMQPQueue Mangement
+* SQL schema management (maynot?)
 * CacheSkript
 * Encryption

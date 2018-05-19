@@ -1,9 +1,10 @@
 package playwrigkt.skript.application
 
 import org.funktionale.tries.Try
+import org.slf4j.LoggerFactory
 import playwrigkt.skript.Skript
 import playwrigkt.skript.ex.*
-import playwrigkt.skript.file.*
+import playwrigkt.skript.file.FileReference
 import playwrigkt.skript.performer.FilePerformer
 import playwrigkt.skript.performer.SerializePerformer
 import playwrigkt.skript.result.AsyncResult
@@ -11,15 +12,53 @@ import playwrigkt.skript.stagemanager.StageManager
 import playwrigkt.skript.troupe.FileTroupe
 import playwrigkt.skript.troupe.SerializeTroupe
 
-//TODO
-/*
- * Loaders for all impl modules
- * Modules for all impl modules
- * Automatically find dependencies from single configured stage manager
- * load venues + produktions
- */
-data class SkriptApplication(val applicationResources: Map<String, *>)
+data class SkriptApplication(val applicationResources: Map<String, out ApplicationResource>,
+                             val config: AppConfig,
+                             val applicationRegistry: ApplicationRegistry) {
+    val log = LoggerFactory.getLogger(this::class.java)
+
+    fun tearDown() : AsyncResult<Unit> =
+            tearDownInReverseDependencyOrder(config.applicationResourceLoaders)
+
+    fun tearDownInReverseDependencyOrder(applicationResourceConfigs: List<ApplicationResourceLoaderConfig>): AsyncResult<Unit> {
+        if(applicationResourceConfigs.isEmpty()) {
+            return AsyncResult.succeeded(Unit)
+        }
+
+        val dependenciesMap = dependencyMap(applicationResourceConfigs)
+        val hasNoDependencies = hasNoDependents(dependenciesMap)
+
+        if(hasNoDependencies.isEmpty()) {
+            return AsyncResult.failed(IllegalStateException("could not find dependencies that have  no running dependencies"))
+        }
+
+        return hasNoDependencies
+                .mapNotNull { applicationResources.get(it) }
+                .map {
+                    log.info("Tearing down $it...")
+                    it.tearDown()
+                }
+                .lift()
+                .flatMap { tearDownInReverseDependencyOrder(applicationResourceConfigs.filterNot { hasNoDependencies.contains(it.name) }) }
+    }
+
+    fun dependencyMap(applicationResourceConfigs: List<ApplicationResourceLoaderConfig>): Map<String, List<String>> =
+            applicationResourceConfigs
+                    .map { config ->
+                        config.name to applicationRegistry.getLoader(config.name)
+                                .map { it.dependencies.map { config.applyOverride(it) } }
+                                .getOrElse { emptyList() }
+                    }
+                    .toMap()
+
+    fun hasNoDependents(dependenciesMap: Map<String, List<String>>): List<String> =
+            dependenciesMap
+                    .filterNot { dependenciesMap.values.flatten().toSet().contains(it.key) }
+                    .map { it.key }
+}
 data class SkriptApplicationLoader(val fileTroupe: FileTroupe, val serializeTroupe: SerializeTroupe, val applicationRegistry: ApplicationRegistry): FileTroupe, SerializeTroupe {
+        val log = LoggerFactory.getLogger(this::class.java)
+
         override fun getFilePerformer(): AsyncResult<out FilePerformer> = fileTroupe.getFilePerformer()
 
         override fun getSerializePerformer(): AsyncResult<out SerializePerformer> = serializeTroupe.getSerializePerformer()
@@ -27,10 +66,10 @@ data class SkriptApplicationLoader(val fileTroupe: FileTroupe, val serializeTrou
 
         fun buildApplication(appConfig: AppConfig): AsyncResult<SkriptApplication> =
                 buildStageManagers(appConfig.applicationResourceLoaders)
-                        .map { SkriptApplication(it) }
+                        .map { SkriptApplication(it, appConfig, applicationRegistry) }
 
         private fun buildStageManagers(remainingApplicationResources: List<ApplicationResourceLoaderConfig>,
-                                       completedApplicationResources: Map<String, *> = emptyMap<String, Any>()): AsyncResult<Map<String, *>> {
+                                       completedApplicationResources: Map<String, out ApplicationResource> = emptyMap()): AsyncResult<Map<String, out ApplicationResource>> {
 
 
                 if(remainingApplicationResources.isEmpty()) {
@@ -46,12 +85,13 @@ data class SkriptApplicationLoader(val fileTroupe: FileTroupe, val serializeTrou
                         return AsyncResult.failed(ApplicationRegistry.RegistryException(ApplicationRegistry.RegistryError.UnsatisfiedDependencies(remainingAfter, completedApplicationResources)))
                 }
 
-                return remainingApplicationResources
+                val result = remainingApplicationResources
                         .filter { config -> applicationRegistry.dependenciesAreSatisfied(config, completedApplicationResources) }
                         .map { config -> config.name to
                                 applicationRegistry.getLoader(config.name)
                                         .toAsyncResult()
                                         .flatMap {
+                                                log.info("loading application resource $config with $it")
                                                 it.loadResource.run(ApplicationResourceLoader.Input(completedApplicationResources, config), this)
                                         }
                         }
@@ -59,6 +99,8 @@ data class SkriptApplicationLoader(val fileTroupe: FileTroupe, val serializeTrou
                         .lift()
                         .map { newlyCompleted -> newlyCompleted.plus(completedApplicationResources) }
                         .flatMap { completedAfter -> buildStageManagers(remainingAfter, completedAfter) }
+                result.addHandler { log.info("finished  loading applicationResources: $it") }
+                return result
         }
 }
 
@@ -84,13 +126,13 @@ val loadModules: Skript<AppConfig, Unit, SkriptApplicationLoader> = Skript.ident
                                 .rescue { Try.Failure(AppLoadError.MustExtendSkriptModule(clazz)) }
                                 .map { it as SkriptModule }
                         }
-                        .lift()
+                        .liftTry()
         }
         .mapTryWithTroupe { modules, troupe ->
                 modules
                         .flatMap { it.loaders() }
                         .map(troupe.applicationRegistry::register)
-                        .lift()
+                        .liftTry()
         }
         .map { Unit }
 

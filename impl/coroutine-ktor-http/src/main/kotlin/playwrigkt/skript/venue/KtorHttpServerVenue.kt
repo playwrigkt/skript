@@ -49,7 +49,7 @@ data class KtorHttpServerVenue(val port: Int, val maxConnectionMillis: Long): Ht
                     it
                 }
 
-    override fun stop(): AsyncResult<Unit> = lock {
+    override fun tearDown(): AsyncResult<Unit> = lock {
         if(!result.isComplete()) {
             log.info("stopping ktor server")
             Try { server.stop(1000, 1000, TimeUnit.MILLISECONDS) }

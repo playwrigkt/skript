@@ -3,7 +3,7 @@ package playwrigkt.skript.user.sql
 import playwrigkt.skript.Skript
 import playwrigkt.skript.ex.dropTableIfExists
 import playwrigkt.skript.ex.exec
-import playwrigkt.skript.sql.SQLMapping
+import playwrigkt.skript.sql.SqlMapping
 import playwrigkt.skript.troupe.ApplicationTroupe
 
 object UserSchema {
@@ -37,11 +37,11 @@ CREATE TABLE IF NOT EXISTS user_relationship_request (
 );"""
 
     fun init() = Skript.identity<Unit, ApplicationTroupe>()
-            .exec(SQLMapping.exec("CREATE EXTENSION IF NOT EXISTS pgcrypto"))
-            .exec(SQLMapping.exec(createUserProfileTable))
-            .exec(SQLMapping.exec(createUserPasswordTable))
-            .exec(SQLMapping.exec(createUserSessionTable))
-            .exec(SQLMapping.exec(createUserRequestTable))
+            .exec(SqlMapping.exec("CREATE EXTENSION IF NOT EXISTS pgcrypto"))
+            .exec(SqlMapping.exec(createUserProfileTable))
+            .exec(SqlMapping.exec(createUserPasswordTable))
+            .exec(SqlMapping.exec(createUserSessionTable))
+            .exec(SqlMapping.exec(createUserRequestTable))
 
     fun drop() = Skript.identity<Unit, ApplicationTroupe>()
             .dropTableIfExists("user_relationship_request")

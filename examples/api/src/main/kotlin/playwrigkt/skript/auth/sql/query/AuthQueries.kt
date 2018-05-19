@@ -1,17 +1,17 @@
 package playwrigkt.skript.auth.sql.query
 
 import org.funktionale.tries.Try
-import playwrigkt.skript.sql.SQLCommand
-import playwrigkt.skript.sql.SQLMapping
-import playwrigkt.skript.sql.SQLResult
-import playwrigkt.skript.sql.SQLStatement
+import playwrigkt.skript.sql.SqlCommand
+import playwrigkt.skript.sql.SqlMapping
+import playwrigkt.skript.sql.SqlResult
+import playwrigkt.skript.sql.SqlStatement
 import playwrigkt.skript.user.models.UserError
-import playwrigkt.skript.user.sql.UserSQL
+import playwrigkt.skript.user.sql.UserSql
 import java.time.Instant
 
 object AuthQueries {
-    class SelectSessionByKey<T>: SQLMapping<playwrigkt.skript.auth.TokenAndInput<T>, playwrigkt.skript.auth.SessionAndInput<T>, SQLCommand.Query, SQLResult.Query> {
-        override fun mapResult(i: playwrigkt.skript.auth.TokenAndInput<T>, rs: SQLResult.Query): Try<playwrigkt.skript.auth.SessionAndInput<T>> =
+    class SelectSessionByKey<T>: SqlMapping<playwrigkt.skript.auth.TokenAndInput<T>, playwrigkt.skript.auth.SessionAndInput<T>, SqlCommand.Query, SqlResult.Query> {
+        override fun mapResult(i: playwrigkt.skript.auth.TokenAndInput<T>, rs: SqlResult.Query): Try<playwrigkt.skript.auth.SessionAndInput<T>> =
                 Try { rs.result.next() }
                         .map {
                             playwrigkt.skript.auth.SessionAndInput(
@@ -31,7 +31,7 @@ object AuthQueries {
 
 
 
-        override fun toSql(i: playwrigkt.skript.auth.TokenAndInput<T>): SQLCommand.Query =
-                SQLCommand.Query(SQLStatement.Parameterized(UserSQL.selectSessionByKey, listOf(i.token)))
+        override fun toSql(i: playwrigkt.skript.auth.TokenAndInput<T>): SqlCommand.Query =
+                SqlCommand.Query(SqlStatement.Parameterized(UserSql.selectSessionByKey, listOf(i.token)))
     }
 }

@@ -19,48 +19,51 @@ import playwrigkt.skript.user.models.UserProfile
 import playwrigkt.skript.user.models.UserProfileAndPassword
 import playwrigkt.skript.user.models.UserSession
 
-val ERROR_SERVER_RESPONSE_MAPPER: (Throwable) -> HttpServer.Response = { HttpServer.Response(Http.Status.InternalServerError, emptyMap(), AsyncResult.succeeded("Unhandled error".toByteArray())) }
 
-val createUserHttpEndpointSkript =
-        Skript.identity<HttpServer.Request<ByteArray>, ApplicationTroupe>()
-                .andThen(HttpServerRequestDeserializationSkript(UserProfileAndPassword::class.java))
-                .flatMapWithTroupe { request, _ -> request.body }
-                .compose(UserSkripts.createSkript)
-                .httpServerResponse(
-                        Skript.map { Http.Status.Created },
-                        Skript.map { mapOf("Content-Type" to listOf("application/json")) },
-                        Skript.identity<UserProfile, ApplicationTroupe>().serialize(),
-                        Skript.map(ERROR_SERVER_RESPONSE_MAPPER))
+object UserHttpSkripts {
+    val ERROR_SERVER_RESPONSE_MAPPER: (Throwable) -> HttpServer.Response = { HttpServer.Response(Http.Status.InternalServerError, emptyMap(), AsyncResult.succeeded("Unhandled error".toByteArray())) }
 
-val loginUserHttpEndpointSkript =
-        Skript.identity<HttpServer.Request<ByteArray>, ApplicationTroupe>()
-                .andThen(HttpServerRequestDeserializationSkript(UserNameAndPassword::class.java))
-                .flatMapWithTroupe { request, _ -> request.body }
-                .compose(UserSkripts.loginSkript)
-                .httpServerResponse(
-                        Skript.map { Http.Status.OK },
-                        Skript.map { mapOf("Content-Type" to listOf("application/json")) },
-                        Skript.identity<UserSession, ApplicationTroupe>().serialize(),
-                        Skript.map(ERROR_SERVER_RESPONSE_MAPPER))
+    val createUser =
+            Skript.identity<HttpServer.Request<ByteArray>, ApplicationTroupe>()
+                    .andThen(HttpServerRequestDeserializationSkript(UserProfileAndPassword::class.java))
+                    .flatMapWithTroupe { request, _ -> request.body }
+                    .compose(UserSkripts.createSkript)
+                    .httpServerResponse(
+                            Skript.map { Http.Status.Created },
+                            Skript.map { mapOf("Content-Type" to listOf("application/json")) },
+                            Skript.identity<UserProfile, ApplicationTroupe>().serialize(),
+                            Skript.map(ERROR_SERVER_RESPONSE_MAPPER))
 
-val getUserHttpEndpointSkript =
-        Skript.identity<HttpServer.Request<ByteArray>, ApplicationTroupe>()
-                .both<String, String>(
-                        Skript.mapTry {
-                            it.headers.get("Authorization")
-                                    ?.firstOrNull()
-                                    ?.let { Try.Success(it) }
-                            ?: Try.Failure(HttpError.MissingInputs(listOf(HttpError.HttpInput.header("Authorization"))))
-                        },
-                        Skript.mapTry {
+    val loginUser =
+            Skript.identity<HttpServer.Request<ByteArray>, ApplicationTroupe>()
+                    .andThen(HttpServerRequestDeserializationSkript(UserNameAndPassword::class.java))
+                    .flatMapWithTroupe { request, _ -> request.body }
+                    .compose(UserSkripts.loginSkript)
+                    .httpServerResponse(
+                            Skript.map { Http.Status.OK },
+                            Skript.map { mapOf("Content-Type" to listOf("application/json")) },
+                            Skript.identity<UserSession, ApplicationTroupe>().serialize(),
+                            Skript.map(ERROR_SERVER_RESPONSE_MAPPER))
+
+    val getUser =
+            Skript.identity<HttpServer.Request<ByteArray>, ApplicationTroupe>()
+                    .both<String, String>(
+                            Skript.mapTry {
+                                it.headers.get("Authorization")
+                                        ?.firstOrNull()
+                                        ?.let { Try.Success(it) }
+                                        ?: Try.Failure(HttpError.MissingInputs(listOf(HttpError.HttpInput.header("Authorization"))))
+                            },
+                            Skript.mapTry {
                                 it.pathParameters.get("userId")
                                         ?.let { Try.Success(it) }
                                         ?:Try.Failure(HttpError.MissingInputs(listOf(HttpError.HttpInput.path("userId"))))
-                        })
-                .join { authToken, userId -> TokenAndInput(authToken, userId) }
-                .compose(UserSkripts.getSkript)
-                .httpServerResponse(
-                        Skript.map { Http.Status.OK },
-                        Skript.map { mapOf("Content-Type" to listOf("application/json")) },
-                        Skript.identity<UserProfile, ApplicationTroupe>().serialize(),
-                        Skript.map(ERROR_SERVER_RESPONSE_MAPPER))
+                            })
+                    .join { authToken, userId -> TokenAndInput(authToken, userId) }
+                    .compose(UserSkripts.getSkript)
+                    .httpServerResponse(
+                            Skript.map { Http.Status.OK },
+                            Skript.map { mapOf("Content-Type" to listOf("application/json")) },
+                            Skript.identity<UserProfile, ApplicationTroupe>().serialize(),
+                            Skript.map(ERROR_SERVER_RESPONSE_MAPPER))
+}

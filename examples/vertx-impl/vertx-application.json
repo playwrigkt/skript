@@ -1,7 +1,9 @@
 {
   "modules":[
     "playwrigkt.skript.application.VertxModule",
-    "playwrigkt.skript.ExampleApplicationModule"
+    "playwrigkt.skript.application.ExampleApplicationModule",
+    "playwrigkt.skript.application.HttpProduktionManagerModule",
+    "playwrigkt.skript.application.QueueProduktionManagerModule"
   ],
   "applicationResourceLoaders": [
     {
@@ -10,7 +12,7 @@
       "config":{}
     },
     {
-      "name": "vertx-sql",
+      "name": "vertxSqlStageManager",
       "dependencyOverrides": {},
       "config": {
         "sql": {
@@ -25,20 +27,20 @@
       }
     },
     {
-      "name": "vertx-serialize",
+      "name": "vertxSerializeStageManager",
       "dependencyOverrides": {}
     },
     {
-      "name": "vertx-publish",
+      "name": "vertxPublishStageManager",
       "dependencyOverrides": {}
     },
     {
-      "name": "vertx-http-client",
+      "name": "vertxHttpClientStageManager",
       "dependencyOverrides": {},
       "config": {}
     },
     {
-      "name": "vertx-http-server",
+      "name": "vertxHttpServerVenue",
       "dependencyOverrides": {},
       "config": {
         "httpServer":{
@@ -47,23 +49,67 @@
       }
     },
     {
-      "name": "vertx-venue",
+      "name": "vertxVenue",
       "dependencyOverrides": {}
     },
     {
-      "name": "example-application-stage-manager",
+      "name": "exampleApplicationStageManager",
       "dependencyOverrides": {
-        "http-client": "vertx-http-client",
-        "serialize": "vertx-serialize",
-        "publish": "vertx-publish",
-        "sql": "vertx-sql"
+        "http-client": "vertxHttpClientStageManager",
+        "serialize": "vertxSerializeStageManager",
+        "publish": "vertxPublishStageManager",
+        "sql": "vertxSqlStageManager"
       }
     },
     {
-      "name": "example-application",
-      "dependencyOverrides": {
-        "http-server-venue": "vertx-http-server",
-        "queue-venue": "vertx-venue"
+      "name":"httpProduktionManager",
+      "dependencyOverrides":{
+          "venue":"vertxHttpServerVenue",
+          "stageManager":"exampleApplicationStageManager"
+      },
+      "config":{
+        "produktions":[
+          {
+            "className":"playwrigkt.skript.user.http.UserHttpSkripts",
+            "mappings": {
+              "getUser": {
+                "path": "/users/{userId}",
+                "headers": {
+                  "Authorization": []
+                },
+                "method": "GET"
+              },
+              "createUser": {
+                "path": "/users",
+                "headers": {},
+                "method": "Post"
+              },
+              "loginUser": {
+                "path": "/login",
+                "headers": {},
+                "method": "Post"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name":"queueProduktionManager",
+      "dependencyOverrides":{
+        "venue":"vertxVenue",
+        "stageManager":"exampleApplicationStageManager"
+      },
+      "config":{
+        "produktions":[
+          {
+            "className":"playwrigkt.skript.user.UserQueueSkripts",
+            "mappings": {
+              "processCreateEvent": "user.updated",
+              "processLoginEvent": "user.login"
+            }
+          }
+        ]
       }
     }
   ]

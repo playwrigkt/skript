@@ -6,26 +6,28 @@
   ],
   "applicationResourceLoaders": [
     {
-      "name": "serialize",
+      "name": "syncJacksonSerializeStageManager",
       "dependencyOverrides": {}
     },
     {
-      "name": "stdOut",
+      "name": "stdOutStageManager",
       "dependencyOverrides": {}
     },
     {
-      "name": "stdIn",
+      "name": "stdInStageManager",
       "dependencyOverrides": {}
     },
     {
-      "name": "file",
+      "name": "syncFileStageManager",
       "dependencyOverrides": {}
     },
     {
-      "name": "exampleApp",
+      "name": "myStageManager",
       "dependencyOverrides": {
-        "inputStream": "stdIn",
-        "outputStream": "stdOut"
+        "serialize": "syncJacksonSerializeStageManager",
+        "file": "syncFileStageManager",
+        "inputStream": "stdInStageManager",
+        "outputStream": "stdOutStageManager"
       }
     }
   ]

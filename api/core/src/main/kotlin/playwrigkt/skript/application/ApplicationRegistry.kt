@@ -4,7 +4,6 @@ import org.funktionale.option.getOrElse
 import org.funktionale.option.toOption
 import org.funktionale.tries.Try
 import playwrigkt.skript.result.LightweightSynchronized
-import playwrigkt.skript.stagemanager.StageManager
 import java.util.concurrent.locks.ReentrantLock
 
 
@@ -21,12 +20,12 @@ class ApplicationRegistry: LightweightSynchronized {
     override fun toString(): String =
         """ApplicationRegistry(registry=$registry)"""
     override val lock: ReentrantLock = ReentrantLock()
-    private val registry: MutableMap<String, ApplicationResourceLoader<*>> = mutableMapOf()
+    private val registry: MutableMap<String, ApplicationResourceLoader<out ApplicationResource>> = mutableMapOf()
 
-    fun <Loader> register(loader: Loader): Try<Unit> where Loader: ApplicationResourceLoader<*> = lock {
-        registry.get(loader.name)
-                ?.let { Try.Failure<Unit>(RegistryException(RegistryError.DuplicateStageManagerLoader(loader.name))) }
-                ?: Try.Success(registry.put(loader.name, loader))
+    fun <Loader> register(loader: Loader): Try<Unit> where Loader: ApplicationResourceLoader<out ApplicationResource> = lock {
+        registry.get(loader.name())
+                ?.let { Try.Failure<Unit>(RegistryException(RegistryError.DuplicateStageManagerLoader(loader.name()))) }
+                ?: Try.Success(registry.put(loader.name(), loader))
                         .map { Unit }
 
     }
@@ -44,7 +43,7 @@ class ApplicationRegistry: LightweightSynchronized {
                     ?: Try.Failure(RegistryException(RegistryError.NotFound(name)))
 
     fun dependenciesAreSatisfied(config: ApplicationResourceLoaderConfig,
-                                 existingStageManagers: Map<String, *>): Boolean =
+                                 existingStageManagers: Map<String, ApplicationResource>): Boolean =
             existingStageManagers.keys.containsAll(
                     registry.get(config.name)
                             .toOption()

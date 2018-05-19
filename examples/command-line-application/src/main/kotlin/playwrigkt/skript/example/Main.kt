@@ -1,11 +1,14 @@
 package playwrigkt.skript.example
 
 import playwrigkt.skript.Skript
-import playwrigkt.skript.application.*
+import playwrigkt.skript.application.ApplicationRegistry
+import playwrigkt.skript.application.SkriptApplicationLoader
+import playwrigkt.skript.application.loadApplication
 import playwrigkt.skript.ex.andThen
 import playwrigkt.skript.ex.join
 import playwrigkt.skript.ex.lift
-import playwrigkt.skript.file.*
+import playwrigkt.skript.file.FileReference
+import playwrigkt.skript.file.FileSkript
 import playwrigkt.skript.iostream.*
 import playwrigkt.skript.performer.FilePerformer
 import playwrigkt.skript.performer.SerializePerformer
@@ -67,7 +70,7 @@ fun main(args: Array<String>) {
     val waitLatch = CountDownLatch(1)
 
     val result = loadApplication.run("examples/command-line-application/application.json", SkriptApplicationLoader(SyncFileTroupe, SyncJacksonSerializeStageManager().hireTroupe(), registry))
-            .map { it.applicationResources.get("exampleApp") }
+            .map { it.applicationResources.get(MyStageManagerLoader.name()) }
             .flatMap { it
                     ?.let { AsyncResult.succeeded(it) }
                     ?: AsyncResult.failed(

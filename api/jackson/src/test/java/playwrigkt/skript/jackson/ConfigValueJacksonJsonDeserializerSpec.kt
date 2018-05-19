@@ -6,8 +6,8 @@ import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
 import playwrigkt.skript.config.ConfigValue
 import playwrigkt.skript.ex.configValue
-import java.math.BigInteger
 import java.math.BigDecimal
+import java.math.BigInteger
 
 class ConfigValueJacksonJsonDeserializerSpec: StringSpec() {
     init {

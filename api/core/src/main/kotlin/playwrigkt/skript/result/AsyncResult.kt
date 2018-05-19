@@ -43,9 +43,12 @@ interface AsyncResult<T> {
     fun addHandler(handler: (Result<T>) -> Unit)
 
 
-    fun alsoComplete(completableResult: CompletableResult<T>): Unit = this.addHandler {
-        it.result?.let(completableResult::succeed)
-                ?: it.error?.let(completableResult::fail)
+    fun <U> also(f: (Result<T>) -> AsyncResult<U>): AsyncResult<U> {
+        val result = CompletableResult<U>()
+        this.addHandler {
+            f(it).addHandler(result.completionHandler())
+        }
+        return result
     }
 
     /**

@@ -1,12 +1,10 @@
 package playwrigkt.skript.user
 
 import org.funktionale.tries.Try
-import playwrigkt.skript.ExampleApplication.Companion.userCreatedAddress
-import playwrigkt.skript.ExampleApplication.Companion.userLoginAddress
 import playwrigkt.skript.Skript
 import playwrigkt.skript.ex.*
 import playwrigkt.skript.queue.QueueMessage
-import playwrigkt.skript.sql.transaction.SQLTransactionSkript
+import playwrigkt.skript.sql.transaction.SqlTransactionSkript
 import playwrigkt.skript.troupe.ApplicationTroupe
 import playwrigkt.skript.user.models.*
 import playwrigkt.skript.user.sql.*
@@ -15,6 +13,9 @@ import java.util.*
 
 object UserSkripts {
     private val createNewSessionKey: (String) -> UserSession = { UserSession(UUID.randomUUID().toString(), it, Instant.now().plusSeconds(3600)) }
+
+    val userCreatedAddress = "user.updated"
+    val userLoginAddress = "user.login"
 
     private val PUBLISH_USER_CREATE_EVENT: Skript<UserProfile, UserProfile, ApplicationTroupe> =
             Skript.identity<UserProfile, ApplicationTroupe>()
@@ -37,14 +38,14 @@ object UserSkripts {
     }
 
     val createSkript: Skript<UserProfileAndPassword, UserProfile, ApplicationTroupe> =
-            SQLTransactionSkript.transaction(
+            SqlTransactionSkript.transaction(
                     Skript.identity<UserProfileAndPassword, ApplicationTroupe>()
                             .update(InsertUserProfileMapping)
                             .update(InsertUserPasswordMapping)
                             .andThen(PUBLISH_USER_CREATE_EVENT))
 
     val loginSkript: Skript<UserNameAndPassword, UserSession, ApplicationTroupe> =
-            SQLTransactionSkript.transaction(
+            SqlTransactionSkript.transaction(
                     Skript.identity<UserNameAndPassword, ApplicationTroupe>()
                             .query(SelectUserIdForLogin)
                             .query(ValidatePasswordForUserId)
@@ -55,7 +56,7 @@ object UserSkripts {
 
 
     val getSkript: Skript<playwrigkt.skript.auth.TokenAndInput<String>, UserProfile, ApplicationTroupe> =
-            SQLTransactionSkript.autoCommit(
+            SqlTransactionSkript.autoCommit(
                     validateSession<String>(onlyIfRequestedUserMatchesSessionUser)
                             .query(SelectUserProfileById))
 

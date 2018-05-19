@@ -8,6 +8,8 @@ http/cards
 */out/
 api/*/out/
 impl/*/out/
+api/*/build/
+impl/*/build/
 *.class
 examples/*/build/
 examples/*/out/

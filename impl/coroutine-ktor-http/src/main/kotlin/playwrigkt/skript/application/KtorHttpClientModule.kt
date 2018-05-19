@@ -11,7 +11,6 @@ class KtorHttpClientModule: SkriptModule {
 
 object KtorHttpClientStageManagerLoader: ApplicationResourceLoader<KtorHttpClientStageManager> {
     override val dependencies: List<String> = emptyList()
-    override val name: String = "ktor-http-client"
 
     override val loadResource: Skript<ApplicationResourceLoader.Input, KtorHttpClientStageManager, SkriptApplicationLoader> =
             Skript.map { KtorHttpClientStageManager() }
@@ -19,7 +18,6 @@ object KtorHttpClientStageManagerLoader: ApplicationResourceLoader<KtorHttpClien
 
 object KtorHttpServerVenueLoader: ApplicationResourceLoader<KtorHttpServerVenue> {
     override val dependencies: List<String> = emptyList()
-    override val name: String = "ktor-http-server"
 
     override val loadResource: Skript<ApplicationResourceLoader.Input, KtorHttpServerVenue, SkriptApplicationLoader> =
             Skript.both(
