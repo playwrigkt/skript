@@ -7,6 +7,7 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import playwrigkt.skript.Skript
 import playwrigkt.skript.config.ConfigValue
+import playwrigkt.skript.ex.AggregateException
 import playwrigkt.skript.troupe.FileTroupe
 import playwrigkt.skript.troupe.SerializeTroupe
 
@@ -91,7 +92,7 @@ class ApplicationRegistryTest: StringSpec() {
             val applicationLoader = SkriptApplicationLoader(mock(FileTroupe::class.java), mock(SerializeTroupe::class.java), registry)
             val appConfig = AppConfig(emptyList(), listOf(ApplicationResourceLoaderConfig(name, emptyMap(), ConfigValue.Empty.Null)))
             val result = applicationLoader.buildApplication(appConfig)
-            result.error() shouldBe ApplicationRegistry.RegistryException(ApplicationRegistry.RegistryError.NotFound(name))
+            result.error() shouldBe AggregateException(listOf(ApplicationRegistry.RegistryException(ApplicationRegistry.RegistryError.NotFound(name))))
             result.result() shouldBe null
         }
 
