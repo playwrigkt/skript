@@ -63,18 +63,6 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
                 .first()
     }
 
-    abstract val queueVenueName: String
-    val queueVenue by lazy {
-        skriptApplication.applicationResources
-                .get(queueVenueName)
-                ?.let { it as QueueVenue }!!
-    }
-
-    val httpProduktiionManager by lazy  {
-        skriptApplication.applicationResources
-                .get(HttpProduktionManagerLoader.name())
-                ?.let { it as ProduktionsManager<HttpServer.Endpoint, HttpServer.Request<ByteArray>, HttpServer.Response, ApplicationTroupe> }!!
-    }
     val userService by lazy { UserService(stageManager) }
 
     

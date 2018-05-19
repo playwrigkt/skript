@@ -5,7 +5,8 @@
     "playwrigkt.skript.application.CoroutineJacksonSerializeModule",
     "playwrigkt.skript.application.CoroutineAmqpModule",
     "playwrigkt.skript.application.ExampleApplicationModule",
-    "playwrigkt.skript.application.HttpProduktionManagerModule"
+    "playwrigkt.skript.application.HttpProduktionManagerModule",
+    "playwrigkt.skript.application.QueueProduktionManagerModule"
   ],
   "applicationResourceLoaders": [
     {
@@ -99,6 +100,24 @@
                 "headers": {},
                 "method": "Post"
               }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name":"queueProduktionManager",
+      "dependencyOverrides":{
+        "venue":"coroutineAmqpVenue",
+        "stageManager":"exampleApplicationStageManager"
+      },
+      "config":{
+        "produktions":[
+          {
+            "className":"playwrigkt.skript.user.UserQueueSkripts",
+            "mappings": {
+              "processCreateEvent": "user.updated",
+              "processLoginEvent": "user.login"
             }
           }
         ]

@@ -2,7 +2,8 @@
   "modules":[
     "playwrigkt.skript.application.VertxModule",
     "playwrigkt.skript.application.ExampleApplicationModule",
-    "playwrigkt.skript.application.HttpProduktionManagerModule"
+    "playwrigkt.skript.application.HttpProduktionManagerModule",
+    "playwrigkt.skript.application.QueueProduktionManagerModule"
   ],
   "applicationResourceLoaders": [
     {
@@ -88,6 +89,24 @@
                 "headers": {},
                 "method": "Post"
               }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name":"queueProduktionManager",
+      "dependencyOverrides":{
+        "venue":"vertxVenue",
+        "stageManager":"exampleApplicationStageManager"
+      },
+      "config":{
+        "produktions":[
+          {
+            "className":"playwrigkt.skript.user.UserQueueSkripts",
+            "mappings": {
+              "processCreateEvent": "user.updated",
+              "processLoginEvent": "user.login"
             }
           }
         ]

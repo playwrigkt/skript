@@ -8,7 +8,9 @@ import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.LightweightSynchronized
 import playwrigkt.skript.stagemanager.StageManager
 import playwrigkt.skript.venue.Venue
+import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantLock
 
@@ -37,6 +39,9 @@ data class ProduktionsManager<Rule, Beginning, End, Troupe>(val venue: Venue<Rul
                     .map { Unit }
 }
 
+/**
+ * TODO harden bouncing restart. i.e. backoff delay,
+ */
 data class ProduktionManager<Rule, Beginning, End, Troupe>(val venue: Venue<Rule, Beginning, End>,
                                                            val stageManager: StageManager<Troupe>,
                                                            val rule: Rule,
@@ -46,6 +51,8 @@ data class ProduktionManager<Rule, Beginning, End, Troupe>(val venue: Venue<Rule
     override val lock: ReentrantLock = ReentrantLock()
     @Volatile private var restart = AtomicBoolean(true)
     private val produktion = AtomicReference<Produktion>()
+    private val startTime = AtomicLong(System.currentTimeMillis())
+    private val recentTimes = LinkedBlockingQueue<Long>()
 
     companion object {
         fun <Rule, Beginning, End, Troupe> of(
@@ -79,16 +86,28 @@ data class ProduktionManager<Rule, Beginning, End, Troupe>(val venue: Venue<Rule
                 log.info("produktion has stopped.. $it")
                 lock {
                     if(restart.get()) {
+                        val timeAlive = System.currentTimeMillis() - startTime.get()
+                        if(recentTimes.size > 10) {
+                            recentTimes.remove()
+                        }
+                        recentTimes.add(timeAlive)
+                        val average = recentTimes.average()
+                        if(average < 1000) {
+                            log.info("Produktion has bounced at an average rate of $average ms, waiting for a second before restarting")
+                            Thread.sleep(1000)
+                        }
                         log.info("restarting.. $rule")
                         this.startProduktion()
                     }
                 }
             }
 
-    private fun startProduktion(): AsyncResult<out Produktion> =
-            venue.produktion(skript, stageManager, rule)
-                    .let {
-                        applyRestart(it)
-                        it
-                    }
+    private fun startProduktion(): AsyncResult<out Produktion> {
+        startTime.set(System.currentTimeMillis())
+        return venue.produktion(skript, stageManager, rule)
+                .let {
+                    applyRestart(it)
+                    it
+                }
+    }
 }

@@ -47,47 +47,15 @@ abstract class UserServiceSpec : StringSpec() {
                 .first()
     }
 
-    abstract val queueVenueName: String
-    val queueVenue by lazy {
-        skriptApplication.applicationResources
-                .get(queueVenueName)
-                ?.let { it as QueueVenue }!!
-    }
-
     val httpProduktiionManager by lazy  {
         skriptApplication.applicationResources
                 .get(HttpProduktionManagerLoader.name())
                 ?.let { it as ProduktionsManager<HttpServer.Endpoint, HttpServer.Request<ByteArray>, HttpServer.Response, ApplicationTroupe> }!!
     }
 
-    fun queueConsumerProduktion(queue: String, skript: Skript<QueueMessage, Unit, ApplicationTroupe>): AsyncResult<out Produktion> =
-            queueVenue.produktion(skript, stageManager, queue)
-
     val userHttpClient = UserHttpClient(port)
     val userService: UserService by lazy { UserService(stageManager) }
 
-
-    fun loginProduktion(): Produktion =
-            awaitSucceededFuture(queueConsumerProduktion(
-                UserSkripts.userLoginAddress,
-                Skript.identity<QueueMessage, ApplicationTroupe>()
-                        .map { it.body }
-                        .deserialize(UserSession::class.java)
-                        .map(processedLoginEvents::add)
-                        .map { Unit }))!!
-
-    val processedLoginEvents = LinkedBlockingQueue<UserSession>()
-
-    fun createProduktion(): Produktion =
-            awaitSucceededFuture(queueConsumerProduktion(
-                    UserSkripts.userCreatedAddress,
-                Skript.identity<QueueMessage, ApplicationTroupe>()
-                        .map { it.body }
-                        .deserialize(UserProfile::class.java)
-                        .map(processedCreateEvents::add)
-                        .map { Unit }))!!
-
-    val processedCreateEvents = LinkedBlockingQueue<UserProfile>()
 
     override fun beforeSpec(description: Description, spec: Spec) {
         val loader = SkriptApplicationLoader(SyncFileTroupe, SyncJacksonSerializeStageManager().hireTroupe(), ApplicationRegistry())
@@ -120,16 +88,13 @@ abstract class UserServiceSpec : StringSpec() {
 
     init {
         "Login a userName" {
+            UserQueueSkripts.processedCreateEvents.clear()
+            UserQueueSkripts.processedLoginEvents.clear()
             val userId = UUID.randomUUID().toString()
             val password = "pass1"
             val userName = "sally"
             val user = UserProfile(userId, userName, false)
             val userAndPassword = UserNameAndPassword(userName, password)
-            val createStream = createProduktion()
-            val loginStream= loginProduktion()
-
-            createStream.isRunning() shouldBe true
-            loginStream.isRunning() shouldBe true
 
             awaitSucceededFuture(
                     userService.createUser(UserProfileAndPassword(user, password)),
@@ -139,10 +104,8 @@ abstract class UserServiceSpec : StringSpec() {
             session?.userId shouldBe userId
             session shouldNotBe null
 
-            awaitStreamItem(processedCreateEvents, user)
-            awaitStreamItem(processedLoginEvents, session!!)
-            awaitSucceededFuture(createStream.stop())
-            awaitSucceededFuture(loginStream.stop())
+            awaitStreamItem(UserQueueSkripts.processedCreateEvents, user)
+            awaitStreamItem(UserQueueSkripts.processedLoginEvents, session!!)
         }
 
         "Fail to loginActionChain a user with a bad password" {
