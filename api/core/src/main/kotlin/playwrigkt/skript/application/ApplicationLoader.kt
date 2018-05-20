@@ -97,6 +97,8 @@ data class SkriptApplicationLoader(val fileTroupe: FileTroupe, val serializeTrou
                                     .liftTry()
                                     .onSuccess {
                                         sb.appendln("=".repeat(20))
+                                        sb.appendln(applicationRegistry)
+                                        sb.appendln("=".repeat(20))
                                         log.info("\n${sb.toString()}") }
                                     .onFailure {
                                         log.error("could not generate missing dependency report", it)
