@@ -1,5 +1,6 @@
 {
   "modules":[
+    "playwrigkt.skript.application.SyncCoreSkriptModule",
     "playwrigkt.skript.application.VertxModule",
     "playwrigkt.skript.application.ExampleApplicationModule",
     "playwrigkt.skript.application.HttpProduktionManagerModule",
@@ -52,6 +53,17 @@
     {
       "name": "vertxVenue",
       "dependencyOverrides": {}
+    },
+    {
+      "name":"configurationStageManager",
+      "implements":"syncConfigStageManager",
+      "dependencyOverrides":{},
+      "config": {
+        "userHttpClient":{
+          "host":"localhost",
+          "port":8080
+        }
+      }
     },
     {
       "name": "exampleApplicationStageManager",

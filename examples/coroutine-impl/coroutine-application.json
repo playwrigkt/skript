@@ -1,5 +1,6 @@
 {
   "modules":[
+    "playwrigkt.skript.application.SyncCoreSkriptModule",
     "playwrigkt.skript.application.KtorHttpClientModule",
     "playwrigkt.skript.application.CoroutineJdbcSqlModule",
     "playwrigkt.skript.application.CoroutineJacksonSerializeModule",
@@ -36,7 +37,8 @@
           "password":"rabbitmq",
           "host":"localhost",
           "port":5672,
-          "virtualHost":"/"
+          "virtualHost":"/",
+          "use.default.client.properties":true
         }
       }
     },
@@ -62,6 +64,17 @@
     {
       "name": "coroutineAmqpVenue",
       "dependencyOverrides": {}
+    },
+    {
+      "name":"configurationStageManager",
+      "implements":"syncConfigStageManager",
+      "dependencyOverrides":{},
+      "config": {
+        "userHttpClient":{
+          "host":"localhost",
+          "port":8080
+        }
+      }
     },
     {
       "name": "exampleApplicationStageManager",

@@ -8,10 +8,11 @@ data class ApplicationStageManager(
         val publishProvider: StageManager<QueuePublishTroupe>,
         val sqlProvider: StageManager<SqlTroupe>,
         val serializeProvider: StageManager<SerializeTroupe>,
-        val httpManager: StageManager<HttpClientTroupe>): StageManager<ApplicationTroupe> {
+        val httpManager: StageManager<HttpClientTroupe>,
+        val configManager: StageManager<ConfigTroupe>): StageManager<ApplicationTroupe> {
 
     override fun hireTroupe(): ApplicationTroupe =
-            ApplicationTroupe(publishProvider.hireTroupe(), sqlProvider.hireTroupe(), serializeProvider.hireTroupe(), httpManager.hireTroupe())
+            ApplicationTroupe(publishProvider.hireTroupe(), sqlProvider.hireTroupe(), serializeProvider.hireTroupe(), httpManager.hireTroupe(), configManager.hireTroupe())
 
     fun <I, O> runWithTroupe(skript: Skript<I, O, ApplicationTroupe>, i: I): AsyncResult<O> {
         return skript.run(i, hireTroupe())

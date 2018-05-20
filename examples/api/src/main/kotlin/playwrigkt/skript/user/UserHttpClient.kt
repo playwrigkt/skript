@@ -12,14 +12,25 @@ import playwrigkt.skript.user.models.UserProfileAndPassword
 import playwrigkt.skript.user.models.UserSession
 
 //TODO get port from configuration
-class UserHttpClient(val port: Int?) {
+class UserHttpClient(val configBase: String = "userHttpClient") {
+    private val getHostFromConfig = Skript.identity<Any, ApplicationTroupe>()
+            .map { "userHttpClient.host" }
+            .configValue()
+            .mapTry { it.text() }
+            .map { it.value }
+
+    private val getPortFromConfig = Skript.identity<Any, ApplicationTroupe>()
+            .map { "userHttpClient.port" }
+            .configValue()
+            .map { it.number().map { it.value.intValueExact() }.toOption().orNull() }
+
     val createUserRequestSkript = Skript.identity<UserProfileAndPassword, ApplicationTroupe>()
             .httpClientRequest(
                     method = Http.Method.Post,
                     uri = uri(
                             useSsl = Skript.map { false },
-                            host = Skript.map { "localhost" },
-                            port = Skript.map { port },
+                            host = getHostFromConfig,
+                            port = getPortFromConfig,
                             pathTemplate = Skript.map { "/users" },
                             pathParameters = Skript.map { emptyMap() },
                             queryParameters = Skript.map { emptyMap() }),
@@ -36,8 +47,8 @@ class UserHttpClient(val port: Int?) {
                     method = Http.Method.Post,
                     uri = uri(
                             useSsl = Skript.map { false },
-                            host = Skript.map { "localhost" },
-                            port = Skript.map { port },
+                            host = getHostFromConfig,
+                            port = getPortFromConfig,
                             pathTemplate = Skript.map { "/login" },
                             pathParameters = Skript.map { emptyMap() },
                             queryParameters = Skript.map { emptyMap() }),
@@ -53,8 +64,8 @@ class UserHttpClient(val port: Int?) {
                     method = Http.Method.Get,
                     uri = uri(
                             useSsl = Skript.map { false },
-                            host = Skript.map { "localhost" },
-                            port = Skript.map { port },
+                            host = getHostFromConfig,
+                            port = getPortFromConfig,
                             pathTemplate = Skript.map { "/users/{userId}" },
                             pathParameters = Skript.map { mapOf("userId" to it.input) },
                             queryParameters = Skript.map { emptyMap() }),
