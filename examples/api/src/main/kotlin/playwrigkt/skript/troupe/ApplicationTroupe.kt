@@ -1,20 +1,20 @@
 package playwrigkt.skript.troupe
 
-import playwrigkt.skript.performer.HttpClientPerformer
-import playwrigkt.skript.performer.QueuePublishPerformer
-import playwrigkt.skript.performer.SqlPerformer
-import playwrigkt.skript.performer.SerializePerformer
+import playwrigkt.skript.performer.*
 import playwrigkt.skript.result.AsyncResult
 
 data class ApplicationTroupe(
         private val publishTroupe: QueuePublishTroupe,
         private val sqlTroupe: SqlTroupe,
         private val serializeTroupe: SerializeTroupe,
-        private val httpClientTroupe: HttpClientTroupe):
+        private val httpClientTroupe: HttpClientTroupe,
+        private val configTroupe: ConfigTroupe):
         QueuePublishTroupe,
         SqlTroupe,
         SerializeTroupe,
-        HttpClientTroupe {
+        HttpClientTroupe,
+        ConfigTroupe {
+    override fun getConfigPerformer(): AsyncResult<out ConfigPerformer> = configTroupe.getConfigPerformer()
     override fun getHttpRequestPerformer(): AsyncResult<out HttpClientPerformer> = httpClientTroupe.getHttpRequestPerformer()
     override fun getPublishPerformer(): AsyncResult<out QueuePublishPerformer> = publishTroupe.getPublishPerformer()
     override fun getSerializePerformer(): AsyncResult<out SerializePerformer> = serializeTroupe.getSerializePerformer()

@@ -53,7 +53,7 @@ abstract class UserServiceSpec : StringSpec() {
                 ?.let { it as ProduktionsManager<HttpServer.Endpoint, HttpServer.Request<ByteArray>, HttpServer.Response, ApplicationTroupe> }!!
     }
 
-    val userHttpClient = UserHttpClient(port)
+    val userHttpClient = UserHttpClient()
     val userService: UserService by lazy { UserService(stageManager) }
 
 

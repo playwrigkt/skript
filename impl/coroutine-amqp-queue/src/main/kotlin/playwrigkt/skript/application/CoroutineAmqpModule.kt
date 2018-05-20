@@ -31,9 +31,6 @@ object AmqpConnectionFactoryLoader: ApplicationResourceLoader<StageManager<Conne
                             val factory by lazy {
                                 val connectionFactory = ConnectionFactory()
                                 ConnectionFactoryConfigurator.load(connectionFactory, it.toMap(), "")
-                                if(connectionFactory.clientProperties.isEmpty()) {
-                                    connectionFactory.setClientProperties(AMQConnection.defaultClientProperties())
-                                }
                                 connectionFactory
                             }
 

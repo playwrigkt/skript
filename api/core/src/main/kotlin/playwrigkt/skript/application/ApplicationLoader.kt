@@ -70,6 +70,39 @@ data class SkriptApplicationLoader(val fileTroupe: FileTroupe, val serializeTrou
         fun buildApplication(appConfig: AppConfig): AsyncResult<SkriptApplication> =
                 buildStageManagers(appConfig.applicationResourceLoaders)
                         .map { SkriptApplication(it, appConfig, applicationRegistry) }
+                        .onFailure {
+                            log.info("Generating failed application startup information...")
+                            val sb = StringBuilder()
+
+                            sb.appendln("=".repeat(20))
+                            sb.appendln("MISSING DEPENDENCY REPORT")
+                            sb.appendln("=".repeat(20))
+
+                            appConfig.applicationResourceLoaders
+                                    .map { config ->
+                                        applicationRegistry
+                                                .getLoader(config.name)
+                                                .rescue { applicationRegistry.getLoader(config.implements) }
+                                                .map {
+                                                    it.dependencies.filter { applicationRegistry.getLoader(config.applyOverride(it)).isFailure() }
+                                                }
+                                                .onSuccess {
+                                                    if(it.isNotEmpty()) {
+                                                        sb.appendln("resource ${config.name}")
+                                                        sb.appendln("\timplements ${config.implements}")
+                                                        sb.appendln("\tmissing dependencies $it")
+                                                    }
+                                                }
+                                    }
+                                    .liftTry()
+                                    .onSuccess {
+                                        sb.appendln("=".repeat(20))
+                                        log.info("\n${sb.toString()}") }
+                                    .onFailure {
+                                        log.error("could not generate missing dependency report", it)
+                                    }
+
+                        }
 
         private fun buildStageManagers(remainingApplicationResources: List<ApplicationResourceLoaderConfig>,
                                        completedApplicationResources: Map<String, out ApplicationResource> = emptyMap()): AsyncResult<Map<String, out ApplicationResource>> {

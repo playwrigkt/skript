@@ -138,6 +138,13 @@ interface Skript<in I, O, Troupe> {
     fun whenTrue(doOptionally: Skript<O, O, Troupe>, control: Skript<O, Boolean, Troupe>): Skript<I, O, Troupe> =
             this.compose(SkriptWhenTrue(doOptionally, control))
 
+
+    data class Recover<I, O, Troupe>(val skript: Skript<I, O, Troupe>, val recovery: Skript<Pair<I, Throwable>, O, Troupe>): Skript<I, O, Troupe> {
+        override fun run(i: I, troupe: Troupe): AsyncResult<O> =
+            skript.run(i, troupe)
+                    .recover { recovery.run(Pair(i, it), troupe) }
+    }
+
     data class SkriptIterate<I, O, Troupe>(val skript: Skript<I, O, Troupe>): Skript<List<I>, List<O>, Troupe> {
         override fun run(i: List<I>, troupe: Troupe): AsyncResult<List<O>> =
             i.map { skript.run(it, troupe) }
