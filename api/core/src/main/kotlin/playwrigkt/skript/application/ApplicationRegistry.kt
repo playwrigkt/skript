@@ -1,6 +1,7 @@
 package playwrigkt.skript.application
 
 import org.funktionale.option.getOrElse
+import org.funktionale.option.orElse
 import org.funktionale.option.toOption
 import org.funktionale.tries.Try
 import playwrigkt.skript.result.LightweightSynchronized
@@ -47,6 +48,7 @@ class ApplicationRegistry: LightweightSynchronized {
             existingStageManagers.keys.containsAll(
                     registry.get(config.name)
                             .toOption()
+                            .orElse { registry.get(config.implements).toOption() }
                             .map { registry ->
                                 registry.dependencies.map { config.dependencyOverrides.get(it)?:it }
                             }

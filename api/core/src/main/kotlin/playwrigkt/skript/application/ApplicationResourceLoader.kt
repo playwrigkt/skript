@@ -6,7 +6,8 @@ import playwrigkt.skript.config.ConfigValue
 
 data class ApplicationResourceLoaderConfig(val name: String,
                                            val dependencyOverrides: Map<String, String>,
-                                           val config: ConfigValue = ConfigValue.Empty.Undefined) {
+                                           val config: ConfigValue = ConfigValue.Empty.Undefined,
+                                           val implements: String = "") {
     fun applyOverride(dependency: String): String = dependencyOverrides.get(dependency)?:dependency
 }
 
