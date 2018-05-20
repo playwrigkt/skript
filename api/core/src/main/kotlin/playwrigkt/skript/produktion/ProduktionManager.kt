@@ -5,6 +5,7 @@ import playwrigkt.skript.Skript
 import playwrigkt.skript.application.ApplicationResource
 import playwrigkt.skript.ex.*
 import playwrigkt.skript.result.AsyncResult
+import playwrigkt.skript.result.CompletableResult
 import playwrigkt.skript.result.LightweightSynchronized
 import playwrigkt.skript.stagemanager.StageManager
 import playwrigkt.skript.venue.Venue
@@ -54,6 +55,7 @@ data class ProduktionManager<Rule, Beginning, End, Troupe>(val venue: Venue<Rule
     private val startTime = AtomicLong(System.currentTimeMillis())
     private val recentTimes = LinkedBlockingQueue<Long>()
 
+    private val result = CompletableResult<Unit>()
     companion object {
         fun <Rule, Beginning, End, Troupe> of(
                 venue: Venue<Rule, Beginning, End>,
@@ -67,12 +69,15 @@ data class ProduktionManager<Rule, Beginning, End, Troupe>(val venue: Venue<Rule
 
     }
 
-    fun stop(): AsyncResult<Unit> =
-        lock {
-            log.info("stopping produktion.. $rule")
-            this.restart.set(false)
-            this.produktion.get().stop()
+    fun stop(): AsyncResult<Unit> {
+        log.info("stopping produktion.. $rule")
+        if(this.restart.getAndSet(false)){
+            this.produktion.get()
+                    .stop()
+                    .addHandler(result.completionHandler())
         }
+        return result
+    }
 
     private fun applyRestart(result: AsyncResult<out Produktion>) = result
             .flatMap {

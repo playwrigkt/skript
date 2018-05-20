@@ -66,14 +66,15 @@
     {
       "name": "exampleApplicationStageManager",
       "dependencyOverrides": {
-        "http-client": "ktorHttpClientStageManager",
-        "serialize": "coroutineJacksonSerializeStageManager",
-        "publish": "coroutineAmqpPublishStageManager",
-        "sql": "coroutineJdbcSqlStageManager"
+        "httpClientStageManager": "ktorHttpClientStageManager",
+        "serializeStageManager": "coroutineJacksonSerializeStageManager",
+        "publishStageManager": "coroutineAmqpPublishStageManager",
+        "sqlStageManager": "coroutineJdbcSqlStageManager"
       }
     },
     {
-      "name":"httpProduktionManager",
+      "name":"userHttpProduktionManager",
+      "implements":"httpProduktionManager",
       "dependencyOverrides":{
         "venue":"ktorHttpServerVenue",
         "stageManager":"exampleApplicationStageManager"
@@ -106,7 +107,8 @@
       }
     },
     {
-      "name":"queueProduktionManager",
+      "name":"userQueueProduktionManager",
+      "implements": "queueProduktionManager",
       "dependencyOverrides":{
         "venue":"coroutineAmqpVenue",
         "stageManager":"exampleApplicationStageManager"

@@ -36,6 +36,7 @@
     },
     {
       "name": "vertxHttpClientStageManager",
+      "implements": "httpClientStageManager",
       "dependencyOverrides": {},
       "config": {}
     },
@@ -55,14 +56,14 @@
     {
       "name": "exampleApplicationStageManager",
       "dependencyOverrides": {
-        "http-client": "vertxHttpClientStageManager",
-        "serialize": "vertxSerializeStageManager",
-        "publish": "vertxPublishStageManager",
-        "sql": "vertxSqlStageManager"
+        "serializeStageManager": "vertxSerializeStageManager",
+        "publishStageManager": "vertxPublishStageManager",
+        "sqlStageManager": "vertxSqlStageManager"
       }
     },
     {
-      "name":"httpProduktionManager",
+      "name":"userHttpProduktionManager",
+      "implements": "httpProduktionManager",
       "dependencyOverrides":{
           "venue":"vertxHttpServerVenue",
           "stageManager":"exampleApplicationStageManager"
@@ -95,7 +96,8 @@
       }
     },
     {
-      "name":"queueProduktionManager",
+      "name":"userQueueProduktionManager",
+      "implements":"queueProduktionManager",
       "dependencyOverrides":{
         "venue":"vertxVenue",
         "stageManager":"exampleApplicationStageManager"

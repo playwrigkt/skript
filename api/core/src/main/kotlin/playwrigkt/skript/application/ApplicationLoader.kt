@@ -1,5 +1,8 @@
 package playwrigkt.skript.application
 
+import org.funktionale.option.Option
+import org.funktionale.option.getOrElse
+import org.funktionale.option.toOption
 import org.funktionale.tries.Try
 import org.slf4j.LoggerFactory
 import playwrigkt.skript.Skript
@@ -86,8 +89,15 @@ data class SkriptApplicationLoader(val fileTroupe: FileTroupe, val serializeTrou
 
                 val result = remainingApplicationResources
                         .filter { config -> applicationRegistry.dependenciesAreSatisfied(config, completedApplicationResources) }
-                        .map { config -> config.name to
+                        .map { config -> config to
                                 applicationRegistry.getLoader(config.name)
+                                        .rescue {
+                                            config.implements
+                                                    .toOption()
+                                                    .filter { it.isNotBlank() }
+                                                    .map(applicationRegistry::getLoader)
+                                                    .getOrElse { Try.Failure(it) }
+                                        }
                                         .toAsyncResult()
                                         .flatMap {
                                                 log.info("loading application resource $config with $it")
@@ -96,7 +106,11 @@ data class SkriptApplicationLoader(val fileTroupe: FileTroupe, val serializeTrou
                         }
                         .toMap()
                         .lift()
-                        .map { newlyCompleted -> newlyCompleted.plus(completedApplicationResources) }
+                        .map { newlyCompleted ->
+                            newlyCompleted.mapKeys { it.key.name }
+                                    .plus(newlyCompleted.mapKeys { it.key.implements }.minus(""))
+                                    .plus(completedApplicationResources)
+                        }
                         .flatMap { completedAfter -> buildStageManagers(remainingAfter, completedAfter) }
                 result.addHandler { log.info("finished  loading applicationResources: $it") }
                 return result

@@ -13,15 +13,15 @@ class ExampleApplicationModule: SkriptModule {
 }
 
 object ExampleApplicationStageManagerLoader: ApplicationResourceLoader<ApplicationStageManager> {
-    override val dependencies: List<String> = listOf("sql", "publish", "serialize", "http-client")
+    override val dependencies: List<String> = listOf("sqlStageManager", "publishStageManager", "serializeStageManager", "httpClientStageManager")
 
     override val loadResource =
             Skript.identity<ApplicationResourceLoader.Input, SkriptApplicationLoader>()
                     .all(
-                            loadExistingApplicationResourceSkript<StageManager<SqlTroupe>>("sql"),
-                            loadExistingApplicationResourceSkript<StageManager<SerializeTroupe>>("serialize"),
-                            loadExistingApplicationResourceSkript<StageManager<HttpClientTroupe>>("http-client"),
-                            loadExistingApplicationResourceSkript<StageManager<QueuePublishTroupe>>("publish"))
+                            loadExistingApplicationResourceSkript<StageManager<SqlTroupe>>("sqlStageManager"),
+                            loadExistingApplicationResourceSkript<StageManager<SerializeTroupe>>("serializeStageManager"),
+                            loadExistingApplicationResourceSkript<StageManager<HttpClientTroupe>>("httpClientStageManager"),
+                            loadExistingApplicationResourceSkript<StageManager<QueuePublishTroupe>>("publishStageManager"))
                     .join { sql, serialize, httpClient, publish ->
                         ApplicationStageManager(publish, sql, serialize, httpClient)
                     }
