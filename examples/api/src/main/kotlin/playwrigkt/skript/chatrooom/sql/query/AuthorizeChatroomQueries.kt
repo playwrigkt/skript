@@ -39,7 +39,7 @@ fun <T> mapAuthResultSet(input: T, rs: SqlResult.Query): Try<T> {
 
 object AuthorizeChatRoomAddUser: SqlQueryMapping<playwrigkt.skript.auth.SessionAndInput<playwrigkt.skript.chatrooom.models.ChatRoomUser>, playwrigkt.skript.auth.SessionAndInput<playwrigkt.skript.chatrooom.models.ChatRoomUser>> {
     override fun toSql(i: playwrigkt.skript.auth.SessionAndInput<playwrigkt.skript.chatrooom.models.ChatRoomUser>): SqlCommand.Query {
-        return SqlCommand.Query(authorizeChatroomSelectStatement(i.input.chatroom.id, i.session.userId, playwrigkt.skript.chatrooom.models.ChatRoomPermissionKey.AddUser.key))
+        return SqlCommand.Query(authorizeChatroomSelectStatement(i.input.chatroom.id, i.session.userId, playwrigkt.skript.chatrooom.models.ChatRoomPermissionKey.AddUserPermission.key))
     }
 
     override fun mapResult(i: playwrigkt.skript.auth.SessionAndInput<playwrigkt.skript.chatrooom.models.ChatRoomUser>, rs: SqlResult.Query): Try<playwrigkt.skript.auth.SessionAndInput<playwrigkt.skript.chatrooom.models.ChatRoomUser>> {
@@ -49,7 +49,7 @@ object AuthorizeChatRoomAddUser: SqlQueryMapping<playwrigkt.skript.auth.SessionA
 
 object AuthorizeChatRoomRemoveUser: SqlQueryMapping<playwrigkt.skript.auth.SessionAndInput<playwrigkt.skript.chatrooom.models.ChatRoomUser>, playwrigkt.skript.auth.SessionAndInput<playwrigkt.skript.chatrooom.models.ChatRoomUser>> {
     override fun toSql(i: playwrigkt.skript.auth.SessionAndInput<playwrigkt.skript.chatrooom.models.ChatRoomUser>): SqlCommand.Query {
-        return SqlCommand.Query(authorizeChatroomSelectStatement(i.input.chatroom.id, i.session.userId, playwrigkt.skript.chatrooom.models.ChatRoomPermissionKey.RemoveUser.key))
+        return SqlCommand.Query(authorizeChatroomSelectStatement(i.input.chatroom.id, i.session.userId, playwrigkt.skript.chatrooom.models.ChatRoomPermissionKey.RemoveUserPermission.key))
     }
 
     override fun mapResult(i: playwrigkt.skript.auth.SessionAndInput<playwrigkt.skript.chatrooom.models.ChatRoomUser>, rs: SqlResult.Query): Try<playwrigkt.skript.auth.SessionAndInput<playwrigkt.skript.chatrooom.models.ChatRoomUser>> {
