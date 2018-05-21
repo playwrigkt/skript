@@ -177,7 +177,7 @@ val loadModules: Skript<AppConfig, Unit, SkriptApplicationLoader> = Skript.ident
                         .liftTry()
         }
         .mapTryWithTroupe { modules, troupe ->
-                modules
+            modules
                         .flatMap { it.loaders() }
                         .map(troupe.applicationRegistry::register)
                         .liftTry()

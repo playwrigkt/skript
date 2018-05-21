@@ -18,8 +18,6 @@ data class ChatRoomUser(val user: Reference<String, UserProfile>, val chatroom: 
 sealed class ChatRoomPermissionKey {
     val key: String = this.javaClass.simpleName
 
-    object AddUser: playwrigkt.skript.chatrooom.models.ChatRoomPermissionKey()
-    object RemoveUser: playwrigkt.skript.chatrooom.models.ChatRoomPermissionKey()
     object AddPublicPermission: playwrigkt.skript.chatrooom.models.ChatRoomPermissionKey()
     object RemovePublicPermission: playwrigkt.skript.chatrooom.models.ChatRoomPermissionKey()
     object AddUserPermission: playwrigkt.skript.chatrooom.models.ChatRoomPermissionKey()

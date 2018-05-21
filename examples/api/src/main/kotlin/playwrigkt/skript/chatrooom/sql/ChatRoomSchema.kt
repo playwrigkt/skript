@@ -7,7 +7,6 @@ import playwrigkt.skript.sql.SqlMapping
 import playwrigkt.skript.troupe.ApplicationTroupe
 
 object ChatRoomSchema {
-
     val createChatRoomTable = """
     CREATE TABLE IF NOT EXISTS chatroom(
         id text PRIMARY KEY,

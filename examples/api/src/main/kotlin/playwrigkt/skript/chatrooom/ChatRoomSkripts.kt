@@ -10,22 +10,6 @@ import playwrigkt.skript.troupe.ApplicationTroupe
 object ChatRoomSkripts {
     private val onlyIfHasUsers: (playwrigkt.skript.chatrooom.models.ChatRoom) -> Try<playwrigkt.skript.chatrooom.models.ChatRoom> = { if(it.users.isEmpty()) Try.Failure(playwrigkt.skript.chatrooom.models.ChatRoomError.NoUsers) else { Try.Success(it) } }
 
-    val ADD_USER_TRANSACTION: Skript<playwrigkt.skript.auth.TokenAndInput<playwrigkt.skript.chatrooom.models.ChatRoomUser>, playwrigkt.skript.chatrooom.models.ChatRoom, ApplicationTroupe> =
-            authenticate<playwrigkt.skript.chatrooom.models.ChatRoomUser>()
-                    .query(AuthorizeChatRoomAddUser)
-                    .map { it.input }
-                    .update(InsertChatRoomUserPermissions)
-                    .map { it.chatroom.id }
-                    .query(GetChatRoom)
-
-    val REMOVE_USER_TRANSACTION: Skript<playwrigkt.skript.auth.TokenAndInput<playwrigkt.skript.chatrooom.models.ChatRoomUser>, playwrigkt.skript.chatrooom.models.ChatRoom, ApplicationTroupe> =
-            authenticate<playwrigkt.skript.chatrooom.models.ChatRoomUser>()
-                    .query(AuthorizeChatRoomRemoveUser)
-                    .map { it.input }
-                    .update(DeleteChatRoomUserPermissions)
-                    .map { it.chatroom.id }
-                    .query(GetChatRoom)
-
     val UPDATE_CHAT_ROOM_TRANSACTION: Skript<playwrigkt.skript.auth.TokenAndInput<playwrigkt.skript.chatrooom.models.ChatRoom>, playwrigkt.skript.chatrooom.models.ChatRoom, ApplicationTroupe> =
             authenticate<playwrigkt.skript.chatrooom.models.ChatRoom>()
                     .query(AuthorzeChatRoomUpdate)

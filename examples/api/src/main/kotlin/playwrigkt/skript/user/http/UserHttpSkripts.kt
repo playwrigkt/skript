@@ -1,16 +1,12 @@
 package playwrigkt.skript.user.http
 
-import org.funktionale.tries.Try
 import playwrigkt.skript.Skript
 import playwrigkt.skript.auth.TokenAndInput
-import playwrigkt.skript.ex.andThen
-import playwrigkt.skript.ex.httpServerResponse
-import playwrigkt.skript.ex.join
-import playwrigkt.skript.ex.serialize
+import playwrigkt.skript.http.server.getHeader
+import playwrigkt.skript.http.server.getPathParameter
+import playwrigkt.skript.ex.*
 import playwrigkt.skript.http.Http
-import playwrigkt.skript.http.HttpError
 import playwrigkt.skript.http.server.HttpServer
-import playwrigkt.skript.http.server.HttpServerRequestDeserializationSkript
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.troupe.ApplicationTroupe
 import playwrigkt.skript.user.UserSkripts
@@ -25,8 +21,8 @@ object UserHttpSkripts {
 
     val createUser =
             Skript.identity<HttpServer.Request<ByteArray>, ApplicationTroupe>()
-                    .andThen(HttpServerRequestDeserializationSkript(UserProfileAndPassword::class.java))
-                    .flatMapWithTroupe { request, _ -> request.body }
+                    .flatMap  { it.body }
+                    .deserialize(UserProfileAndPassword::class.java)
                     .compose(UserSkripts.createSkript)
                     .httpServerResponse(
                             Skript.map { Http.Status.Created },
@@ -36,8 +32,8 @@ object UserHttpSkripts {
 
     val loginUser =
             Skript.identity<HttpServer.Request<ByteArray>, ApplicationTroupe>()
-                    .andThen(HttpServerRequestDeserializationSkript(UserNameAndPassword::class.java))
-                    .flatMapWithTroupe { request, _ -> request.body }
+                    .flatMap  { it.body }
+                    .deserialize(UserNameAndPassword::class.java)
                     .compose(UserSkripts.loginSkript)
                     .httpServerResponse(
                             Skript.map { Http.Status.OK },
@@ -47,18 +43,9 @@ object UserHttpSkripts {
 
     val getUser =
             Skript.identity<HttpServer.Request<ByteArray>, ApplicationTroupe>()
-                    .both<String, String>(
-                            Skript.mapTry {
-                                it.headers.get("Authorization")
-                                        ?.firstOrNull()
-                                        ?.let { Try.Success(it) }
-                                        ?: Try.Failure(HttpError.MissingInputs(listOf(HttpError.HttpInput.header("Authorization"))))
-                            },
-                            Skript.mapTry {
-                                it.pathParameters.get("userId")
-                                        ?.let { Try.Success(it) }
-                                        ?:Try.Failure(HttpError.MissingInputs(listOf(HttpError.HttpInput.path("userId"))))
-                            })
+                    .both(
+                            getHeader("Authorization"),
+                            getPathParameter("userId"))
                     .join { authToken, userId -> TokenAndInput(authToken, userId) }
                     .compose(UserSkripts.getSkript)
                     .httpServerResponse(
