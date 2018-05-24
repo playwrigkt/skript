@@ -49,7 +49,6 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
 
     val LOG = LoggerFactory.getLogger(this.javaClass)
 
-
     abstract val sourceConfigFileName: String
     val port: Int = floor((Math.random() * 8000)).toInt() + 2000
     fun configFile() = sourceConfigFileName.split(".").joinToString("-$port.")

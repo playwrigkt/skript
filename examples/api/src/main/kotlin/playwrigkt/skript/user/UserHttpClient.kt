@@ -14,13 +14,13 @@ import playwrigkt.skript.user.models.UserSession
 //TODO get port from configuration
 class UserHttpClient(val configBase: String = "userHttpClient") {
     private val getHostFromConfig = Skript.identity<Any, ApplicationTroupe>()
-            .map { "userHttpClient.host" }
+            .map { "$configBase.host" }
             .configValue()
             .mapTry { it.text() }
             .map { it.value }
 
     private val getPortFromConfig = Skript.identity<Any, ApplicationTroupe>()
-            .map { "userHttpClient.port" }
+            .map { "$configBase.port" }
             .configValue()
             .map { it.number().map { it.value.intValueExact() }.toOption().orNull() }
 
