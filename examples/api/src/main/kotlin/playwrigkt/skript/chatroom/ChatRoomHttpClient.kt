@@ -1,9 +1,9 @@
-package playwrigkt.skript.chatrooom
+package playwrigkt.skript.chatroom
 
 import playwrigkt.skript.Skript
 import playwrigkt.skript.auth.TokenAndInput
-import playwrigkt.skript.chatrooom.models.ChatRoom
-import playwrigkt.skript.chatrooom.models.ChatRoomUser
+import playwrigkt.skript.chatroom.models.ChatRoom
+import playwrigkt.skript.chatroom.models.ChatRoomUser
 import playwrigkt.skript.ex.*
 import playwrigkt.skript.http.Http
 import playwrigkt.skript.http.client.HttpClient

@@ -1,12 +1,12 @@
-package playwrigkt.skript.chatrooom
+package playwrigkt.skript.chatroom
 
 import playwrigkt.skript.Skript
 import playwrigkt.skript.auth.TokenAndInput
 import playwrigkt.skript.http.server.getHeader
 import playwrigkt.skript.http.server.getPathParameter
-import playwrigkt.skript.chatrooom.models.ChatRoom
-import playwrigkt.skript.chatrooom.models.ChatRoomPermissions
-import playwrigkt.skript.chatrooom.models.ChatRoomUser
+import playwrigkt.skript.chatroom.models.ChatRoom
+import playwrigkt.skript.chatroom.models.ChatRoomPermissions
+import playwrigkt.skript.chatroom.models.ChatRoomUser
 import playwrigkt.skript.common.models.Reference
 import playwrigkt.skript.ex.*
 import playwrigkt.skript.http.Http

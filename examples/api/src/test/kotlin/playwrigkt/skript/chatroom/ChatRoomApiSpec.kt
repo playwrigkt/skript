@@ -2,6 +2,7 @@ package playwrigkt.skript.chatroom
 
 import io.kotlintest.Description
 import io.kotlintest.Spec
+import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
 import org.slf4j.LoggerFactory
 import playwrigkt.skript.Async
@@ -11,9 +12,9 @@ import playwrigkt.skript.application.ApplicationRegistry
 import playwrigkt.skript.application.SkriptApplicationLoader
 import playwrigkt.skript.application.createApplication
 import playwrigkt.skript.auth.TokenAndInput
-import playwrigkt.skript.chatrooom.ChatRoomHttpClient
-import playwrigkt.skript.chatrooom.models.ChatRoom
-import playwrigkt.skript.chatrooom.models.ChatRoomUser
+import playwrigkt.skript.chatroom.models.ChatRoom
+import playwrigkt.skript.chatroom.models.ChatRoomUser
+import playwrigkt.skript.common.models.Reference
 import playwrigkt.skript.ex.createFile
 import playwrigkt.skript.ex.join
 import playwrigkt.skript.ex.readFile
@@ -25,7 +26,6 @@ import playwrigkt.skript.stagemanager.SyncJacksonSerializeStageManager
 import playwrigkt.skript.troupe.SyncFileTroupe
 import playwrigkt.skript.user.UserFixture
 import playwrigkt.skript.user.UserHttpClient
-import playwrigkt.skript.user.UserService
 import playwrigkt.skript.user.extensions.schema.dropUserSchema
 import playwrigkt.skript.user.extensions.schema.initUserSchema
 import playwrigkt.skript.user.models.UserNameAndPassword
@@ -34,12 +34,13 @@ import playwrigkt.skript.user.models.UserProfileAndPassword
 import playwrigkt.skript.user.models.UserSession
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.util.*
 import kotlin.math.floor
 
 abstract class ChatRoomApiSpec: StringSpec() {
 
-    val userClient: UserHttpClient = TODO("")
-    val chatRoomClient: ChatRoomHttpClient = TODO("")
+    val userClient: UserHttpClient = UserHttpClient()
+    val chatRoomClient: ChatRoomHttpClient = ChatRoomHttpClient()
 
     val LOG = LoggerFactory.getLogger(this.javaClass)
 
@@ -55,9 +56,6 @@ abstract class ChatRoomApiSpec: StringSpec() {
                 .map { it.value as ApplicationStageManager }
                 .first()
     }
-
-    val userService by lazy { UserService(stageManager) }
-
 
     override fun beforeSpec(description: Description, spec: Spec) {
         val loader = SkriptApplicationLoader(SyncFileTroupe, SyncJacksonSerializeStageManager().hireTroupe(), ApplicationRegistry())
@@ -77,18 +75,18 @@ abstract class ChatRoomApiSpec: StringSpec() {
                 }
                 .run(Unit, loader)
         awaitSucceededFuture(stageManager.runWithTroupe(
-                SqlTransactionSkript.transaction(playwrigkt.skript.chatrooom.sql.ChatRoomSchema.dropAllAction),
+                SqlTransactionSkript.transaction(playwrigkt.skript.chatroom.sql.ChatRoomSchema.dropAllAction),
                 Unit))
         awaitSucceededFuture(stageManager.hireTroupe().dropUserSchema())
         awaitSucceededFuture(stageManager.hireTroupe().initUserSchema())
         awaitSucceededFuture(stageManager.runWithTroupe(
-                SqlTransactionSkript.transaction(playwrigkt.skript.chatrooom.sql.ChatRoomSchema.initAction),
+                SqlTransactionSkript.transaction(playwrigkt.skript.chatroom.sql.ChatRoomSchema.initAction),
                 Unit))
     }
 
     override fun afterSpec(description: Description, spec: Spec) {
         awaitSucceededFuture(stageManager.runWithTroupe(
-                SqlTransactionSkript.transaction(playwrigkt.skript.chatrooom.sql.ChatRoomSchema.dropAllAction),
+                SqlTransactionSkript.transaction(playwrigkt.skript.chatroom.sql.ChatRoomSchema.dropAllAction),
                 Unit))
         awaitSucceededFuture(stageManager.hireTroupe().dropUserSchema())
         awaitSucceededFuture(skriptApplication.tearDown())
@@ -128,12 +126,17 @@ abstract class ChatRoomApiSpec: StringSpec() {
                     .run(TokenAndInput(authToken, chatRoomUser), stageManager.hireTroupe()))!!
 
     init {
-        val (user1, user1Password) = UserFixture.generateUser(1)
-        createUser(UserProfileAndPassword(user1, user1Password))
-        val user1Session = loginUser(UserNameAndPassword(user1.name, user1Password))
 
-        "" {
 
+        "Create a chatroom" {
+            val (user1, user1Password) = UserFixture.generateUser(1)
+            createUser(UserProfileAndPassword(user1, user1Password))
+            val user1Session = loginUser(UserNameAndPassword(user1.name, user1Password))
+            val chatroom = ChatRoomFixture.generateChatroom(UUID.randomUUID().toString(), user1, emptySet())
+
+            val createdChatroom = createChatRoom(chatroom, user1Session.sessionKey)
+
+            createdChatroom shouldBe chatroom
         }
     }
 

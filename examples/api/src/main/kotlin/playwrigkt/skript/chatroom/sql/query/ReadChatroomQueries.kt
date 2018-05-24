@@ -1,4 +1,4 @@
-package playwrigkt.skript.chatrooom.sql.query
+package playwrigkt.skript.chatroom.sql.query
 
 import org.funktionale.tries.Try
 import playwrigkt.skript.common.models.Reference
@@ -6,7 +6,7 @@ import playwrigkt.skript.sql.*
 import playwrigkt.skript.user.models.UserProfile
 
 
-object GetChatRoom: SqlQueryMapping<String, playwrigkt.skript.chatrooom.models.ChatRoom> {
+object GetChatRoom: SqlQueryMapping<String, playwrigkt.skript.chatroom.models.ChatRoom> {
     val selectChatroom = """
         |SELECT chatroom.id AS id, chatroom.name AS name, chatroom.description AS description,
         |chatroom_permission.permission_key AS permission_key, chatroom_permission.allow_public AS permission_allow_public,
@@ -31,10 +31,10 @@ object GetChatRoom: SqlQueryMapping<String, playwrigkt.skript.chatrooom.models.C
         return SqlCommand.Query(SqlStatement.Parameterized(selectChatroom, listOf(i, i)))
     }
 
-    override fun mapResult(i: String, rs: SqlResult.Query): Try<playwrigkt.skript.chatrooom.models.ChatRoom> {
+    override fun mapResult(i: String, rs: SqlResult.Query): Try<playwrigkt.skript.chatroom.models.ChatRoom> {
         return Try { rs.result.next() }
                 .flatMap(this::parseFirstRow)
-                .flatMap { rs.result.asSequence().fold(Try.Success(it)) { agg: Try<playwrigkt.skript.chatrooom.models.ChatRoom>, nextRow: SqlRow -> agg.map { chatRoom ->
+                .flatMap { rs.result.asSequence().fold(Try.Success(it)) { agg: Try<playwrigkt.skript.chatroom.models.ChatRoom>, nextRow: SqlRow -> agg.map { chatRoom ->
                     chatRoom.copy(
                             users = parseUser(nextRow).map { addTo(chatRoom.users, it) }.getOrElse { chatRoom.users },
                             publicPermissions = parsePermission(nextRow).map { chatRoom.publicPermissions.plus(it) }.getOrElse { chatRoom.publicPermissions }
@@ -42,9 +42,9 @@ object GetChatRoom: SqlQueryMapping<String, playwrigkt.skript.chatrooom.models.C
                 }} }
     }
 
-    private fun parseFirstRow(row: SqlRow): Try<playwrigkt.skript.chatrooom.models.ChatRoom> {
+    private fun parseFirstRow(row: SqlRow): Try<playwrigkt.skript.chatroom.models.ChatRoom> {
         return Try {
-            playwrigkt.skript.chatrooom.models.ChatRoom(
+            playwrigkt.skript.chatroom.models.ChatRoom(
                     id = row.getString("id"),
                     name = row.getString("name"),
                     description = row.getString("description"),
@@ -56,9 +56,9 @@ object GetChatRoom: SqlQueryMapping<String, playwrigkt.skript.chatrooom.models.C
         return Try { row.getString("permission_key") }
     }
 
-    private fun parseUser(row: SqlRow): Try<playwrigkt.skript.chatrooom.models.ChatRoomUser> {
+    private fun parseUser(row: SqlRow): Try<playwrigkt.skript.chatroom.models.ChatRoomUser> {
         return Try {
-            playwrigkt.skript.chatrooom.models.ChatRoomUser(
+            playwrigkt.skript.chatroom.models.ChatRoomUser(
                     user = Reference.Defined(
                             id = row.getString("user_id"),
                             referenced = UserProfile(
@@ -70,8 +70,8 @@ object GetChatRoom: SqlQueryMapping<String, playwrigkt.skript.chatrooom.models.C
         }
     }
 
-    private fun addTo(users: Set<playwrigkt.skript.chatrooom.models.ChatRoomUser>, chatRoomUser: playwrigkt.skript.chatrooom.models.ChatRoomUser):Set<playwrigkt.skript.chatrooom.models.ChatRoomUser> {
-        return users.plus(chatRoomUser).fold(emptyMap<String, playwrigkt.skript.chatrooom.models.ChatRoomUser>()) { agg, nextUser ->
+    private fun addTo(users: Set<playwrigkt.skript.chatroom.models.ChatRoomUser>, chatRoomUser: playwrigkt.skript.chatroom.models.ChatRoomUser):Set<playwrigkt.skript.chatroom.models.ChatRoomUser> {
+        return users.plus(chatRoomUser).fold(emptyMap<String, playwrigkt.skript.chatroom.models.ChatRoomUser>()) { agg, nextUser ->
             agg.plus(nextUser.user.id to (agg.get(nextUser.user.id)?.let { it.copy(permissions = it.permissions + nextUser.permissions) }?:nextUser))
         }.values.toSet()
     }
