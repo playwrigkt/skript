@@ -1,6 +1,5 @@
 package playwrigkt.skript.application
 
-import org.funktionale.option.Option
 import org.funktionale.option.getOrElse
 import org.funktionale.option.toOption
 import org.funktionale.tries.Try
@@ -59,6 +58,7 @@ data class SkriptApplication(val applicationResources: Map<String, out Applicati
                     .filterNot { dependenciesMap.values.flatten().toSet().contains(it.key) }
                     .map { it.key }
 }
+
 data class SkriptApplicationLoader(val fileTroupe: FileTroupe, val serializeTroupe: SerializeTroupe, val applicationRegistry: ApplicationRegistry): FileTroupe, SerializeTroupe {
         val log = LoggerFactory.getLogger(this::class.java)
 
@@ -70,41 +70,7 @@ data class SkriptApplicationLoader(val fileTroupe: FileTroupe, val serializeTrou
         fun buildApplication(appConfig: AppConfig): AsyncResult<SkriptApplication> =
                 buildStageManagers(appConfig.applicationResourceLoaders)
                         .map { SkriptApplication(it, appConfig, applicationRegistry) }
-                        .onFailure {
-                            log.info("Generating failed application startup information...")
-                            val sb = StringBuilder()
-
-                            sb.appendln("=".repeat(20))
-                            sb.appendln("MISSING DEPENDENCY REPORT")
-                            sb.appendln("=".repeat(20))
-
-                            appConfig.applicationResourceLoaders
-                                    .map { config ->
-                                        applicationRegistry
-                                                .getLoader(config.name)
-                                                .rescue { applicationRegistry.getLoader(config.implements) }
-                                                .map {
-                                                    it.dependencies.filter { applicationRegistry.getLoader(config.applyOverride(it)).isFailure() }
-                                                }
-                                                .onSuccess {
-                                                    if(it.isNotEmpty()) {
-                                                        sb.appendln("resource ${config.name}")
-                                                        sb.appendln("\timplements ${config.implements}")
-                                                        sb.appendln("\tmissing dependencies $it")
-                                                    }
-                                                }
-                                    }
-                                    .liftTry()
-                                    .onSuccess {
-                                        sb.appendln("=".repeat(20))
-                                        sb.appendln(applicationRegistry)
-                                        sb.appendln("=".repeat(20))
-                                        log.info("\n${sb.toString()}") }
-                                    .onFailure {
-                                        log.error("could not generate missing dependency report", it)
-                                    }
-
-                        }
+                        .onFailure { printFailureState(appConfig, it) }
 
         private fun buildStageManagers(remainingApplicationResources: List<ApplicationResourceLoaderConfig>,
                                        completedApplicationResources: Map<String, out ApplicationResource> = emptyMap()): AsyncResult<Map<String, out ApplicationResource>> {
@@ -150,6 +116,47 @@ data class SkriptApplicationLoader(val fileTroupe: FileTroupe, val serializeTrou
                 result.addHandler { log.info("finished  loading applicationResources: $it") }
                 return result
         }
+
+    private fun printFailureState(appConfig: AppConfig, throwable: Throwable) {
+        log.info("Generating failed application startup information...")
+        val sb = StringBuilder()
+
+        sb.appendln("=".repeat(20))
+        sb.appendln("MISSING DEPENDENCY REPORT")
+        sb.appendln("=".repeat(20))
+
+        appConfig.applicationResourceLoaders
+                .map { config ->
+                    applicationRegistry
+                            .getLoader(config.name)
+                            .rescue { applicationRegistry.getLoader(config.implements) }
+                            .map {
+                                it.dependencies.filter { applicationRegistry.getLoader(config.applyOverride(it)).isFailure() }
+                            }
+                            .onSuccess {
+                                if(it.isNotEmpty()) {
+                                    sb.appendln("resource ${config.name}")
+                                    sb.appendln("\timplements ${config.implements}")
+                                    sb.appendln("\tmissing dependencies $it")
+                                }
+                            }
+                }
+                .liftTry()
+                .onSuccess {
+                    sb.appendln("=".repeat(20))
+                    sb.appendln(applicationRegistry)
+                    sb.appendln("=".repeat(20))
+                    log.info("\n${sb.toString()}")
+                }
+                .onFailure {
+                    log.error("failed to generate full missing dependency report", it)
+                    sb.appendln("=".repeat(20))
+                    sb.appendln(applicationRegistry)
+                    sb.appendln("=".repeat(20))
+                    log.info("\n${sb.toString()}")
+                }
+
+    }
 }
 
 sealed class AppLoadError: Throwable() {
@@ -164,17 +171,18 @@ data class AppConfig(
         val applicationResourceLoaders: List<ApplicationResourceLoaderConfig>)
 
 
-val loadModules: Skript<AppConfig, Unit, SkriptApplicationLoader> = Skript.identity<AppConfig, SkriptApplicationLoader>()
-        .mapTry { config ->
-                config.modules
-                        .map { Class.forName(it) }
-                        .map { clazz -> Try { clazz.getConstructor() }
-                                .rescue { Try.Failure(AppLoadError.NoSuitableConstructor(clazz)) }
-                                .map { it.newInstance() }
-                                .rescue { Try.Failure(AppLoadError.MustExtendSkriptModule(clazz)) }
-                                .map { it as SkriptModule }
-                        }
-                        .liftTry()
+val loadModulesIntoRegistry: Skript<AppConfig, Unit, SkriptApplicationLoader> = Skript.identity<AppConfig, SkriptApplicationLoader>()
+        .map { it.modules }
+        .mapTry { modules -> modules
+                .map { Class.forName(it) }
+                .map { clazz -> Try { clazz.getConstructor() }
+                        .rescue { Try.Failure(AppLoadError.NoSuitableConstructor(clazz)) }
+                        .map { it.newInstance() }
+                        .filter { it is SkriptModule }
+                        .rescue { Try.Failure(AppLoadError.MustExtendSkriptModule(clazz)) }
+                        .map { it as SkriptModule }
+                }
+                .liftTry()
         }
         .mapTryWithTroupe { modules, troupe ->
             modules
@@ -189,6 +197,6 @@ val loadApplication: Skript<String, SkriptApplication, SkriptApplicationLoader> 
         .readFile()
         .map { it.readText().toByteArray() }
         .deserialize(AppConfig::class.java)
-        .split(loadModules)
-        .join { appConfig, modules -> appConfig }
+        .split(loadModulesIntoRegistry)
+        .join { appConfig, _ -> appConfig }
         .flatMapWithTroupe { config, troupe -> troupe.buildApplication(config) }

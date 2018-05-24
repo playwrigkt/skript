@@ -73,6 +73,10 @@
         "userHttpClient":{
           "host":"localhost",
           "port":8080
+        },
+        "chatRoomHttpClient":{
+          "host":"localhost",
+          "port":8080
         }
       }
     },
@@ -113,6 +117,44 @@
                 "path": "/login",
                 "headers": {},
                 "method": "Post"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name":"chatRoomHttpProduktionManager",
+      "implements":"httpProduktionManager",
+      "dependencyOverrides":{
+        "venue":"ktorHttpServerVenue",
+        "stageManager":"exampleApplicationStageManager"
+      },
+      "config":{
+        "produktions":[
+          {
+            "className":"playwrigkt.skript.chatroom.ChatRoomHttpServerSkripts",
+            "mappings": {
+              "getChatRoom": {
+                "path": "/chatRooms/{chatRoomId}",
+                "headers": {
+                  "Authorization": []
+                },
+                "method": "GET"
+              },
+              "createChatRoom": {
+                "path": "/chatRooms",
+                "headers": {
+                  "Authorization": []
+                },
+                "method": "Post"
+              },
+              "updateChatRoom": {
+                "path": "/chatRooms/{chatRoomId}",
+                "headers": {
+                  "Authorization": []
+                },
+                "method": "Put"
               }
             }
           }

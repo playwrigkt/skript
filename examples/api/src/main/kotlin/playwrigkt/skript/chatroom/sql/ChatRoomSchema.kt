@@ -1,4 +1,4 @@
-package playwrigkt.skript.chatrooom.sql
+package playwrigkt.skript.chatroom.sql
 
 import playwrigkt.skript.Skript
 import playwrigkt.skript.ex.dropTableIfExists
@@ -36,10 +36,10 @@ object ChatRoomSchema {
         PRIMARY KEY (chatroom_id, user_id))""".trimIndent()
 
     val initAction = Skript.identity<Unit, ApplicationTroupe>()
-            .exec(SqlMapping.exec(playwrigkt.skript.chatrooom.sql.ChatRoomSchema.createChatRoomTable))
-            .exec(SqlMapping.exec(playwrigkt.skript.chatrooom.sql.ChatRoomSchema.createChatRoomPermissionTable))
-            .exec(SqlMapping.exec(playwrigkt.skript.chatrooom.sql.ChatRoomSchema.createChatRoomUserPermissionTable))
-            .exec(SqlMapping.exec(playwrigkt.skript.chatrooom.sql.ChatRoomSchema.createBannedUserTable))
+            .exec(SqlMapping.exec(playwrigkt.skript.chatroom.sql.ChatRoomSchema.createChatRoomTable))
+            .exec(SqlMapping.exec(playwrigkt.skript.chatroom.sql.ChatRoomSchema.createChatRoomPermissionTable))
+            .exec(SqlMapping.exec(playwrigkt.skript.chatroom.sql.ChatRoomSchema.createChatRoomUserPermissionTable))
+            .exec(SqlMapping.exec(playwrigkt.skript.chatroom.sql.ChatRoomSchema.createBannedUserTable))
 
     val dropAllAction = Skript.identity<Unit, ApplicationTroupe>()
             .dropTableIfExists("chatroom_user_banned")
