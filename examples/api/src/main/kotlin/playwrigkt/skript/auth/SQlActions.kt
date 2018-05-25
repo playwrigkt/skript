@@ -1,10 +1,7 @@
 package playwrigkt.skript.auth
 
-import arrow.core.Try
 import playwrigkt.skript.Skript
 import playwrigkt.skript.ex.query
-import playwrigkt.skript.http.HttpError
-import playwrigkt.skript.http.server.HttpServer
 import playwrigkt.skript.troupe.ApplicationTroupe
 
 object AuthSkripts {

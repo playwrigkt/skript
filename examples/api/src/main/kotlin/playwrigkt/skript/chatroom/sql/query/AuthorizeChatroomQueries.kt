@@ -34,29 +34,9 @@ fun <T> mapAuthResultSet(input: T, rs: SqlResult.Query): Try<T> {
             .map { it.getBoolean("authorized") }
             .filter { it }
             .map { input }
-            .recoverWith { Try.Failure<T>(UserError.AuthorizationFailed) }
+            .recoverWith { Try.Failure(UserError.AuthorizationFailed) }
 }
 
-
-object AuthorizeChatRoomAddUser: SqlQueryMapping<playwrigkt.skript.auth.SessionAndInput<playwrigkt.skript.chatroom.models.ChatRoomUser>, playwrigkt.skript.auth.SessionAndInput<playwrigkt.skript.chatroom.models.ChatRoomUser>> {
-    override fun toSql(i: playwrigkt.skript.auth.SessionAndInput<playwrigkt.skript.chatroom.models.ChatRoomUser>): SqlCommand.Query {
-        return SqlCommand.Query(authorizeChatroomSelectStatement(i.input.chatroom.id, i.session.userId, playwrigkt.skript.chatroom.models.ChatRoomPermissionKey.AddUserPermission.key))
-    }
-
-    override fun mapResult(i: playwrigkt.skript.auth.SessionAndInput<playwrigkt.skript.chatroom.models.ChatRoomUser>, rs: SqlResult.Query): Try<playwrigkt.skript.auth.SessionAndInput<playwrigkt.skript.chatroom.models.ChatRoomUser>> {
-        return mapAuthResultSet(i, rs)
-    }
-}
-
-object AuthorizeChatRoomRemoveUser: SqlQueryMapping<playwrigkt.skript.auth.SessionAndInput<playwrigkt.skript.chatroom.models.ChatRoomUser>, playwrigkt.skript.auth.SessionAndInput<playwrigkt.skript.chatroom.models.ChatRoomUser>> {
-    override fun toSql(i: playwrigkt.skript.auth.SessionAndInput<playwrigkt.skript.chatroom.models.ChatRoomUser>): SqlCommand.Query {
-        return SqlCommand.Query(authorizeChatroomSelectStatement(i.input.chatroom.id, i.session.userId, playwrigkt.skript.chatroom.models.ChatRoomPermissionKey.RemoveUserPermission.key))
-    }
-
-    override fun mapResult(i: playwrigkt.skript.auth.SessionAndInput<playwrigkt.skript.chatroom.models.ChatRoomUser>, rs: SqlResult.Query): Try<playwrigkt.skript.auth.SessionAndInput<playwrigkt.skript.chatroom.models.ChatRoomUser>> {
-        return mapAuthResultSet(i, rs)
-    }
-}
 
 object AuthorzeChatRoomUpdate: SqlQueryMapping<playwrigkt.skript.auth.SessionAndInput<playwrigkt.skript.chatroom.models.ChatRoom>, playwrigkt.skript.auth.SessionAndInput<playwrigkt.skript.chatroom.models.ChatRoom>> {
     override fun toSql(i: playwrigkt.skript.auth.SessionAndInput<playwrigkt.skript.chatroom.models.ChatRoom>): SqlCommand.Query {

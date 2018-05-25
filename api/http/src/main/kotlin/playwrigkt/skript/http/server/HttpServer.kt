@@ -49,7 +49,7 @@ sealed class HttpServer {
                         headers: Map<String, List<String>>,
                         body: AsyncResult<T>): AsyncResult<Request<T>> =
                 pathRule.apply(path.removePrefix("/").removeSuffix("/"))
-                        .map { Try { Request<T>(method, requestUri, it, queryParams(query), headers, body) } }
+                        .map { Try { Request(method, requestUri, it, queryParams(query), headers, body) } }
                         .getOrElse { Try.Failure(HttpError.PathUnparsable(path, this)) }
                         .toAsyncResult()
 
@@ -70,25 +70,7 @@ sealed class HttpServer {
                           val pathParameters: Map<String, String>,
                           val queryParameters: Map<String, List<String>>,
                           val headers: Map<String, List<String>>,
-                          val body: AsyncResult<T>): HttpServer() {
-        fun <U> flatMapBody(parse: (T) -> AsyncResult<U>): Request<U> =
-                Request(
-                        method,
-                        requestUri,
-                        pathParameters,
-                        queryParameters,
-                        headers,
-                        body.flatMap(parse))
-
-        fun <U> mapBody(parse: (T) -> U): Request<U> =
-                Request(
-                        method,
-                        requestUri,
-                        pathParameters,
-                        queryParameters,
-                        headers,
-                        body.map(parse))
-    }
+                          val body: AsyncResult<T>): HttpServer()
     data class Response(
             val status: Http.Status,
             val headers: Map<String, List<String>>,

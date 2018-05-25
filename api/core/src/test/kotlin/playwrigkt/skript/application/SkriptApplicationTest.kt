@@ -1,16 +1,13 @@
 package playwrigkt.skript.application
 
+import arrow.core.Try
 import io.kotlintest.matchers.contain
 import io.kotlintest.matchers.should
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
-import arrow.core.Try
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import playwrigkt.skript.Skript
 import playwrigkt.skript.config.ConfigValue
-import playwrigkt.skript.troupe.FileTroupe
-import playwrigkt.skript.troupe.SerializeTroupe
 
 class SkriptApplicationTest: StringSpec() {
     init {
@@ -73,7 +70,7 @@ class SkriptApplicationTest: StringSpec() {
                 override fun name(): String = child2Name
                 override val loadResource: Skript<ApplicationResourceLoader.Input, ApplicationResource, SkriptApplicationLoader> =
                         Skript.map {
-                            it.existingApplicationResources shouldBe emptyMap<String, ApplicationResource>()
+                            it.existingApplicationResources shouldBe emptyMap()
                             it.applicationResourceLoaderConfig shouldBe child2Config
                             child2Resource
                         }
@@ -86,7 +83,7 @@ class SkriptApplicationTest: StringSpec() {
 
                 override val loadResource: Skript<ApplicationResourceLoader.Input, ApplicationResource, SkriptApplicationLoader> =
                         Skript.map {
-                            it.existingApplicationResources shouldBe emptyMap<String, ApplicationResource>()
+                            it.existingApplicationResources shouldBe emptyMap()
                             it.applicationResourceLoaderConfig shouldBe grandChild1Config
                             grandChild1Resource
                         }
@@ -97,7 +94,7 @@ class SkriptApplicationTest: StringSpec() {
                 override fun name(): String = grandChild2Name
                 override val loadResource: Skript<ApplicationResourceLoader.Input, ApplicationResource, SkriptApplicationLoader> =
                         Skript.map {
-                            it.existingApplicationResources shouldBe emptyMap<String, ApplicationResource>()
+                            it.existingApplicationResources shouldBe emptyMap()
                             it.applicationResourceLoaderConfig shouldBe grandChild2Config
                             grandChild2Resource
                         }

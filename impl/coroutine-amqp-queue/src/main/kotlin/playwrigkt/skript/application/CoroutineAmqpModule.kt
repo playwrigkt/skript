@@ -3,7 +3,6 @@ package playwrigkt.skript.application
 import com.rabbitmq.client.AMQP
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.ConnectionFactoryConfigurator
-import com.rabbitmq.client.impl.AMQConnection
 import playwrigkt.skript.Skript
 import playwrigkt.skript.ex.all
 import playwrigkt.skript.ex.join

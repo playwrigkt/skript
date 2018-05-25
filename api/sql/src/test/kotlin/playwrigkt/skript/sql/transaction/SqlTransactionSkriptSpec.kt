@@ -1,9 +1,8 @@
-package playwrigkt.skript.sql.skript
+package playwrigkt.skript.sql.transaction
 
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
 import playwrigkt.skript.Skript
-import playwrigkt.skript.sql.transaction.SqlTransactionSkript
 import playwrigkt.skript.troupe.SqlTroupe
 
 class SqlTransactionSkriptSpec : StringSpec() {

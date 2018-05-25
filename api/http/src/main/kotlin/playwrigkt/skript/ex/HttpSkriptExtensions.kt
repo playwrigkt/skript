@@ -25,14 +25,8 @@ fun <I, Troupe> Skript<I, HttpClient.Request, Troupe>.executeRequest(): Skript<I
 /**
  * Chain a skript that parses and HttpClient.Response
  */
-fun <I, O, Troupe> Skript<I, HttpClient.Response, Troupe>.httpClientResponse(mappers: List<Pair<IntRange, Skript<HttpClient.Response, O, Troupe>>>): Skript<I, O, Troupe> =
-        this.andThen(HttpClientResponseMappingSkript(mappers))
-
-/**
- * Chain a skript that parses and HttpClient.Response
- */
 fun <I, O, Troupe> Skript<I, HttpClient.Response, Troupe>.httpClientResponse(skript: Skript<HttpClient.Response, O, Troupe>): Skript<I, O, Troupe> =
-        this.andThen(HttpClientResponseMappingSkript(listOf(Integer.MIN_VALUE..Integer.MAX_VALUE to skript)))
+        this.andThen(skript)
 
 /**
  * Chains a skript that maps to an HttpServer.Response
