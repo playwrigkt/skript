@@ -27,16 +27,16 @@ object ChatRoomFixture {
             generateChatroom(
                     chatroomId,
                     setOf(ChatRoomUser(
-                            Reference.Empty(owner.id),
-                            Reference.Empty(chatroomId),
+                            Reference.empty(owner.id),
+                            Reference.empty(chatroomId),
                             allPermissions.map { it.key }.toSet())),
                     publicPermissions)
 
     fun chatRoomUser(userId: String, chatroomId: String, permissions: Set<String>): ChatRoomUser =
-        ChatRoomUser(Reference.Empty(userId), Reference.Empty(chatroomId), permissions)
+        ChatRoomUser(Reference.empty(userId), Reference.empty(chatroomId), permissions)
 
     fun chatRoomUser(user: UserProfile, chatroom: ChatRoom, permissions: Set<String>) =
-            ChatRoomUser(Reference.Defined(user.id, user), Reference.Defined(chatroom.id, chatroom), permissions)
+            ChatRoomUser(Reference.defined(user.id, user), Reference.defined(chatroom.id, chatroom), permissions)
 
     val readPermissions = setOf(
             ChatRoomPermissionKey.Get

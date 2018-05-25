@@ -60,13 +60,13 @@ object GetChatRoom: SqlQueryMapping<String, playwrigkt.skript.chatroom.models.Ch
     private fun parseUser(row: SqlRow): Try<playwrigkt.skript.chatroom.models.ChatRoomUser> {
         return Try {
             playwrigkt.skript.chatroom.models.ChatRoomUser(
-                    user = Reference.Defined(
+                    user = Reference.defined(
                             id = row.getString("user_id"),
                             referenced = UserProfile(
                                     row.getString("user_id"),
                                     row.getString("user_name"),
                                     row.getBoolean("user_allow_public_message"))),
-                    chatroom = Reference.Empty(id = row.getString("id")),
+                    chatroom = Reference.empty(id = row.getString("id")),
                     permissions = setOf(row.getString("user_permission_key")))
         }
     }

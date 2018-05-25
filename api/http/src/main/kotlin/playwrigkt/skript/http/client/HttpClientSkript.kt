@@ -8,8 +8,8 @@ import playwrigkt.skript.troupe.SerializeTroupe
 
 class HttpClientSkript: Skript<HttpClient.Request, HttpClient.Response, HttpClientTroupe> {
     companion object {
-        fun <I, O, Troupe> serialized(toRequest: HttpClientRequestMappingSkript<I, Troupe>,
-                                      fromResponse: HttpClientResponseMappingSkript<O, Troupe>): Skript<I, O, Troupe> where Troupe: HttpClientTroupe, Troupe : SerializeTroupe =
+        fun <I, O, Troupe> serialized(toRequest: Skript<I, HttpClient.Request, Troupe>,
+                                      fromResponse: Skript<HttpClient.Response, O, Troupe>): Skript<I, O, Troupe> where Troupe: HttpClientTroupe, Troupe : SerializeTroupe =
             Skript.identity<I, Troupe>()
                     .andThen(toRequest)
                     .andThen(HttpClientSkript())

@@ -23,7 +23,7 @@ object UserSchema {
 
     val createUserSessionTable = """CREATE TABLE IF NOT EXISTS user_session(
     session_key text PRIMARY KEY,
-    user_id text REFERENCES user_profile(id) CONSTRAINT ${userSessionUserIdUniqueConstraintName} UNIQUE,
+    user_id text REFERENCES user_profile(id) CONSTRAINT $userSessionUserIdUniqueConstraintName UNIQUE,
     expiration timestamp
 );"""
 

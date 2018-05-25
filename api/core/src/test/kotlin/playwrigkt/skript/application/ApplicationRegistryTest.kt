@@ -176,7 +176,7 @@ class ApplicationRegistryTest: StringSpec() {
                 override fun name(): String = child2Name
                 override val loadResource: Skript<ApplicationResourceLoader.Input, ApplicationResource, SkriptApplicationLoader> =
                         Skript.map {
-                            it.existingApplicationResources shouldBe emptyMap<String, ApplicationResource>()
+                            it.existingApplicationResources shouldBe emptyMap()
                             it.applicationResourceLoaderConfig shouldBe child2Config
                             child2Resource
                         }
@@ -189,7 +189,7 @@ class ApplicationRegistryTest: StringSpec() {
 
                 override val loadResource: Skript<ApplicationResourceLoader.Input, ApplicationResource, SkriptApplicationLoader> =
                         Skript.map {
-                            it.existingApplicationResources shouldBe emptyMap<String, ApplicationResource>()
+                            it.existingApplicationResources shouldBe emptyMap()
                             it.applicationResourceLoaderConfig shouldBe grandChild1Config
                             grandChild1Resource
                         }
@@ -200,7 +200,7 @@ class ApplicationRegistryTest: StringSpec() {
                 override fun name(): String = grandChild2Name
                 override val loadResource: Skript<ApplicationResourceLoader.Input, ApplicationResource, SkriptApplicationLoader> =
                         Skript.map {
-                            it.existingApplicationResources shouldBe emptyMap<String, ApplicationResource>()
+                            it.existingApplicationResources shouldBe emptyMap()
                             it.applicationResourceLoaderConfig shouldBe grandChild2Config
                             grandChild2Resource
                         }

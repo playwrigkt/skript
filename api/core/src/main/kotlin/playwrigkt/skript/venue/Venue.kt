@@ -1,6 +1,5 @@
 package playwrigkt.skript.venue
 
-import arrow.core.Try
 import org.slf4j.LoggerFactory
 import playwrigkt.skript.Skript
 import playwrigkt.skript.application.ApplicationResource
@@ -25,7 +24,7 @@ abstract class Venue<Rule, Beginning, Ending>: ApplicationResource {
                             stageManager: StageManager<Troupe>,
                             rule: Rule): AsyncResult<out Produktion> =
             createProduktion(skript, stageManager, rule)
-                    .onSuccess { log.info("...Added new produktion...: ${it}") }
+                    .onSuccess { log.info("...Added new produktion...: $it") }
                     .onFailure { log.error("...Failed to create produktion...", it) }
 
 

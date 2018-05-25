@@ -1,6 +1,9 @@
 package playwrigkt.skript.application
 
-import arrow.core.*
+import arrow.core.Try
+import arrow.core.getOrElse
+import arrow.core.recoverWith
+import arrow.core.toOption
 import org.slf4j.LoggerFactory
 import playwrigkt.skript.Skript
 import playwrigkt.skript.ex.*
@@ -8,7 +11,6 @@ import playwrigkt.skript.file.FileReference
 import playwrigkt.skript.performer.FilePerformer
 import playwrigkt.skript.performer.SerializePerformer
 import playwrigkt.skript.result.AsyncResult
-import playwrigkt.skript.stagemanager.StageManager
 import playwrigkt.skript.troupe.FileTroupe
 import playwrigkt.skript.troupe.SerializeTroupe
 
@@ -71,7 +73,7 @@ data class SkriptApplicationLoader(val fileTroupe: FileTroupe, val serializeTrou
                         .onFailure { printFailureState(appConfig, it) }
 
         private fun buildStageManagers(remainingApplicationResources: List<ApplicationResourceLoaderConfig>,
-                                       completedApplicationResources: Map<String, out ApplicationResource> = emptyMap()): AsyncResult<Map<String, out ApplicationResource>> {
+                                       completedApplicationResources: Map<String, ApplicationResource> = emptyMap()): AsyncResult<Map<String, ApplicationResource>> {
 
                 if(remainingApplicationResources.isEmpty()) {
                         return AsyncResult.succeeded(completedApplicationResources)

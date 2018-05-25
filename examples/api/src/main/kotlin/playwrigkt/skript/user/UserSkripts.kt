@@ -57,7 +57,7 @@ object UserSkripts {
 
     val getSkript: Skript<playwrigkt.skript.auth.TokenAndInput<String>, UserProfile, ApplicationTroupe> =
             SqlTransactionSkript.autoCommit(
-                    validateSession<String>(onlyIfRequestedUserMatchesSessionUser)
+                    validateSession(onlyIfRequestedUserMatchesSessionUser)
                             .query(SelectUserProfileById))
 
     private fun <T> validateSession(validateSession: (UserSession, T) -> Try<T>): Skript<playwrigkt.skript.auth.TokenAndInput<T>, T, ApplicationTroupe> =

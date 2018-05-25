@@ -41,7 +41,7 @@ abstract class ChatRoomApiSpec: StringSpec() {
     val userClient: UserHttpClient = UserHttpClient()
     val chatRoomClient: ChatRoomHttpClient = ChatRoomHttpClient()
 
-    val LOG = LoggerFactory.getLogger(this.javaClass)
+    val log = LoggerFactory.getLogger(this.javaClass)
 
     abstract val sourceConfigFileName: String
     val port: Int = floor((Math.random() * 8000)).toInt() + 2000

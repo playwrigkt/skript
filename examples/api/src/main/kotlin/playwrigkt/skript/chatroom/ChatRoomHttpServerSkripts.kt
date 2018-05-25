@@ -70,7 +70,7 @@ object ChatRoomHttpServerSkripts {
                                     .deserialize(Set::class.java)
                                     .map { it.mapNotNull { it.toString() }.toSet() }
                     )
-                    .join { authToken, chatRoomId, userId, permissions -> TokenAndInput(authToken, ChatRoomUser(Reference.Empty(userId), Reference.Empty(chatRoomId), permissions))}
+                    .join { authToken, chatRoomId, userId, permissions -> TokenAndInput(authToken, ChatRoomUser(Reference.empty(userId), Reference.empty(chatRoomId), permissions))}
                     .compose(ChatRoomSkripts.ADD_USER_PERMISSIONS)
                     .httpServerResponse(
                             Skript.map { Http.Status.OK },
@@ -89,7 +89,7 @@ object ChatRoomHttpServerSkripts {
                                     .deserialize(Set::class.java)
                                     .map { it.mapNotNull { it.toString() }.toSet() }
                     )
-                    .join { authToken, chatRoomId, userId, permissions -> TokenAndInput(authToken, ChatRoomUser(Reference.Empty(userId), Reference.Empty(chatRoomId), permissions))}
+                    .join { authToken, chatRoomId, userId, permissions -> TokenAndInput(authToken, ChatRoomUser(Reference.empty(userId), Reference.empty(chatRoomId), permissions))}
                     .compose(ChatRoomSkripts.REMOVE_USER_PERMISSIONS)
                     .httpServerResponse(
                             Skript.map { Http.Status.OK },
@@ -107,7 +107,7 @@ object ChatRoomHttpServerSkripts {
                                     .deserialize(Set::class.java)
                                     .map { it.mapNotNull { it.toString() }.toSet() }
                     )
-                    .join { authToken, chatRoomId, permissions -> TokenAndInput(authToken, ChatRoomPermissions(Reference.Empty(chatRoomId), permissions))}
+                    .join { authToken, chatRoomId, permissions -> TokenAndInput(authToken, ChatRoomPermissions(Reference.empty(chatRoomId), permissions))}
                     .compose(ChatRoomSkripts.ADD_PERMISSIONS)
                     .httpServerResponse(
                             Skript.map { Http.Status.OK },
@@ -125,7 +125,7 @@ object ChatRoomHttpServerSkripts {
                                     .deserialize(Set::class.java)
                                     .map { it.mapNotNull { it.toString() }.toSet() }
                     )
-                    .join { authToken, chatRoomId, permissions -> TokenAndInput(authToken, ChatRoomPermissions(Reference.Empty(chatRoomId), permissions))}
+                    .join { authToken, chatRoomId, permissions -> TokenAndInput(authToken, ChatRoomPermissions(Reference.empty(chatRoomId), permissions))}
                     .compose(ChatRoomSkripts.REMOVE_PERMISSIONS)
                     .httpServerResponse(
                             Skript.map { Http.Status.OK },

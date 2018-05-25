@@ -1,9 +1,8 @@
 package playwrigkt.skript.produktion
 
-import com.rabbitmq.client.*
 import arrow.core.Try
 import arrow.core.recover
-import arrow.core.recoverWith
+import com.rabbitmq.client.Channel
 import org.slf4j.LoggerFactory
 import playwrigkt.skript.Skript
 import playwrigkt.skript.coroutine.ex.suspendMap

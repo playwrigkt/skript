@@ -7,7 +7,7 @@ import arrow.core.Try
 import playwrigkt.skript.ex.toAsyncResult
 import playwrigkt.skript.result.AsyncResult
 
-class VertxSerializePerformer(val objectMapper: ObjectMapper): SerializePerformer {
+class VertxSerializePerformer(objectMapper: ObjectMapper): SerializePerformer {
     init {
         Json.mapper = objectMapper
     }

@@ -46,7 +46,7 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
         val REMOVE_USER_PERMISSION: Skript<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationTroupe> = playwrigkt.skript.chatroom.ChatRoomSkripts.REMOVE_USER_PERMISSIONS
     }
 
-    val LOG = LoggerFactory.getLogger(this.javaClass)
+    val log = LoggerFactory.getLogger(this.javaClass)
 
     abstract val sourceConfigFileName: String
     val port: Int = floor((Math.random() * 8000)).toInt() + 2000
@@ -116,16 +116,16 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
                     "A chat room is described",
                     setOf(
                             ChatRoomUser(
-                                    Reference.Defined(user1.userProfile.id, user1.userProfile),
-                                    Reference.Empty(chatRoomId),
+                                    Reference.defined(user1.userProfile.id, user1.userProfile),
+                                    Reference.empty(chatRoomId),
                                     setOf(ChatRoomPermissionKey.AddUserPermission.key,
                                             ChatRoomPermissionKey.RemoveUserPermission.key,
                                             ChatRoomPermissionKey.AddPublicPermission.key,
                                             ChatRoomPermissionKey.RemovePublicPermission.key,
                                             ChatRoomPermissionKey.Update.key)),
                             ChatRoomUser(
-                                    Reference.Defined(user2.userProfile.id, user2.userProfile),
-                                    Reference.Empty(chatRoomId),
+                                    Reference.defined(user2.userProfile.id, user2.userProfile),
+                                    Reference.empty(chatRoomId),
                                     setOf(ChatRoomPermissionKey.Update.key))),
                     setOf(ChatRoomPermissionKey.Get.key)
             )
@@ -136,7 +136,7 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
             val user3 = UserFixture.generateUser(3)
             awaitSucceededFuture(userService.createUser(user3), user3.userProfile)
 
-            val chatRoomWithNewUser = chatRoom.copy(users = chatRoom.users.plus(ChatRoomUser(Reference.Defined(user3.userProfile.id, user3.userProfile), Reference.Empty(chatRoomId), setOf(
+            val chatRoomWithNewUser = chatRoom.copy(users = chatRoom.users.plus(ChatRoomUser(Reference.defined(user3.userProfile.id, user3.userProfile), Reference.empty(chatRoomId), setOf(
                     ChatRoomPermissionKey.Get.key,
                     ChatRoomPermissionKey.Update.key,
                     ChatRoomPermissionKey.AddUserPermission.key,
@@ -147,8 +147,8 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
                             TokenAndInput(
                                     session.sessionKey,
                                     ChatRoomUser(
-                                            Reference.Defined(user3.userProfile.id, user3.userProfile),
-                                            Reference.Empty(chatRoomId),
+                                            Reference.defined(user3.userProfile.id, user3.userProfile),
+                                            Reference.empty(chatRoomId),
                                             setOf(
                                                     ChatRoomPermissionKey.Get.key,
                                                     ChatRoomPermissionKey.Update.key,
@@ -159,13 +159,13 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
             awaitSucceededFuture(
                     stageManager.runWithTroupe(
                             REMOVE_USER_PERMISSION,
-                            TokenAndInput(session.sessionKey, ChatRoomUser(Reference.Empty(user2.userProfile.id), Reference.Empty(chatRoomId), setOf(ChatRoomPermissionKey.Update.key)))),
+                            TokenAndInput(session.sessionKey, ChatRoomUser(Reference.empty(user2.userProfile.id), Reference.empty(chatRoomId), setOf(ChatRoomPermissionKey.Update.key)))),
                     chatRoomAfterDeleteUser)
 
             awaitSucceededFuture(
                     stageManager.runWithTroupe(
                             ADD_PUBLIC_PERMISSIONS,
-                            TokenAndInput(session.sessionKey, ChatRoomPermissions(Reference.Empty(chatRoomId), setOf(ChatRoomPermissionKey.AddUserPermission.key)))),
+                            TokenAndInput(session.sessionKey, ChatRoomPermissions(Reference.empty(chatRoomId), setOf(ChatRoomPermissionKey.AddUserPermission.key)))),
                     chatRoomAfterDeleteUser.copy(publicPermissions = chatRoomAfterDeleteUser.publicPermissions.plus(ChatRoomPermissionKey.AddUserPermission.key)))
 
             val nonPublicChatroom = chatRoomAfterDeleteUser.copy(publicPermissions = emptySet())
@@ -173,7 +173,7 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
             awaitSucceededFuture(
                     stageManager.runWithTroupe(
                             REMOVE_PUBLIC_PERMISSIONS,
-                            TokenAndInput(session.sessionKey, ChatRoomPermissions(Reference.Empty(chatRoomId), setOf(ChatRoomPermissionKey.Get.key, ChatRoomPermissionKey.AddUserPermission.key)))),
+                            TokenAndInput(session.sessionKey, ChatRoomPermissions(Reference.empty(chatRoomId), setOf(ChatRoomPermissionKey.Get.key, ChatRoomPermissionKey.AddUserPermission.key)))),
                     nonPublicChatroom)
 
             val updatedChatroom = nonPublicChatroom.copy(name = "upname", description = "chatscription")
@@ -212,8 +212,8 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
                             TokenAndInput(
                                     session.sessionKey,
                                     ChatRoomUser(
-                                            Reference.Empty(user3.userProfile.id),
-                                            Reference.Empty(chatRoomId),
+                                            Reference.empty(user3.userProfile.id),
+                                            Reference.empty(chatRoomId),
                                             setOf(
                                                     ChatRoomPermissionKey.AddUserPermission.key,
                                                     ChatRoomPermissionKey.RemoveUserPermission.key
@@ -227,7 +227,7 @@ abstract class ChatroomTransactionsSpec : StringSpec() {
             Thread.sleep(100)
         }
         if(!future.isComplete()) fail("Timeout")
-        if(future.isFailure()) LOG.error("Expected Success", future.error())
+        if(future.isFailure()) log.error("Expected Success", future.error())
         future.isSuccess() shouldBe true
         result?.let { future.result() shouldBe it }
         return future.result()

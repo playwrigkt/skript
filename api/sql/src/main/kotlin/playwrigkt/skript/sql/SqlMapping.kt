@@ -62,7 +62,7 @@ interface SqlMapping<I, O, C: SqlCommand, R: SqlResult> {
                     override fun mapResult(i: I, rs: SqlResult.Void): Try<O> = mapResult(i, rs)
                 }
 
-        fun exec(command: String): SqlMapping<Unit, Unit, SqlCommand.Exec, SqlResult.Void> = exec<Unit, Unit>(
+        fun exec(command: String): SqlMapping<Unit, Unit, SqlCommand.Exec, SqlResult.Void> = exec(
                 { SqlCommand.Exec(SqlStatement.Simple(command)) },
                 { unit, _ -> Try.Success(unit) })
 

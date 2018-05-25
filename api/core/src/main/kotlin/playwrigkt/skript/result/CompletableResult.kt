@@ -57,7 +57,7 @@ interface CompletableResult<T>: AsyncResult<T>, Completable<T> {
         }
 
         override fun <U> flatMap(f: (T) -> AsyncResult<out U>): AsyncResult<U> {
-            val newResult: CompletableResult<U> = CompletableResultImpl<U>()
+            val newResult: CompletableResult<U> = CompletableResultImpl()
             addHandler {
                 when(it) {
                     is Result.Failure -> newResult.fail(it.error)

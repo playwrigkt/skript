@@ -7,9 +7,6 @@ import java.util.concurrent.BlockingQueue
 import java.util.concurrent.TimeUnit
 
 object Async {
-    fun <T> awaitStreamItem(queue: BlockingQueue<T>, expected: T, maxDuration: Long = 1000L) {
-        queue.poll(maxDuration, TimeUnit.MILLISECONDS) shouldBe expected
-    }
 
     fun <T> awaitSucceededFuture(future: AsyncResult<T>, result: T? = null, maxDuration: Long = 1000L): T? {
         val start = System.currentTimeMillis()
