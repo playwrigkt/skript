@@ -1,6 +1,7 @@
 package playwrigkt.skript.chatroom.sql.query
 
-import org.funktionale.tries.Try
+import arrow.core.Try
+import arrow.core.getOrElse
 import playwrigkt.skript.common.models.Reference
 import playwrigkt.skript.sql.*
 import playwrigkt.skript.user.models.UserProfile

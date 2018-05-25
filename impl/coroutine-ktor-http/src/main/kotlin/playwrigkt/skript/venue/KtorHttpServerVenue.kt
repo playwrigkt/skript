@@ -6,7 +6,7 @@ import io.ktor.routing.*
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.netty.NettyApplicationEngine
-import org.funktionale.tries.Try
+import arrow.core.Try
 import playwrigkt.skript.Skript
 import playwrigkt.skript.coroutine.ex.suspendMap
 import playwrigkt.skript.http.Http
@@ -35,7 +35,7 @@ data class KtorHttpServerVenue(val port: Int, val maxConnectionMillis: Long): Ht
                 port = port) { }
 
         Try { server.start() }
-                .onFailure(result::fail)
+                .fold(result::fail, { "...Started Ktor server on port $port"})
 
         routing = server.application.install(Routing)
    }
@@ -53,8 +53,7 @@ data class KtorHttpServerVenue(val port: Int, val maxConnectionMillis: Long): Ht
         if(!result.isComplete()) {
             log.info("stopping ktor server")
             Try { server.stop(1000, 1000, TimeUnit.MILLISECONDS) }
-                    .onSuccess(result::succeed)
-                    .onFailure(result::fail)
+                    .fold(result::fail, result::succeed)
             result
         } else {
             log.error("server already stopped!")

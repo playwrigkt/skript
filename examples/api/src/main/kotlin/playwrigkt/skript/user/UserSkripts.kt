@@ -1,6 +1,6 @@
 package playwrigkt.skript.user
 
-import org.funktionale.tries.Try
+import arrow.core.Try
 import playwrigkt.skript.Skript
 import playwrigkt.skript.ex.*
 import playwrigkt.skript.queue.QueueMessage

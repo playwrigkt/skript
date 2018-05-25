@@ -1,6 +1,6 @@
 package playwrigkt.skript.chatroom.sql.update
 
-import org.funktionale.tries.Try
+import arrow.core.Try
 import playwrigkt.skript.sql.*
 
 object InsertChatRoom: SqlUpdateMapping<playwrigkt.skript.chatroom.models.ChatRoom, playwrigkt.skript.chatroom.models.ChatRoom> {

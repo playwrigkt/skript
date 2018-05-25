@@ -34,7 +34,7 @@ interface CompletableResult<T>: AsyncResult<T>, Completable<T> {
         }
     }
 
-    private class CompletableResultImpl<T>() : CompletableResult<T>, LightweightSynchronized {
+    private class CompletableResultImpl<T> : CompletableResult<T>, LightweightSynchronized {
         @Volatile private var result: Result<T>? = null
         @Volatile private var handlers: Queue<ResultHandler<T>> = LinkedBlockingQueue()
         override val lock: ReentrantLock = ReentrantLock()

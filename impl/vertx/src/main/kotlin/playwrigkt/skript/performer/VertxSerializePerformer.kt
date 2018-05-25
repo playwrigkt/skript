@@ -3,7 +3,7 @@ package playwrigkt.skript.performer
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.json.Json
-import org.funktionale.tries.Try
+import arrow.core.Try
 import playwrigkt.skript.ex.toAsyncResult
 import playwrigkt.skript.result.AsyncResult
 

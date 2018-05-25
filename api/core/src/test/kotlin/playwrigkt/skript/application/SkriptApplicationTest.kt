@@ -4,7 +4,7 @@ import io.kotlintest.matchers.contain
 import io.kotlintest.matchers.should
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
-import org.funktionale.tries.Try
+import arrow.core.Try
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import playwrigkt.skript.Skript

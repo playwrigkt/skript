@@ -1,6 +1,6 @@
 package playwrigkt.skript.application
 
-import org.funktionale.tries.Try
+import arrow.core.Try
 import playwrigkt.skript.Skript
 import playwrigkt.skript.config.ConfigValue
 import playwrigkt.skript.ex.lift

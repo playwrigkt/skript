@@ -1,6 +1,6 @@
 package playwrigkt.skript.config
 
-import org.funktionale.tries.Try
+import arrow.core.Try
 import java.math.BigDecimal
 import java.math.BigInteger
 

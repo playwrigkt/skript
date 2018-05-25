@@ -6,8 +6,7 @@ import io.vertx.core.http.HttpMethod
 import io.vertx.core.http.HttpServerOptions
 import io.vertx.core.http.HttpServerRequest
 import io.vertx.core.http.HttpServerResponse
-import org.funktionale.option.firstOption
-import org.funktionale.tries.Try
+import arrow.core.Try
 import playwrigkt.skript.Skript
 import playwrigkt.skript.ex.toAsyncResult
 import playwrigkt.skript.http.Http
@@ -37,8 +36,7 @@ data class VertxHttpServerVenue(val vertx: Vertx, val httpServerOptions: HttpSer
             log.debug("handling request \n\tmethod: {}\n\theaders: {}\n\turi: {}\n\tbody: {}\n\t: path", method, headers, uri, body, path)
 
             requestHandlers
-                    .firstOption { it.endpoint.matches(method, headers, path)}
-                    .orNull()
+                    .firstOrNull { it.endpoint.matches(method, headers, path)}
                     ?.let {produktion -> produktion.endpoint.request(uri, method, path, query, headers, body).flatMap(produktion::invoke) }
                     ?.flatMap {
                         val result = CompletableResult<Unit>()
@@ -73,7 +71,10 @@ data class VertxHttpServerVenue(val vertx: Vertx, val httpServerOptions: HttpSer
                         ?.let { throw HttpError.EndpointAlreadyMatches(it.endpoint, rule) }
                         ?:VertxHttpProduktion(rule, this, skript, stageManager)
             }
-                    .onSuccess { requestHandlers.add(it) }
+                    .map {
+                        requestHandlers.add(it)
+                        it
+                    }
                     .toAsyncResult()
 
     fun removeHandler(httpEndpoint: playwrigkt.skript.http.server.HttpServer.Endpoint): Try<Unit> =

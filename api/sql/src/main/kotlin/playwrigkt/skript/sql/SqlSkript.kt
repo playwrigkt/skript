@@ -1,6 +1,6 @@
 package playwrigkt.skript.sql
 
-import org.funktionale.tries.Try
+import arrow.core.Try
 import playwrigkt.skript.Skript
 import playwrigkt.skript.ex.andThen
 import playwrigkt.skript.ex.joinTry
@@ -80,8 +80,8 @@ sealed class SqlSkript<IN, OUT>: Skript<IN, OUT, SqlTroupe> {
 
     protected fun <R> handleFailure(tri: Try<R>): AsyncResult<R> =
             when(tri) {
-                is Try.Failure -> AsyncResult.failed(tri.throwable)
-                is Try.Success -> AsyncResult.succeeded(tri.get())
+                is Try.Failure -> AsyncResult.failed(tri.exception)
+                is Try.Success -> AsyncResult.succeeded(tri.value)
             }
 }
 

@@ -1,8 +1,8 @@
 package playwrigkt.skript.http.server
 
-import org.funktionale.option.getOrElse
-import org.funktionale.option.toOption
-import org.funktionale.tries.Try
+import arrow.core.getOrElse
+import arrow.core.toOption
+import arrow.core.Try
 import playwrigkt.skript.ex.toAsyncResult
 import playwrigkt.skript.http.Http
 import playwrigkt.skript.http.HttpError

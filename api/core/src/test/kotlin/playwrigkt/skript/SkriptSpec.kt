@@ -3,8 +3,8 @@ package playwrigkt.skript
 import io.kotlintest.shouldBe
 import io.kotlintest.shouldNotBe
 import io.kotlintest.specs.StringSpec
-import org.funktionale.either.Either
-import org.funktionale.tries.Try
+import arrow.core.Either
+import arrow.core.Try
 import playwrigkt.skript.ex.andThen
 import playwrigkt.skript.ex.join
 import playwrigkt.skript.result.CompletableResult
@@ -63,8 +63,7 @@ class SkriptSpec : StringSpec() {
                         val result = CompletableResult<Long>()
                         executor.schedule({
                             Try { it.toLong() *  2 }
-                                    .onSuccess(result::succeed)
-                                    .onFailure(result::fail)
+                                    .fold(result::fail, result::succeed)
                             latch.countDown()
                         }, 50, TimeUnit.MILLISECONDS)
                         result }
@@ -83,8 +82,7 @@ class SkriptSpec : StringSpec() {
                         val result = CompletableResult<Long>()
                         executor.schedule({
                             Try { string.toLong() *  2 }
-                                    .onSuccess(result::succeed)
-                                    .onFailure(result::fail)
+                                    .fold(result::fail, result::succeed)
                             latch.countDown()
                         }, 50, TimeUnit.MILLISECONDS)
                         result }

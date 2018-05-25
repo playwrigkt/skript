@@ -1,7 +1,7 @@
 package playwrigkt.skript.performer
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.funktionale.tries.Try
+import arrow.core.Try
 import playwrigkt.skript.ex.toAsyncResult
 import playwrigkt.skript.result.AsyncResult
 

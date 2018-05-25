@@ -12,7 +12,7 @@ sealed class QueuePublishSkript: Skript<QueueMessage, Unit, QueuePublishTroupe> 
         }
     }
 
-    class Publish(): QueuePublishSkript() {
+    class Publish : QueuePublishSkript() {
         override fun run(i: QueueMessage, troupe: QueuePublishTroupe): AsyncResult<Unit> {
             return troupe.getPublishPerformer()
                     .flatMap { publishPerformer -> publishPerformer.publish(i) }

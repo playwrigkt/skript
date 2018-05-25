@@ -1,9 +1,9 @@
 package playwrigkt.skript.application
 
-import org.funktionale.option.getOrElse
-import org.funktionale.option.orElse
-import org.funktionale.option.toOption
-import org.funktionale.tries.Try
+import arrow.core.getOrElse
+import arrow.core.orElse
+import arrow.core.toOption
+import arrow.core.Try
 import playwrigkt.skript.result.LightweightSynchronized
 import java.util.concurrent.locks.ReentrantLock
 
@@ -38,8 +38,7 @@ class ApplicationRegistry: LightweightSynchronized {
                     ?: Try.Failure(RegistryException(RegistryError.NotFound(name)))
 
     fun getDependencies(name: String): Try<List<String>> =
-            registry.get(name)
-                    ?.let { it.dependencies }
+            registry.get(name)?.dependencies
                     ?.let { Try.Success(it) }
                     ?: Try.Failure(RegistryException(RegistryError.NotFound(name)))
 

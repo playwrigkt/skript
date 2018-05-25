@@ -1,6 +1,6 @@
 package playwrigkt.skript.performer
 
-import org.funktionale.tries.Try
+import arrow.core.Try
 import playwrigkt.skript.coroutine.runAsync
 import playwrigkt.skript.coroutine.runTryAsync
 import playwrigkt.skript.result.AsyncResult

@@ -1,7 +1,9 @@
 package playwrigkt.skript.produktion
 
 import com.rabbitmq.client.*
-import org.funktionale.tries.Try
+import arrow.core.Try
+import arrow.core.recover
+import arrow.core.recoverWith
 import org.slf4j.LoggerFactory
 import playwrigkt.skript.Skript
 import playwrigkt.skript.coroutine.ex.suspendMap
@@ -25,35 +27,27 @@ data class AmqpProduktion<O, Troupe>(
     private val consumerTag: String = channel.basicConsume(
             queue,
             false,
-            object: DeliverCallback {
-                override fun handle(consumerTag: String, message: Delivery) {
-                    skript.run(QueueMessage(message.envelope.routingKey, message.body), provider.hireTroupe())
-                            .suspendMap { channel.basicAck(message.envelope.deliveryTag, false) }
-                            .recover { error ->
-                                runAsync { channel.basicNack(message.envelope.deliveryTag, false, true) }
-                                        .flatMap { AsyncResult.failed<Unit>(error) }
-                            }
+            { consumerTag, message ->
+                skript.run(QueueMessage(message.envelope.routingKey, message.body), provider.hireTroupe())
+                        .suspendMap { channel.basicAck(message.envelope.deliveryTag, false) }
+                        .recover { error ->
+                            runAsync { channel.basicNack(message.envelope.deliveryTag, false, true) }
+                                    .flatMap { AsyncResult.failed<Unit>(error) }
+                        }
+            },
+            { consumerTag ->
+                log.info("Consumer cancelled $consumerTag")
+                if(!stopInitiated.getAndSet(true)) {
+                    Try { channel.close() }
+                            .recover { channel.close() }
+                            .fold(result::fail, result::succeed)
                 }
             },
-            object: CancelCallback {
-                override fun handle(consumerTag: String?) {
-                    log.info("Consumer cancelled $consumerTag")
-                    if(!stopInitiated.getAndSet(true)) {
-                        Try { channel.close() }
-                                .onFailure { channel.close() }
-                                .onFailure(result::fail)
-                                .onSuccess(result::succeed)
-                    }
+            { consumerTag, sig ->
+                log.info("received consumer shutdown... $consumerTag $sig")
+                if(!stopInitiated.getAndSet(true)) {
+                    Try { result.succeed(Unit) }
                 }
-            },
-            object: ConsumerShutdownSignalCallback {
-                override fun handleShutdownSignal(consumerTag: String?, sig: ShutdownSignalException?) {
-                    log.info("received consumer shutdown... $consumerTag $sig")
-                    if(!stopInitiated.getAndSet(true)) {
-                        Try { result.succeed(Unit) }
-                    }
-                }
-
             }
         )
 
@@ -65,10 +59,9 @@ data class AmqpProduktion<O, Troupe>(
     override fun stop(): AsyncResult<Unit> {
         if(!stopInitiated.getAndSet(true)) {
             val cancelResult = Try { channel.basicCancel(consumerTag) }
-                    .onFailure { channel.close() }
                     .map { channel.close() }
-                    .onFailure(result::fail)
-                    .onSuccess(result::succeed)
+                    .recover { channel.close() }
+                    .fold(result::fail, result::succeed)
             log.info("Cancelled consumer $consumerTag, $cancelResult")
         }
         return result

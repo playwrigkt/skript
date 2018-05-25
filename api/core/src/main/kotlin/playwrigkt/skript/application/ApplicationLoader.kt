@@ -1,8 +1,6 @@
 package playwrigkt.skript.application
 
-import org.funktionale.option.getOrElse
-import org.funktionale.option.toOption
-import org.funktionale.tries.Try
+import arrow.core.*
 import org.slf4j.LoggerFactory
 import playwrigkt.skript.Skript
 import playwrigkt.skript.ex.*
@@ -92,7 +90,7 @@ data class SkriptApplicationLoader(val fileTroupe: FileTroupe, val serializeTrou
                         .filter { config -> applicationRegistry.dependenciesAreSatisfied(config, completedApplicationResources) }
                         .map { config -> config to
                                 applicationRegistry.getLoader(config.name)
-                                        .rescue {
+                                        .recoverWith {
                                             config.implements
                                                     .toOption()
                                                     .filter { it.isNotBlank() }
@@ -118,6 +116,7 @@ data class SkriptApplicationLoader(val fileTroupe: FileTroupe, val serializeTrou
         }
 
     private fun printFailureState(appConfig: AppConfig, throwable: Throwable) {
+        log.info("Failed to start application", throwable)
         log.info("Generating failed application startup information...")
         val sb = StringBuilder()
 
@@ -129,11 +128,11 @@ data class SkriptApplicationLoader(val fileTroupe: FileTroupe, val serializeTrou
                 .map { config ->
                     applicationRegistry
                             .getLoader(config.name)
-                            .rescue { applicationRegistry.getLoader(config.implements) }
+                            .recoverWith { applicationRegistry.getLoader(config.implements) }
                             .map {
                                 it.dependencies.filter { applicationRegistry.getLoader(config.applyOverride(it)).isFailure() }
                             }
-                            .onSuccess {
+                            .map {
                                 if(it.isNotEmpty()) {
                                     sb.appendln("resource ${config.name}")
                                     sb.appendln("\timplements ${config.implements}")
@@ -142,19 +141,18 @@ data class SkriptApplicationLoader(val fileTroupe: FileTroupe, val serializeTrou
                             }
                 }
                 .liftTry()
-                .onSuccess {
-                    sb.appendln("=".repeat(20))
-                    sb.appendln(applicationRegistry)
-                    sb.appendln("=".repeat(20))
-                    log.info("\n${sb.toString()}")
-                }
-                .onFailure {
+                .fold({
                     log.error("failed to generate full missing dependency report", it)
                     sb.appendln("=".repeat(20))
                     sb.appendln(applicationRegistry)
                     sb.appendln("=".repeat(20))
-                    log.info("\n${sb.toString()}")
-                }
+                    log.info("\n$sb")
+                }, {
+                    sb.appendln("=".repeat(20))
+                    sb.appendln(applicationRegistry)
+                    sb.appendln("=".repeat(20))
+                    log.info("\n$sb")
+                })
 
     }
 }
@@ -162,8 +160,6 @@ data class SkriptApplicationLoader(val fileTroupe: FileTroupe, val serializeTrou
 sealed class AppLoadError: Throwable() {
         data class NoSuitableConstructor(val clazz: Class<*>): AppLoadError()
         data class MustExtendSkriptModule(val clazz: Class<*>): AppLoadError()
-        data class NoSuchStageManager(val name: String): AppLoadError()
-        data class InvalidStageManager(val name: String, val instance: StageManager<*>): AppLoadError()
 }
 
 data class AppConfig(
@@ -176,10 +172,10 @@ val loadModulesIntoRegistry: Skript<AppConfig, Unit, SkriptApplicationLoader> = 
         .mapTry { modules -> modules
                 .map { Class.forName(it) }
                 .map { clazz -> Try { clazz.getConstructor() }
-                        .rescue { Try.Failure(AppLoadError.NoSuitableConstructor(clazz)) }
+                        .recoverWith { Try.Failure(AppLoadError.NoSuitableConstructor(clazz)) }
                         .map { it.newInstance() }
                         .filter { it is SkriptModule }
-                        .rescue { Try.Failure(AppLoadError.MustExtendSkriptModule(clazz)) }
+                        .recoverWith { Try.Failure(AppLoadError.MustExtendSkriptModule(clazz)) }
                         .map { it as SkriptModule }
                 }
                 .liftTry()

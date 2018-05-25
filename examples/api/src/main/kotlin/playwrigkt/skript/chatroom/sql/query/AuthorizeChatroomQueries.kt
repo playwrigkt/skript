@@ -1,6 +1,7 @@
 package playwrigkt.skript.chatroom.sql.query
 
-import org.funktionale.tries.Try
+import arrow.core.Try
+import arrow.core.recoverWith
 import playwrigkt.skript.Skript
 import playwrigkt.skript.sql.SqlCommand
 import playwrigkt.skript.sql.SqlQueryMapping
@@ -33,7 +34,7 @@ fun <T> mapAuthResultSet(input: T, rs: SqlResult.Query): Try<T> {
             .map { it.getBoolean("authorized") }
             .filter { it }
             .map { input }
-            .rescue { Try.Failure<T>(UserError.AuthorizationFailed) }
+            .recoverWith { Try.Failure<T>(UserError.AuthorizationFailed) }
 }
 
 

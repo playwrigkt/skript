@@ -1,6 +1,7 @@
 package playwrigkt.skript.auth.sql.query
 
-import org.funktionale.tries.Try
+import arrow.core.Try
+import arrow.core.recoverWith
 import playwrigkt.skript.sql.SqlCommand
 import playwrigkt.skript.sql.SqlMapping
 import playwrigkt.skript.sql.SqlResult
@@ -21,7 +22,7 @@ object AuthQueries {
                                     i.input)
 
                         }
-                        .rescue { Try.Failure(UserError.AuthenticationFailed) }
+                        .recoverWith { Try.Failure(UserError.AuthenticationFailed) }
                         .flatMap {
                             if(it.session.expiration.isBefore(Instant.now())) {
                                 Try.Failure<playwrigkt.skript.auth.SessionAndInput<T>>(UserError.SessionExpired)

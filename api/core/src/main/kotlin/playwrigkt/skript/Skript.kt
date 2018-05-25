@@ -1,7 +1,7 @@
 package playwrigkt.skript
 
-import org.funktionale.either.Either
-import org.funktionale.tries.Try
+import arrow.core.Either
+import arrow.core.Try
 import playwrigkt.skript.ex.lift
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.CompletableResult
@@ -188,8 +188,8 @@ interface Skript<in I, O, Troupe> {
         override fun run(i: I, troupe: Troupe): AsyncResult<O> {
             val tri = Try { mapper(i, troupe) }
             return when(tri) {
-                is Try.Failure -> CompletableResult.failed(tri.throwable)
-                is Try.Success -> CompletableResult.succeeded(tri.get())
+                is Try.Failure -> CompletableResult.failed(tri.exception)
+                is Try.Success -> CompletableResult.succeeded(tri.value)
             }
         }
     }
@@ -201,8 +201,8 @@ interface Skript<in I, O, Troupe> {
         override fun run(i: I, troupe: Troupe): AsyncResult<O> {
             val tri = mapper(i, troupe)
             return when(tri) {
-                is Try.Failure -> CompletableResult.failed(tri.throwable)
-                is Try.Success -> CompletableResult.succeeded(tri.get())
+                is Try.Failure -> CompletableResult.failed(tri.exception)
+                is Try.Success -> CompletableResult.succeeded(tri.value)
             }
         }
     }
@@ -235,8 +235,8 @@ interface Skript<in I, O, Troupe> {
         override fun run(i: I, troupe: Troupe): AsyncResult<O> {
             return control.run(i, troupe)
                     .flatMap { when(it) {
-                        is Either.Left -> left.run(it.l, troupe)
-                        is Either.Right -> right.run(it.r, troupe)
+                        is Either.Left -> left.run(it.a, troupe)
+                        is Either.Right -> right.run(it.b, troupe)
                     } }
         }
 

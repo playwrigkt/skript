@@ -1,6 +1,6 @@
 package playwrigkt.skript.ex
 
-import org.funktionale.tries.Try
+import arrow.core.Try
 
 data class AggregateException(val errors: List<Throwable>): Exception() {
     fun flatten(): AggregateException =

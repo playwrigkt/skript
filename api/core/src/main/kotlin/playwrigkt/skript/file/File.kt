@@ -1,6 +1,6 @@
 package playwrigkt.skript.file
 
-import org.funktionale.tries.Try
+import arrow.core.Try
 import playwrigkt.skript.Skript
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.troupe.FileTroupe

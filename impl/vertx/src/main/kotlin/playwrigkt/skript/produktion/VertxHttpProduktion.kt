@@ -20,7 +20,7 @@ data class VertxHttpProduktion<Troupe>(
             .flatMap { httpServerVenue.removeHandler(endpoint).toAsyncResult() }
 
     fun invoke(httpServerRequest: HttpServer.Request<ByteArray>): AsyncResult<HttpServer.Response> {
-        return skript.run(httpServerRequest, provider.hireTroupe());
+        return skript.run(httpServerRequest, provider.hireTroupe())
     }
 
     override fun isRunning(): Boolean =
