@@ -9,7 +9,7 @@ import io.ktor.response.header
 import io.ktor.response.respondWrite
 import io.ktor.routing.Route
 import io.ktor.util.toMap
-import org.funktionale.tries.Try
+import arrow.core.Try
 import org.slf4j.LoggerFactory
 import playwrigkt.skript.Skript
 import playwrigkt.skript.coroutine.ex.await
@@ -35,10 +35,10 @@ data class KtorHttpServerProduktion<Troupe>(val endpoint: HttpServer.Endpoint,
         route.handle {
             handle(this.context)
                     .await(maxConnectionMillis)
-                    .onFailure {
-                        log.info("error processing request: {}", it)
-
-                    }
+                    .fold(
+                            { log.info("error processing request: {}", it) },
+                            { }
+                    )
         }
     }
 
@@ -47,8 +47,10 @@ data class KtorHttpServerProduktion<Troupe>(val endpoint: HttpServer.Endpoint,
     override fun stop(): AsyncResult<Unit> = lock {
         if(!result.isComplete()) {
             Try { route.handle {  } }
-                    .onSuccess(result::succeed)
-                    .onFailure(result::fail)
+                    .fold(
+                            result::fail,
+                            result::succeed
+                    )
         } else {
             log.error("endpoint already stopped!")
         }
@@ -106,7 +108,7 @@ data class KtorHttpServerProduktion<Troupe>(val endpoint: HttpServer.Endpoint,
     }
     private fun ApplicationCall.body(responseBody: AsyncResult<ByteArray>): AsyncResult<ApplicationCall> =
         responseBody.suspendMap { bytes ->
-            this.respondWrite() {
+            this.respondWrite {
                 bytes.forEach { write(it.toInt()) }
                 flush()
                 close()

@@ -1,7 +1,7 @@
 package playwrigkt.skript.coroutine
 
 import kotlinx.coroutines.experimental.launch
-import org.funktionale.tries.Try
+import arrow.core.Try
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.result.CompletableResult
 
@@ -15,9 +15,9 @@ sealed class CoroutineError {
 fun <T> runTryAsync(action: () -> Try<T>): AsyncResult<T> {
     val asyncResult = CompletableResult<T>()
     launch {
-        action()
-                .onSuccess(asyncResult::succeed)
-                .onFailure(asyncResult::fail)
+        action().fold(
+                asyncResult::fail,
+                asyncResult::succeed)
     }
     return asyncResult
 }
@@ -37,9 +37,9 @@ fun <T> runAsync(action: () -> T): AsyncResult<T> {
 fun <T> runSuspended(action: suspend () -> Try<T>): AsyncResult<T> {
     val asyncResult = CompletableResult<T>()
     launch {
-        action()
-                .onSuccess(asyncResult::succeed)
-                .onFailure(asyncResult::fail)
+        action().fold(
+                asyncResult::fail,
+                asyncResult::succeed)
     }
     return asyncResult
 }

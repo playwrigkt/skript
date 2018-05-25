@@ -1,7 +1,7 @@
 package playwrigkt.skript.coroutine.ex
 
 import kotlinx.coroutines.experimental.launch
-import org.funktionale.tries.Try
+import arrow.core.Try
 import playwrigkt.skript.coroutine.CoroutineError
 import playwrigkt.skript.coroutine.CoroutineException
 import playwrigkt.skript.result.AsyncResult

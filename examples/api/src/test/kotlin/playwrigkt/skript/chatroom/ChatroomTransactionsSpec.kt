@@ -37,13 +37,13 @@ import kotlin.math.floor
 
 abstract class ChatroomTransactionsSpec : StringSpec() {
     companion object {
-        val CREATE_CHAT_ROOM: Skript<TokenAndInput<ChatRoom>, ChatRoom, ApplicationTroupe> = SqlTransactionSkript.transaction(playwrigkt.skript.chatroom.ChatRoomSkripts.CREATE_CHAT_ROOM_TRANSACTION)
-        val GET_CHAT_ROOM: Skript<TokenAndInput<String>, ChatRoom, ApplicationTroupe> = SqlTransactionSkript.transaction(playwrigkt.skript.chatroom.ChatRoomSkripts.GET_CHAT_ROOM_TRANSACTION)
-        val ADD_PUBLIC_PERMISSIONS: Skript<TokenAndInput<ChatRoomPermissions>, ChatRoom, ApplicationTroupe> = SqlTransactionSkript.transaction(playwrigkt.skript.chatroom.ChatRoomSkripts.ADD_PERMISSIONS)
-        val REMOVE_PUBLIC_PERMISSIONS: Skript<TokenAndInput<ChatRoomPermissions>, ChatRoom, ApplicationTroupe> = SqlTransactionSkript.transaction(playwrigkt.skript.chatroom.ChatRoomSkripts.REMOVE_PERMISSIONS)
-        val UPDATE_CHAT_ROOM: Skript<TokenAndInput<ChatRoom>, ChatRoom, ApplicationTroupe> = SqlTransactionSkript.transaction(playwrigkt.skript.chatroom.ChatRoomSkripts.UPDATE_CHAT_ROOM_TRANSACTION)
-        val ADD_USER_PERMISSION: Skript<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationTroupe> = SqlTransactionSkript.transaction(playwrigkt.skript.chatroom.ChatRoomSkripts.ADD_USER_PERMISSIONS)
-        val REMOVE_USER_PERMISSION: Skript<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationTroupe> = SqlTransactionSkript.transaction(playwrigkt.skript.chatroom.ChatRoomSkripts.REMOVE_USER_PERMISSIONS)
+        val CREATE_CHAT_ROOM: Skript<TokenAndInput<ChatRoom>, ChatRoom, ApplicationTroupe> = playwrigkt.skript.chatroom.ChatRoomSkripts.CREATE_CHAT_ROOM_TRANSACTION
+        val GET_CHAT_ROOM: Skript<TokenAndInput<String>, ChatRoom, ApplicationTroupe> = playwrigkt.skript.chatroom.ChatRoomSkripts.GET_CHAT_ROOM_TRANSACTION
+        val ADD_PUBLIC_PERMISSIONS: Skript<TokenAndInput<ChatRoomPermissions>, ChatRoom, ApplicationTroupe> = playwrigkt.skript.chatroom.ChatRoomSkripts.ADD_PERMISSIONS
+        val REMOVE_PUBLIC_PERMISSIONS: Skript<TokenAndInput<ChatRoomPermissions>, ChatRoom, ApplicationTroupe> = playwrigkt.skript.chatroom.ChatRoomSkripts.REMOVE_PERMISSIONS
+        val UPDATE_CHAT_ROOM: Skript<TokenAndInput<ChatRoom>, ChatRoom, ApplicationTroupe> = playwrigkt.skript.chatroom.ChatRoomSkripts.UPDATE_CHAT_ROOM_TRANSACTION
+        val ADD_USER_PERMISSION: Skript<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationTroupe> = playwrigkt.skript.chatroom.ChatRoomSkripts.ADD_USER_PERMISSIONS
+        val REMOVE_USER_PERMISSION: Skript<TokenAndInput<ChatRoomUser>, ChatRoom, ApplicationTroupe> = playwrigkt.skript.chatroom.ChatRoomSkripts.REMOVE_USER_PERMISSIONS
     }
 
     val LOG = LoggerFactory.getLogger(this.javaClass)

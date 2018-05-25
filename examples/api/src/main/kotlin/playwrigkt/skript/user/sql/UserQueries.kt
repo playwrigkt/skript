@@ -1,6 +1,7 @@
 package playwrigkt.skript.user.sql
 
-import org.funktionale.tries.Try
+import arrow.core.Try
+import arrow.core.recoverWith
 import playwrigkt.skript.sql.*
 import playwrigkt.skript.user.models.*
 import java.sql.Timestamp
@@ -39,7 +40,7 @@ object ValidatePasswordForUserId : SqlQueryMapping<UserIdAndPassword, String> {
     override fun mapResult(i: UserIdAndPassword, rs: SqlResult.Query): Try<String> =
             Try { rs.result.iterator().next() }
                     .map { it.getString("user_id") }
-                    .rescue { Try.Failure(UserError.AuthenticationFailed) }
+                    .recoverWith { Try.Failure(UserError.AuthenticationFailed) }
 }
 
 object SelectUserIdForLogin : SqlQueryMapping<UserNameAndPassword, UserIdAndPassword> {
@@ -51,7 +52,7 @@ object SelectUserIdForLogin : SqlQueryMapping<UserNameAndPassword, UserIdAndPass
     override fun mapResult(i: UserNameAndPassword, rs: SqlResult.Query): Try<UserIdAndPassword> =
             Try { rs.result.iterator().next() }
                     .map { UserIdAndPassword(it.getString("id"), i.password) }
-                    .rescue { Try.Failure(UserError.NoSuchUser(i.userName)) }
+                    .recoverWith { Try.Failure(UserError.NoSuchUser(i.userName)) }
 }
 
 object InsertSession: SqlUpdateMapping<UserSession, UserSession> {
@@ -78,7 +79,7 @@ class SelectSessionByKey<T>(val validateSesssion: (UserSession, T) -> Try<T>): S
                     } else {
                         validateSesssion(it, i.input)
                     } }
-                .rescue { Try.Failure(UserError.AuthenticationFailed) }
+                .recoverWith { Try.Failure(UserError.AuthenticationFailed) }
 
 
     override fun toSql(i: playwrigkt.skript.auth.TokenAndInput<T>): SqlCommand.Query =
@@ -91,7 +92,7 @@ object SelectUserProfileById: SqlQueryMapping<String, UserProfile> {
 
     override fun mapResult(i: String, rs: SqlResult.Query): Try<UserProfile> =
             Try { rs.result.next() }
-                    .rescue { Try.Failure(UserError.NoSuchUser(i)) }
+                    .recoverWith { Try.Failure(UserError.NoSuchUser(i)) }
                     .map {
                         UserProfile(it.getString("id"),
                                 it.getString("user_name"),
@@ -140,7 +141,7 @@ object SelectUserSessionFromTrustedDevice: SqlQueryMapping<UserTrustedDevice, Us
 
     override fun mapResult(i: UserTrustedDevice, rs: SqlResult.Query): Try<UserSession> =
         Try { rs.result.next() }
-                .rescue { Try.Failure(UserError.NoSuchTrustedDevice(i)) }
+                .recoverWith { Try.Failure(UserError.NoSuchTrustedDevice(i)) }
                 .map {
                     UserSession(
                             it.getString("session_key"),

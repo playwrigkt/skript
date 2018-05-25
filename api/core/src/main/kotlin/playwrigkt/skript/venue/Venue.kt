@@ -1,6 +1,6 @@
 package playwrigkt.skript.venue
 
-import org.funktionale.tries.Try
+import arrow.core.Try
 import org.slf4j.LoggerFactory
 import playwrigkt.skript.Skript
 import playwrigkt.skript.application.ApplicationResource

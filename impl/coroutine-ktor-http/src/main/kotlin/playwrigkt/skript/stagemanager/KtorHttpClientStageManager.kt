@@ -6,7 +6,7 @@ import playwrigkt.skript.coroutine.runAsync
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.troupe.KtorHttpClientTroupe
 
-class KtorHttpClientStageManager(): StageManager<KtorHttpClientTroupe> {
+class KtorHttpClientStageManager : StageManager<KtorHttpClientTroupe> {
     private val httpClient by lazy {
         HttpClient(Apache)
     }

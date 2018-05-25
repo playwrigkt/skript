@@ -1,9 +1,9 @@
 package playwrigkt.skript.http.client
 
-import org.funktionale.option.Option
-import org.funktionale.option.getOrElse
-import org.funktionale.option.orElse
-import org.funktionale.option.toOption
+import arrow.core.Option
+import arrow.core.getOrElse
+import arrow.core.orElse
+import arrow.core.toOption
 import playwrigkt.skript.Skript
 import playwrigkt.skript.http.HttpError
 import playwrigkt.skript.result.AsyncResult

@@ -1,7 +1,7 @@
 package playwrigkt.skript.http.server
 
-import org.funktionale.option.Option
-import org.funktionale.option.toOption
+import arrow.core.Option
+import arrow.core.toOption
 
 sealed class HttpPathPart {
     abstract fun matches(rawPart: String): Boolean

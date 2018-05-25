@@ -1,8 +1,8 @@
 package playwrigkt.skript.application
 
-import org.funktionale.option.getOrElse
-import org.funktionale.option.toOption
-import org.funktionale.tries.Try
+import arrow.core.getOrElse
+import arrow.core.toOption
+import arrow.core.Try
 import org.slf4j.LoggerFactory
 import playwrigkt.skript.All3
 import playwrigkt.skript.Skript

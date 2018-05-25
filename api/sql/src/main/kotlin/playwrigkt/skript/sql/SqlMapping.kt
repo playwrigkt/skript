@@ -1,6 +1,6 @@
 package playwrigkt.skript.sql
 
-import org.funktionale.tries.Try
+import arrow.core.Try
 import java.time.Instant
 
 sealed class SqlResult {

@@ -1,6 +1,6 @@
 package playwrigkt.skript.ex
 
-import org.funktionale.tries.Try
+import arrow.core.Try
 import playwrigkt.skript.result.AsyncResult
 
 /**
@@ -55,6 +55,6 @@ fun <K, V> Map<K, AsyncResult<V>>.lift(): AsyncResult<Map<K, V>> {
  */
 fun <T> Try<T>.toAsyncResult(): AsyncResult<T> =
         when(this) {
-            is Try.Success -> AsyncResult.succeeded(this.get())
-            is Try.Failure -> AsyncResult.failed(this.throwable)
+            is Try.Success -> AsyncResult.succeeded(this.value)
+            is Try.Failure -> AsyncResult.failed(this.exception)
         }

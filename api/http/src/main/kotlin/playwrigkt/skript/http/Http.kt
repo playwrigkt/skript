@@ -58,8 +58,8 @@ sealed class Http {
                 }
 
         object Get: Method()
-        object Put: Method();
-        object Delete: Method();
+        object Put: Method()
+        object Delete: Method()
         object Post: Method()
         object Head: Method()
         object Options: Method()

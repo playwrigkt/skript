@@ -14,7 +14,6 @@ import playwrigkt.skript.application.createApplication
 import playwrigkt.skript.auth.TokenAndInput
 import playwrigkt.skript.chatroom.models.ChatRoom
 import playwrigkt.skript.chatroom.models.ChatRoomUser
-import playwrigkt.skript.common.models.Reference
 import playwrigkt.skript.ex.createFile
 import playwrigkt.skript.ex.join
 import playwrigkt.skript.ex.readFile
@@ -59,7 +58,7 @@ abstract class ChatRoomApiSpec: StringSpec() {
 
     override fun beforeSpec(description: Description, spec: Spec) {
         val loader = SkriptApplicationLoader(SyncFileTroupe, SyncJacksonSerializeStageManager().hireTroupe(), ApplicationRegistry())
-        Skript.identity<Unit, SkriptApplicationLoader>()
+        awaitSucceededFuture(Skript.identity<Unit, SkriptApplicationLoader>()
                 .map { FileReference.Relative(sourceConfigFileName) }
                 .readFile()
                 .map { it.readText() }
@@ -73,7 +72,7 @@ abstract class ChatRoomApiSpec: StringSpec() {
                     writer.flush()
                     writer.close()
                 }
-                .run(Unit, loader)
+                .run(Unit, loader))!!
         awaitSucceededFuture(stageManager.runWithTroupe(
                 SqlTransactionSkript.transaction(playwrigkt.skript.chatroom.sql.ChatRoomSchema.dropAllAction),
                 Unit))

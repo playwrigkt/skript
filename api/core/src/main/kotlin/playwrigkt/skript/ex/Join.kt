@@ -1,6 +1,6 @@
 package playwrigkt.skript.ex
 
-import org.funktionale.tries.Try
+import arrow.core.Try
 import playwrigkt.skript.*
 
 fun <I, OL, OR, O2, Troupe> Skript<I, Pair<OL, OR>, Troupe>.join(mapper: (OL, OR) -> O2): Skript<I, O2, Troupe> =
