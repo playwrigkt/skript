@@ -6,3 +6,5 @@ dependencies {
 
     testCompile project(':examples:api-definition').sourceSets.test.output
 }
+
+bintray.publish = false

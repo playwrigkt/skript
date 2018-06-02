@@ -9,3 +9,5 @@ dependencies {
     compile "org.postgresql:postgresql:$postgres_version"
     testCompile project(':examples:api-definition').sourceSets.test.output
 }
+
+bintray.publish = false

@@ -9,3 +9,5 @@ dependencies {
     compile project(':api:core')
     compile project(':impl-coroutine:common')
 }
+
+bintray.publish = false

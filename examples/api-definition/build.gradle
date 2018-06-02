@@ -6,3 +6,5 @@ kotlin {
 dependencies {
     compile project(':api')
 }
+
+bintray.publish = false
