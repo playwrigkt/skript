@@ -3,6 +3,7 @@ package playwrigkt.skript.example
 import playwrigkt.skript.Skript
 import playwrigkt.skript.application.ApplicationRegistry
 import playwrigkt.skript.application.SkriptApplicationLoader
+import playwrigkt.skript.application.createApplication
 import playwrigkt.skript.application.loadApplication
 import playwrigkt.skript.ex.andThen
 import playwrigkt.skript.ex.join
@@ -23,15 +24,11 @@ import java.util.concurrent.CountDownLatch
 data class MyTroupe(val inputStreamTroupe: InputStreamTroupe,
                     val outputStreamTroupe: OutputStreamTroupe,
                     val fileTroupe: FileTroupe,
-                    val serializeTroupe: SerializeTroupe): FileTroupe, InputStreamTroupe, OutputStreamTroupe, SerializeTroupe {
-    override fun getInputStreamPerformer(): AsyncResult<out InputStreamPerformer> = inputStreamTroupe.getInputStreamPerformer()
-
-    override fun getOutputStreamPerformer(): AsyncResult<out OutputStreamPerformer> = outputStreamTroupe.getOutputStreamPerformer()
-
-    override fun getSerializePerformer(): AsyncResult<out SerializePerformer> = serializeTroupe.getSerializePerformer()
-
-    override fun getFilePerformer(): AsyncResult<out FilePerformer> = fileTroupe.getFilePerformer()
-}
+                    val serializeTroupe: SerializeTroupe):
+        FileTroupe by fileTroupe,
+        InputStreamTroupe by inputStreamTroupe,
+        OutputStreamTroupe by outputStreamTroupe,
+        SerializeTroupe by serializeTroupe
 
 
 data class MyStageManager(val serialize: StageManager<SerializeTroupe>,
@@ -66,10 +63,9 @@ val applicationSkript = Skript.identity<Unit, MyTroupe>()
         .andThen(IOStreamSkript.WriteLine)
 
 fun main(args: Array<String>) {
-    val registry  = ApplicationRegistry()
     val waitLatch = CountDownLatch(1)
 
-    val result = loadApplication.run("examples/command-line-application/application.json", SkriptApplicationLoader(SyncFileTroupe, SyncJacksonSerializeStageManager().hireTroupe(), registry))
+    val result = createApplication("examples/command-line-application/application.json")
             .map { it.applicationResources.get(MyStageManagerLoader.name()) }
             .flatMap { it
                     ?.let { AsyncResult.succeeded(it) }
@@ -77,6 +73,7 @@ fun main(args: Array<String>) {
                             ApplicationRegistry.RegistryException(ApplicationRegistry.RegistryError.NotFound("exampleApp")))
             }
             .map { it as MyStageManager }
+
     result
             .flatMap { applicationSkript.run(Unit, it.hireTroupe()) }
             .addHandler { waitLatch.countDown() }

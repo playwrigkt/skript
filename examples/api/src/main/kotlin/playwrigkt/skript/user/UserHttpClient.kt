@@ -11,7 +11,6 @@ import playwrigkt.skript.user.models.UserProfile
 import playwrigkt.skript.user.models.UserProfileAndPassword
 import playwrigkt.skript.user.models.UserSession
 
-//TODO get port from configuration
 class UserHttpClient(val configBase: String = "userHttpClient") {
     private val getHostFromConfig = Skript.identity<Any, ApplicationTroupe>()
             .map { "$configBase.host" }
