@@ -7,6 +7,5 @@ run {
 }
 dependencies {
     compile project(':api:core')
-    compile project(':api:coroutine')
-    compile project(':impl:application')
+    compile project(':impl-coroutine:common')
 }

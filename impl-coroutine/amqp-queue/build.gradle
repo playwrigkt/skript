@@ -1,0 +1,11 @@
+kotlin {
+    experimental {
+        coroutines "enable"
+    }
+}
+
+dependencies {
+    compile group: 'com.rabbitmq', name: 'amqp-client', version: '5.1.2'
+    compile project(':impl-coroutine:common')
+    compile project(':api:queue')
+}

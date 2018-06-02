@@ -7,9 +7,11 @@ http/sets/
 http/cards
 */out/
 api/*/out/
-impl/*/out/
 api/*/build/
-impl/*/build/
+impl-coroutine/*/out/
+impl-coroutine/*/build/
+impl-vertx/*/out/
+impl-vertx/*/build/
 *.class
 examples/*/build/
 examples/*/out/

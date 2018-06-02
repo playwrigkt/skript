@@ -1,0 +1,11 @@
+kotlin {
+    experimental {
+        coroutines 'enable'
+    }
+}
+
+dependencies {
+    compile project(':api:sql')
+    compile project(':impl-coroutine:common')
+    compile "com.zaxxer:HikariCP:$hikari_version"
+}

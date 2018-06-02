@@ -1,0 +1,6 @@
+dependencies {
+    compile project(":impl-coroutine:amqp-queue")
+    compile project(":impl-coroutine:jackson-serialize")
+    compile project(":impl-coroutine:jdbc-sql")
+    compile project(":impl-coroutine:ktor-http")
+}

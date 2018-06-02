@@ -1,16 +1,24 @@
 buildscript {
+  //main
   ext.kotlin_version = '1.2.30'
-  ext.kotlin_coroutine_version = '0.22.4'
+  ext.arrow_version = '0.7.1'
+  ext.slf4j_version = '1.7.25'
+  ext.jackson_version = '2.9.+'
+
+  //test
   ext.kotlin_test_version="3.0.3"
-  ext.docker_plugin_version = '3.0.0'
-  ext.vertxVersion = '3.4.2'
+  ext.junit_platform_version = "5.1.0"
+
+  //build
   ext.dokka_version = "0.9.16"
-  ext.netty_version = "4.1.8.Final"
+
+  //implementation
+  ext.kotlin_coroutine_version = '0.22.4'
+  ext.vertxVersion = '3.4.2'
   ext.ktor_version = '0.9.1'
-  ext.javalin_version = '1.5.0'
   ext.hikari_version = '2.7.1'
   ext.postgres_version = '42.1.4'
-  ext.junit_platform_version = "5.1.0"
+
   repositories {
     mavenCentral()
     jcenter()
@@ -24,7 +32,7 @@ buildscript {
 }
 
 subprojects {
-  apply plugin:'java'
+  apply plugin: 'java'
   apply plugin: 'kotlin'
   apply plugin: 'org.jetbrains.dokka'
   apply plugin: 'org.junit.platform.gradle.plugin'
@@ -58,15 +66,18 @@ subprojects {
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
-    compile 'io.arrow-kt:arrow-core:0.7.1'
-    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+    compile "io.arrow-kt:arrow-core:$arrow_version"
+    compile "org.slf4j:slf4j-api:$slf4j_version"
+    compile "com.fasterxml.jackson.core:jackson-core:$jackson_version"
+    compile "com.fasterxml.jackson.module:jackson-module-kotlin:$jackson_version"
+    compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson_version"
 
-    testCompile("org.junit.jupiter:junit-jupiter-api:$junit_platform_version")
-    testRuntime("org.junit.jupiter:junit-jupiter-engine:$junit_platform_version")
+    testCompile "org.junit.jupiter:junit-jupiter-api:$junit_platform_version"
+    testRuntime "org.junit.jupiter:junit-jupiter-engine:$junit_platform_version"
     testCompile "io.kotlintest:kotlintest-core:$kotlin_test_version"
     testCompile "io.kotlintest:kotlintest-assertions:$kotlin_test_version"
     testCompile "io.kotlintest:kotlintest-runner-junit5:$kotlin_test_version"
-    testCompile 'org.slf4j:slf4j-simple:1.7.25'
+    testCompile "org.slf4j:slf4j-simple:$slf4j_version"
   }
 
   junitPlatform {
