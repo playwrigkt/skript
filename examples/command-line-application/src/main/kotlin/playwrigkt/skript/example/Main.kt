@@ -2,23 +2,17 @@ package playwrigkt.skript.example
 
 import playwrigkt.skript.Skript
 import playwrigkt.skript.application.ApplicationRegistry
-import playwrigkt.skript.application.SkriptApplicationLoader
 import playwrigkt.skript.application.createApplication
-import playwrigkt.skript.application.loadApplication
 import playwrigkt.skript.ex.andThen
 import playwrigkt.skript.ex.join
 import playwrigkt.skript.ex.lift
 import playwrigkt.skript.file.FileReference
 import playwrigkt.skript.file.FileSkript
 import playwrigkt.skript.iostream.*
-import playwrigkt.skript.performer.FilePerformer
-import playwrigkt.skript.performer.SerializePerformer
 import playwrigkt.skript.result.AsyncResult
 import playwrigkt.skript.stagemanager.StageManager
-import playwrigkt.skript.stagemanager.SyncJacksonSerializeStageManager
 import playwrigkt.skript.troupe.FileTroupe
 import playwrigkt.skript.troupe.SerializeTroupe
-import playwrigkt.skript.troupe.SyncFileTroupe
 import java.util.concurrent.CountDownLatch
 
 data class MyTroupe(val inputStreamTroupe: InputStreamTroupe,

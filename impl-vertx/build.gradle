@@ -1,0 +1,10 @@
+dependencies {
+    compile "io.vertx:vertx-core:$vertxVersion"
+    compile "io.vertx:vertx-jdbc-client:$vertxVersion"
+    compile group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.9.+'
+    compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.+"
+
+    compile project(':api:sql')
+    compile project(':api:queue')
+    compile project(':api:http')
+}
