@@ -11,6 +11,7 @@ buildscript {
 
   //build
   ext.dokka_version = "0.9.16"
+  ext.shipkit_version = "2.0.25"
 
   //implementation
   ext.kotlin_coroutine_version = '0.22.4'
@@ -22,14 +23,21 @@ buildscript {
   repositories {
     mavenCentral()
     jcenter()
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
   }
 
   dependencies {
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     classpath "org.jetbrains.dokka:dokka-gradle-plugin:${dokka_version}"
     classpath "org.junit.platform:junit-platform-gradle-plugin:1.1.0"
+    classpath "org.shipkit:shipkit:$shipkit_version"
   }
 }
+
+apply plugin: "org.shipkit.java"
+
 
 subprojects {
   apply plugin: 'java'
@@ -40,7 +48,6 @@ subprojects {
   apply plugin: 'maven-publish'
 
   group = "playwrigkt.skript"
-  version = "0.0.1"
 
   String moduleName = "skript${project.path.replace(":", "-")}"
 
@@ -117,24 +124,5 @@ subprojects {
     baseName "$moduleName-sources"
     from sourceSets.main.allSource
     classifier "sources"
-  }
-
-  publishing {
-      publications {
-        mavenJava(MavenPublication) {
-          groupId 'playwrigkt.skript'
-          artifactId "$moduleName"
-
-          from components.java
-          artifact sourceJar
-          artifact dokkaJar
-        }
-      }
-
-      repositories {
-          maven {
-              url = uri("$buildDir/repository")
-          }
-      }
   }
 }
