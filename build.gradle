@@ -93,12 +93,6 @@ subprojects {
   dokka {
     outputFormat = 'html'
     outputDirectory = "$buildDir/javadoc"
-
-//    linkMapping {
-//      dir = "src/main/kotlin"
-//      url = "https://github.com/dgoetsch/skript/tree/master/${project.name}/src/main/kotlin"
-//      suffix = "#L"
-//    }
   }
 
   task dokkaJar(type: Jar) {
