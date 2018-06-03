@@ -30,4 +30,3 @@
  - Module restructure [(#3)](https://github.com/dgoetsch/skript/pull/3)
  - Http consumer [(#2)](https://github.com/dgoetsch/skript/pull/2)
  - Http consumer experimental [(#1)](https://github.com/dgoetsch/skript/pull/1)
-
