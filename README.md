@@ -105,5 +105,3 @@ technology and not change anything but minor configuration code.
 * SQL schema management (maynot?)
 * CacheSkript
 * Encryption
-* Don't publish artifacts for examples and base project
-* Publish dokkadoc

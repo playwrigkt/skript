@@ -10,6 +10,7 @@ buildscript {
   ext.junit_platform_version = "5.1.0"
 
   //build
+  ext.dokka_version = "0.9.16"
   ext.shipkit_version = "2.0.25"
 
   //implementation
@@ -30,17 +31,20 @@ buildscript {
   dependencies {
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     classpath "org.junit.platform:junit-platform-gradle-plugin:1.1.0"
+    classpath "org.jetbrains.dokka:dokka-gradle-plugin:${dokka_version}"
     classpath "org.shipkit:shipkit:$shipkit_version"
   }
 }
 
 apply plugin: "org.shipkit.java"
 
+
 subprojects {
   apply plugin: 'java'
   apply plugin: 'kotlin'
   apply plugin: 'org.junit.platform.gradle.plugin'
   apply plugin: "jacoco"
+  apply plugin: 'org.jetbrains.dokka'
 
   group = "playwrigkt.skript"
 
@@ -104,4 +108,22 @@ subprojects {
   releaseNeeded {
     skipComparePublications = System.getenv("FORCE_PUBLISH") != null ? true : false
   }
+
+  dokka {
+    outputFormat = 'html'
+    outputDirectory = "$buildDir/docs/dokka-html"
+    moduleName = archivesBaseName
+  }
+
+  task dokkaJavadoc(type: org.jetbrains.dokka.gradle.DokkaTask) {
+    outputFormat = 'javadoc'
+    outputDirectory = "$buildDir/docs/javadoc/$archivesBaseName"
+  }
+
+  javadoc {
+    destinationDir = file("$buildDir/docs")
+  }
+
+  javadoc.dependsOn dokka
+  javadoc.dependsOn dokkaJavadoc
 }
