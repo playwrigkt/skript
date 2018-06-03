@@ -44,7 +44,7 @@ subprojects {
 
   group = "playwrigkt.skript"
 
-  String moduleName = "skript${project.path.replace(":", "-")}"
+  archivesBaseName = "skript${project.path.replace(":", "-")}"
 
   repositories {
     jcenter()
