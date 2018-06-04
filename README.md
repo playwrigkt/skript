@@ -1,10 +1,13 @@
 ![Build status](https://circleci.com/gh/dgoetsch/skript.svg?style=shield&circle-token=f1ea168988d7d58862e44026aedd74785214c726)
+[![latest release](https://img.shields.io/badge/release%20notes-0.0.x-green.svg)](https://github.com/playwrigkt/skript/blob/master/docs/release-notes.md)
+[![Bintray](https://api.bintray.com/packages/playwrigkt/skript/skript/images/download.svg)](https://bintray.com/playwrigkt/skript/skript)
 
 # Skript
 
-This project allows users to implement application logic independently of technology
+Describe application logic asynchronously without tying yourself to an underlying
+implementation.
 
-This project is in an early troupe of development and may change drastically in
+This project is in an early stage of development and may change drastically in
 order to provider cleaner and more powerful APIs.
 
 ## Project Goals
