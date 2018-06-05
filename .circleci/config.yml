@@ -26,5 +26,9 @@ jobs:
       - run: ./gradlew build
       - deploy:
           command: |
+            echo "CIRCLE_REPOSITORY_URL"
+            echo $CIRCLE_REPOSITORY_URL
+            echo "CIRCLE_PR_REPONAME"
+            echo $CIRCLE_PR_REPONAME
             export TRAVIS_BRANCH=$CIRCLE_BRANCH
             ./gradlew ciPerformRelease
