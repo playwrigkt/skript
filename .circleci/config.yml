@@ -7,6 +7,17 @@ jobs:
   build:
     docker:
       - image: circleci/openjdk:8-jdk
+      - image: postgres
+        environment:
+          POSTGRES_USER: chatty_tammy
+          POSTGRES_PASSWORD: gossipy
+          POSTGRES_DB: chitchat
+      - image: rabbitmq:3-management
+        environment:
+          RABBITMQ_ERLANG_COOKIE: SWQOKODSQALRPCLNMEQG
+          RABBITMQ_DEFAULT_USER: rabbitmq
+          RABBITMQ_DEFAULT_PASS: rabbitmq
+          RABBITMQ_DEFAULT_VHOST: /
     working_directory: ~/repo
     environment:
       # Customize the JVM maximum heap limit
@@ -24,6 +35,30 @@ jobs:
             - ~/.gradle
           key: v1-dependencies-{{ checksum "build.gradle" }}
       - run: ./gradlew build
+      - run:
+          name: Waiting for Postgres to be ready
+          command: |
+            for i in `seq 1 10`;
+            do
+              nc -z localhost 5432 && echo Success && exit 0
+              echo -n .
+              sleep 1
+            done
+            echo Failed waiting for Postgress && exit 1
+      - run:
+          name: Waiting for Rabbitmq to be ready
+          command: |
+            for i in `seq 1 10`;
+            do
+              nc -z localhost 5432 && echo Success && exit 0
+              echo -n .
+              sleep 1
+            done
+            echo Failed waiting for Rabbitmq && exit 1
+      - run: |
+            git clone git@github.com:playwrigkt/skript-examples.git
+            cd skript-examples
+            ./gradlew build
       - deploy:
           command: |
             export TRAVIS_BRANCH=$CIRCLE_BRANCH
