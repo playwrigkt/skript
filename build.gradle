@@ -1,12 +1,12 @@
 buildscript {
   //main
-  ext.kotlin_version = '1.2.30'
-  ext.arrow_version = '0.7.1'
+  ext.kotlin_version = '1.2.50'
+  ext.arrow_version = '0.7.2'
   ext.slf4j_version = '1.7.25'
   ext.jackson_version = '2.9.+'
 
   //test
-  ext.kotlin_test_version="3.0.3"
+  ext.kotlin_test_version="3.1.6"
   ext.junit_platform_version = "5.1.0"
 
   //build
@@ -14,9 +14,9 @@ buildscript {
   ext.shipkit_version = "2.0.25"
 
   //implementation
-  ext.kotlin_coroutine_version = '0.22.4'
+  ext.kotlin_coroutine_version = '0.23.3'
   ext.vertxVersion = '3.4.2'
-  ext.ktor_version = '0.9.1'
+  ext.ktor_version = '0.9.3-alpha-5'
   ext.hikari_version = '2.7.1'
   ext.postgres_version = '42.1.4'
 
