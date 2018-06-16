@@ -2,6 +2,7 @@ package playwrigkt.skript.performer
 
 import io.ktor.client.HttpClient
 import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.request.headers
 import io.ktor.client.request.request
 import io.ktor.client.response.HttpResponse
 import io.ktor.client.response.readBytes

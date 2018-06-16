@@ -31,6 +31,14 @@ class ApplicationRegistry: LightweightSynchronized {
 
     }
 
+    fun <Loader> registerAlias(alias: String, loader: Loader): Try<Unit> where Loader: ApplicationResourceLoader<out ApplicationResource> = lock {
+        registry.get(alias)
+                ?.let { Try.Failure<Unit>(RegistryException(RegistryError.DuplicateStageManagerLoader(alias))) }
+                ?: Try.Success(registry.put(alias, loader))
+                        .map { Unit }
+
+    }
+
     fun getLoader(name: String): Try<ApplicationResourceLoader<*>> =
             registry.get(name)
                     ?.let { it }

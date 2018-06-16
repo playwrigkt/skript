@@ -1,3 +1,9 @@
+kotlin {
+    experimental {
+        coroutines "enable"
+    }
+}
+
 dependencies {
     compile project(":impl-coroutine:amqp-queue")
     compile project(":impl-coroutine:jackson-serialize")

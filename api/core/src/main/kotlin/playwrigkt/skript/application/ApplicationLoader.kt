@@ -1,9 +1,6 @@
 package playwrigkt.skript.application
 
-import arrow.core.Try
-import arrow.core.getOrElse
-import arrow.core.recoverWith
-import arrow.core.toOption
+import arrow.core.*
 import org.slf4j.LoggerFactory
 import playwrigkt.skript.Skript
 import playwrigkt.skript.ex.*
@@ -68,12 +65,12 @@ data class SkriptApplicationLoader(val fileTroupe: FileTroupe, val serializeTrou
 
 
         fun buildApplication(appConfig: AppConfig): AsyncResult<SkriptApplication> =
-                buildStageManagers(appConfig.applicationResourceLoaders)
+                buildApplicationResources(appConfig.applicationResourceLoaders)
                         .map { SkriptApplication(it, appConfig, applicationRegistry) }
                         .onFailure { printFailureState(appConfig, it) }
 
-        private fun buildStageManagers(remainingApplicationResources: List<ApplicationResourceLoaderConfig>,
-                                       completedApplicationResources: Map<String, ApplicationResource> = emptyMap()): AsyncResult<Map<String, ApplicationResource>> {
+        private fun buildApplicationResources(remainingApplicationResources: List<ApplicationResourceLoaderConfig>,
+                                              completedApplicationResources: Map<String, ApplicationResource> = emptyMap()): AsyncResult<Map<String, ApplicationResource>> {
 
                 if(remainingApplicationResources.isEmpty()) {
                         return AsyncResult.succeeded(completedApplicationResources)
@@ -99,6 +96,7 @@ data class SkriptApplicationLoader(val fileTroupe: FileTroupe, val serializeTrou
                                                     .map(applicationRegistry::getLoader)
                                                     .getOrElse { Try.Failure(it) }
                                         }
+                                        .map { ensureBothNamesRegistered(config, resourceLoader = it) }
                                         .toAsyncResult()
                                         .flatMap {
                                                 log.info("loading application resource $config with $it")
@@ -112,13 +110,25 @@ data class SkriptApplicationLoader(val fileTroupe: FileTroupe, val serializeTrou
                                     .plus(newlyCompleted.mapKeys { it.key.implements }.minus(""))
                                     .plus(completedApplicationResources)
                         }
-                        .flatMap { completedAfter -> buildStageManagers(remainingAfter, completedAfter) }
+                        .flatMap { completedAfter -> buildApplicationResources(remainingAfter, completedAfter) }
                 result.addHandler { log.info("finished  loading applicationResources: $it") }
                 return result
         }
 
+    private fun <R: ApplicationResource> ensureBothNamesRegistered(config: ApplicationResourceLoaderConfig, resourceLoader: ApplicationResourceLoader<R>): ApplicationResourceLoader<R> {
+        ensureRegistered(config.name, resourceLoader)
+        Option.invoke(config.implements).filter { it.isNotBlank() }.map { ensureRegistered(it, resourceLoader) }
+        return resourceLoader
+    }
+
+    private fun  <R: ApplicationResource> ensureRegistered(alias: String, resourceLoader: ApplicationResourceLoader<R>): Try<Unit> =
+            applicationRegistry.getLoader(alias)
+                    .map { Unit }
+                    .recoverWith { applicationRegistry.registerAlias(alias, resourceLoader) }
+
     private fun printFailureState(appConfig: AppConfig, throwable: Throwable) {
         log.info("Failed to start application", throwable)
+        logAggregated(throwable)
         log.info("Generating failed application startup information...")
         val sb = StringBuilder()
 
@@ -157,6 +167,18 @@ data class SkriptApplicationLoader(val fileTroupe: FileTroupe, val serializeTrou
                 })
 
     }
+
+    private fun logAggregated(throwable: Throwable) {
+        when(throwable) {
+            is AggregateException ->
+                throwable.flatten().errors.forEach {
+                        log.error("Aggregated:", it)
+                        logAggregated(it)
+                    }
+            else -> {}
+        }
+    }
+
 }
 
 sealed class AppLoadError: Throwable() {
