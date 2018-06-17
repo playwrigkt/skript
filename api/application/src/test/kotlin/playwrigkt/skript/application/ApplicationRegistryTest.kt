@@ -5,11 +5,6 @@ import io.kotlintest.specs.StringSpec
 import arrow.core.Try
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
-import playwrigkt.skript.Skript
-import playwrigkt.skript.config.ConfigValue
-import playwrigkt.skript.ex.AggregateException
-import playwrigkt.skript.troupe.FileTroupe
-import playwrigkt.skript.troupe.SerializeTroupe
 
 class ApplicationRegistryTest: StringSpec() {
     init {

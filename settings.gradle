@@ -1,5 +1,6 @@
 include 'api:core',
         'api:sql', 'api:http', 'api:queue',
+        'api:application',
         'impl-coroutine:common',
         'impl-coroutine:jackson-serialize',
         'impl-coroutine:jdbc-sql',
