@@ -49,7 +49,3 @@ jobs:
             git clone git@github.com:playwrigkt/skript-examples.git
             cd skript-examples
             ./gradlew build
-      - deploy:
-          command: |
-            export TRAVIS_BRANCH=$CIRCLE_BRANCH
-            ./gradlew ciPerformRelease
