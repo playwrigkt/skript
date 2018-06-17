@@ -6,5 +6,6 @@ kotlin {
 
 dependencies {
     compile project(':api:core')
+    compile project(':api:application')
     compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutine_version"
 }

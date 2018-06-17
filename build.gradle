@@ -126,4 +126,6 @@ subprojects {
 
   javadoc.dependsOn dokka
   javadoc.dependsOn dokkaJavadoc
+  dokka.dependsOn test
+  dokkaJavadoc.dependsOn test
 }

@@ -27,6 +27,6 @@ interface ApplicationResourceLoader<Resource: ApplicationResource> {
                 it.existingApplicationResources
                         .get(it.applicationResourceLoaderConfig.applyOverride(name))
                         ?.let { Try { it as OtherResource } }
-                        ?:Try.Failure(ApplicationResourceLoader.StageManagerException(ApplicationResourceLoader.StageManagerError.NoSuchManager(name)))
+                        ?:Try.Failure(StageManagerException(StageManagerError.NoSuchManager(name)))
             }
 }

@@ -16,8 +16,8 @@ data class AmqpVenue(val amqpConnectionFactory: ConnectionFactory): QueueVenue()
     }
 
     override fun <Troupe> createProduktion(skript: Skript<QueueMessage, Unit, Troupe>,
-                                        stageManager: StageManager<Troupe>,
-                                        rule: String): AsyncResult<Produktion> {
+                                           stageManager: StageManager<Troupe>,
+                                           rule: String): AsyncResult<Produktion> {
         return runAsync { AmqpProduktion(amqpConnection.createChannel(), rule, skript, stageManager) }
                 .map { it as Produktion }
     }

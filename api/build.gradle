@@ -1,5 +1,6 @@
 dependencies {
     compile project(":api:core")
+    compile project(":api:application")
     compile project(":api:http")
     compile project(":api:queue")
     compile project(":api:sql")
