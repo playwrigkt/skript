@@ -22,7 +22,7 @@ order to provider cleaner and more powerful APIs.
 ## Core API
 
 The [core api](api/core/README.md) provides the base definitions for
-the skript apiskript applications. Other projects in [api/](api/)
+the skript api. Other projects in [api/](api/)
 provide contracts for integrating other tools with skript.
 
 ## Examples
@@ -35,20 +35,19 @@ If you're familiar with asynchronous jvm applications, you've probably heard ref
 was first conceptualized as a way to the pain of implementing asynchronous code in java.  Indeed, skripts really are
 just a series of callbacks, presented in a clean way.
 
-## Running Tests
+## Running Tests and building
 
-1. Start the docker environment (postgres): `$ docker-compose up`
-2. run the tests and generate reports: `gradle clean build`
+Before a PR can be merged, the examples must be run with the new artifact.  the previous command will
 
-## Coming Soon:
-* FileSkript
-  * coroutine impl
-  * vertx impl
-* Config Skript
-  *  coroutine impl
-  *  vertx impl
-  *  runtime update
-* AMQPQueue Mangement
-* SQL schema management (maynot?)
-* CacheSkript
-* Encryption
+1. run the tests and generate reports: `~/skript$ ./gradlew clean build`
+2. From the skript examples directory:
+  1. start the environment for the examples `~/skript-examples$ docker-compose up`
+  2. run the examples test suite: `~/skript-examples$ ./gradlew clean build`
+
+## Contributing
+
+Want to contribute? Please read [CONTRIBUTING.md][ed2a5a0b], and [come chat on gitter][e25d14b7]
+
+
+  [ed2a5a0b]: CONTRIBUTING.md "Contributing Read Me"
+  [e25d14b7]: https://gitter.im/playwrigkt-skript/Lobby "Skript Gitter Chatroom"
